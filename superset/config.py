@@ -754,6 +754,13 @@ CSV_EXPORT = {"encoding": "utf-8"}
 # note: index option should not be overridden
 EXCEL_EXPORT = {"encoding": "utf-8"}
 
+# NGLS - BEGIN #
+# PDF Options: key/value pairs that will be passed as argument to DataFrame.to_pdf
+# method.
+# note: index option should not be overridden
+PDF_EXPORT = {"encoding": "utf-8"}
+# NGLS - END #
+
 # ---------------------------------------------------
 # Time grain configurations
 # ---------------------------------------------------

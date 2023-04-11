@@ -61,6 +61,7 @@ describe('Chart', () => {
     addSuccessToast() {},
     addDangerToast() {},
     exportCSV() {},
+    exportPDF() {},
     exportFullCSV() {},
     componentId: 'test',
     dashboardId: 111,
@@ -135,6 +136,24 @@ describe('Chart', () => {
     );
     exploreUtils.exportChart.restore();
   });
+  /* NGLS - BEGIN */
+  it('should call exportChart when exportPDF is clicked', () => {
+    const stubbedExportPDF = sinon
+      .stub(exploreUtils, 'exportChart')
+      .returns(() => {});
+    const wrapper = setup();
+    wrapper.instance().exportPDF(props.slice.sliceId);
+    expect(stubbedExportPDF.calledOnce).toBe(true);
+    expect(stubbedExportPDF.lastCall.args[0]).toEqual(
+      expect.objectContaining({
+        formData: expect.anything(),
+        resultType: 'full',
+        resultFormat: 'pdf',
+      }),
+    );
+    exploreUtils.exportChart.restore();
+  });
+  /* NGLS - END */
   it('should call exportChart with row_limit props.maxRows when exportFullCSV is clicked', () => {
     const stubbedExportCSV = sinon
       .stub(exploreUtils, 'exportChart')

@@ -76,7 +76,9 @@ from superset.superset_typing import (
     VizData,
     VizPayload,
 )
-from superset.utils import core as utils, csv
+# NGLS - BEGIN #
+from superset.utils import core as utils, csv, pdf
+# NGLS - END #
 from superset.utils.cache import set_and_log_cache
 from superset.utils.core import (
     apply_max_row_limit,
@@ -670,6 +672,12 @@ class BaseViz:  # pylint: disable=too-many-public-methods
         df = self.get_df_payload()["df"]  # leverage caching logic
         include_index = not isinstance(df.index, pd.RangeIndex)
         return csv.df_to_escaped_csv(df, index=include_index, **config["CSV_EXPORT"])
+
+    # NGLS - BEGIN #
+    def get_pdf(self) -> Optional[str]:
+        df = self.get_df_payload()["df"]  # leverage caching logic
+        return pdf.df_to_pdf(df, **config["PDF_EXPORT"])
+    # NGLS - END #
 
     def get_data(self, df: pd.DataFrame) -> VizData:  # pylint: disable=no-self-use
         return df.to_dict(orient="records")

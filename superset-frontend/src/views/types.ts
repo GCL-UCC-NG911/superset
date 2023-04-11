@@ -18,6 +18,15 @@
  */
 import { NotificationMethodOption } from './CRUD/alert/types';
 
+/* NGLS - BEGIN */
+export enum NOTIFICATION_FORMATS {
+  TEXT = 'TEXT',
+  PNG = 'PNG',
+  CSV = 'CSV',
+  PDF = 'PDF',
+}
+/* NGLS - END */
+
 export interface ViewState {
   common: {
     conf: {

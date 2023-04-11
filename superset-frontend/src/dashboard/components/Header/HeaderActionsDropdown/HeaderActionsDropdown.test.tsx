@@ -92,11 +92,13 @@ test('should render', () => {
   expect(container).toBeInTheDocument();
 });
 
-test('should render the dropdown button', () => {
-  const mockedProps = createProps();
-  setup(mockedProps);
-  expect(screen.getByRole('button')).toBeInTheDocument();
-});
+/* NGLS - BEGIN */
+// test('should render the dropdown button', () => {
+//   const mockedProps = createProps();
+//   setup(mockedProps);
+//   expect(screen.getByRole('button')).toBeInTheDocument();
+// });
+/* NGLS - END */
 
 test('should render the menu items', async () => {
   const mockedProps = createProps();
@@ -104,9 +106,28 @@ test('should render the menu items', async () => {
   expect(screen.getAllByRole('menuitem')).toHaveLength(4);
   expect(screen.getByText('Refresh dashboard')).toBeInTheDocument();
   expect(screen.getByText('Set auto-refresh interval')).toBeInTheDocument();
-  expect(screen.getByText('Download as image')).toBeInTheDocument();
+  /* NGLS - BEGIN */
+  expect(screen.getByText('Download')).toBeInTheDocument();
+  /* NGLS - END */
   expect(screen.getByText('Enter fullscreen')).toBeInTheDocument();
 });
+
+/* NGLS - BEGIN */
+test('Should open download submenu', async () => {
+  const mockedProps = createProps();
+  setup(mockedProps);
+
+  userEvent.click(screen.getByRole('button', { name: 'Download' }));
+
+  expect(screen.queryByText('Download as image')).not.toBeInTheDocument();
+  expect(screen.queryByText('Download as PDF')).not.toBeInTheDocument();
+
+  expect(screen.getByText('Download')).toBeInTheDocument();
+  userEvent.hover(screen.getByText('Download'));
+  expect(await screen.findByText('Download as image')).toBeInTheDocument();
+  expect(await screen.findByText('Download as PDF')).toBeInTheDocument();
+});
+/* NGLS - END */
 
 test('should render the menu items in edit mode', async () => {
   setup(editModeOnProps);

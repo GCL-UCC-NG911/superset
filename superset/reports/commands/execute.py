@@ -17,11 +17,17 @@
 import json
 import logging
 from datetime import datetime, timedelta
+# NGLS - BEGIN #
+from io import BytesIO
+# NGLS - END #
 from typing import Any, List, Optional, Union
 from uuid import UUID
 
 import pandas as pd
 from celery.exceptions import SoftTimeLimitExceeded
+# NGLS - BEGIN #
+from PIL import Image
+# NGLS - END #
 from sqlalchemy.orm import Session
 
 from superset import app, security_manager
@@ -44,6 +50,10 @@ from superset.reports.commands.exceptions import (
     ReportScheduleDataFrameTimeout,
     ReportScheduleExecuteUnexpectedError,
     ReportScheduleNotFoundError,
+    # NGLS - BEGIN #
+    ReportSchedulePdfFailedError,
+    ReportSchedulePdfTimeout,
+    # NGLS - END #
     ReportSchedulePreviousWorkingError,
     ReportScheduleScreenshotFailedError,
     ReportScheduleScreenshotTimeout,
@@ -73,6 +83,9 @@ from superset.tasks.utils import get_executor
 from superset.utils.celery import session_scope
 from superset.utils.core import HeaderDataType, override_user
 from superset.utils.csv import get_chart_csv_data, get_chart_dataframe
+# NGLS - BEGIN #
+from superset.utils.pdf import df_to_pdf
+# NGLS - END #
 from superset.utils.screenshots import ChartScreenshot, DashboardScreenshot
 from superset.utils.urls import get_url_path
 
@@ -230,6 +243,51 @@ class BaseReportState:
             raise ReportScheduleScreenshotFailedError()
         return [image]
 
+    # NGLS - BEGIN #
+    def get_pdf_image(self) -> Optional[bytes]:
+        images = []
+        snapshots = self._get_screenshots()
+
+        for snap in snapshots:
+            img = Image.open(BytesIO(snap))
+            if img.mode == "RGBA":
+                img = img.convert("RGB")
+            images.append(img)
+
+        new_pdf = BytesIO()
+        images[0].save(new_pdf, "PDF", save_all=True, append_images=images[1:])
+        new_pdf.seek(0)
+        return new_pdf.read()
+
+    def get_pdf_data(self) -> bytes:
+        url = self._get_url(result_format=ChartDataResultFormat.JSON)
+        _, username = get_executor(
+            executor_types=app.config["ALERT_REPORTS_EXECUTE_AS"],
+            model=self._report_schedule,
+        )
+        user = security_manager.find_user(username)
+        auth_cookies = machine_auth_provider_factory.instance.get_auth_cookies(user)
+
+        if self._report_schedule.chart.query_context is None:
+            logger.warning("No query context found, taking a screenshot to generate it")
+            self._update_query_context()
+
+        try:
+            config = app.config
+            logger.info("Getting chart from %s as user %s", url, user.username)
+            dataframe = get_chart_dataframe(url, auth_cookies)
+            pdf_data = df_to_pdf(dataframe, **config["PDF_EXPORT"])
+        except SoftTimeLimitExceeded as ex:
+            raise ReportSchedulePdfTimeout() from ex
+        except Exception as ex:
+            raise ReportSchedulePdfFailedError(
+                f"Failed generating pdf {str(ex)}"
+            ) from ex
+        if not pdf_data:
+            raise ReportSchedulePdfFailedError()
+        return pdf_data
+    # NGLS - END #
+
     def _get_csv_data(self) -> bytes:
         url = self._get_url(result_format=ChartDataResultFormat.CSV)
         _, username = get_executor(
@@ -333,7 +391,9 @@ class BaseReportState:
 
         :raises: ReportScheduleScreenshotFailedError
         """
-        csv_data = None
+        # NGLS - BEGIN #
+        data = None
+        # NGLS - END #
         embedded_data = None
         error_text = None
         screenshot_data = []
@@ -347,12 +407,21 @@ class BaseReportState:
                 screenshot_data = self._get_screenshots()
                 if not screenshot_data:
                     error_text = "Unexpected missing screenshot"
+            # NGLS - BEGIN #
+            elif self._report_schedule.report_format == ReportDataFormat.PDF:
+                if self._report_schedule.chart:
+                    data = self.get_pdf_data()
+                else:
+                    data = self.get_pdf_image()
+                if not data:
+                    error_text = "Unexpected missing PDF file"
+            # NGLS - END #
             elif (
                 self._report_schedule.chart
                 and self._report_schedule.report_format == ReportDataFormat.DATA
             ):
-                csv_data = self._get_csv_data()
-                if not csv_data:
+                data = self._get_csv_data()
+                if not data:
                     error_text = "Unexpected missing csv file"
             if error_text:
                 return NotificationContent(
@@ -383,7 +452,10 @@ class BaseReportState:
             url=url,
             screenshots=screenshot_data,
             description=self._report_schedule.description,
-            csv=csv_data,
+            # NGLS - BEGIN #
+            data=data,
+            data_format=self._report_schedule.report_format,
+            # NGLS - END #
             embedded_data=embedded_data,
             header_data=header_data,
         )
