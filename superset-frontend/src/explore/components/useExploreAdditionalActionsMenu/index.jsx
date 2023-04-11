@@ -42,6 +42,9 @@ const MENU_KEYS = {
   EXPORT_TO_CSV_PIVOTED: 'export_to_csv_pivoted',
   EXPORT_TO_JSON: 'export_to_json',
   EXPORT_TO_XLSX: 'export_to_xlsx',
+  /* NGLS - BEGIN */
+  EXPORT_TO_PDF: 'export_to_pdf',
+  /* NGLS - END */
   DOWNLOAD_AS_IMAGE: 'download_as_image',
   SHARE_SUBMENU: 'share_submenu',
   COPY_PERMALINK: 'copy_permalink',
@@ -176,6 +179,18 @@ export const useExploreAdditionalActionsMenu = (
     [latestQueryFormData],
   );
 
+  /* NGLS - BEGIN */
+  const exportPDF = useCallback(
+    () =>
+      exportChart({
+        formData: latestQueryFormData,
+        resultType: 'results',
+        resultFormat: 'pdf',
+      }),
+    [latestQueryFormData],
+  );
+  /* NGLS - END */
+
   const copyLink = useCallback(async () => {
     try {
       if (!latestQueryFormData) {
@@ -209,13 +224,19 @@ export const useExploreAdditionalActionsMenu = (
           exportJson();
           setIsDropdownVisible(false);
           setOpenSubmenus([]);
-
           break;
         case MENU_KEYS.EXPORT_TO_XLSX:
           exportExcel();
           setIsDropdownVisible(false);
           setOpenSubmenus([]);
           break;
+        /* NGLS - BEGIN */
+        case MENU_KEYS.EXPORT_TO_PDF:
+          exportPDF();
+          setIsDropdownVisible(false);
+          setOpenSubmenus([]);
+          break;
+        /* NGLS - END */
         case MENU_KEYS.DOWNLOAD_AS_IMAGE:
           downloadAsImage(
             '.panel-body .chart-container',
@@ -256,6 +277,9 @@ export const useExploreAdditionalActionsMenu = (
       exportCSV,
       exportCSVPivoted,
       exportJson,
+      /* NGLS - BEGIN */
+      exportPDF,
+      /* NGLS - END */
       latestQueryFormData,
       onOpenInEditor,
       onOpenPropertiesModal,
@@ -334,6 +358,14 @@ export const useExploreAdditionalActionsMenu = (
           >
             {t('Export to Excel')}
           </Menu.Item>
+          {/* NGLS - BEGIN */}
+          <Menu.Item
+            key={MENU_KEYS.EXPORT_TO_PDF}
+            icon={<Icons.FileOutlined css={iconReset} />}
+          >
+            {t('Export to PDF')}
+          </Menu.Item>
+          {/* NGLS - END */}
         </Menu.SubMenu>
         <Menu.SubMenu title={t('Share')} key={MENU_KEYS.SHARE_SUBMENU}>
           <Menu.Item key={MENU_KEYS.COPY_PERMALINK}>

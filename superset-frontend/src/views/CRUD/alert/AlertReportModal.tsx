@@ -417,6 +417,9 @@ const TRANSLATIONS = {
   DASHBOARD_TEXT: t('Dashboard'),
   CHART_TEXT: t('Chart'),
   SEND_AS_PNG_TEXT: t('Send as PNG'),
+  /* NGLS - BEGIN */
+  SEND_AS_PDF_TEXT: t('Send as PDF'),
+  /* NGLS - END */
   SEND_AS_CSV_TEXT: t('Send as CSV'),
   SEND_AS_TEXT: t('Send as text'),
   IGNORE_CACHE_TEXT: t('Ignore cache when generating screenshot'),
@@ -486,9 +489,11 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
   const [chartVizType, setChartVizType] = useState<string>('');
 
   const isEditMode = alert !== null;
-  const formatOptionEnabled =
+  /* NGLS - BEGIN */
+  const chartFormatOptionEnabled =
     contentType === 'chart' &&
     (isFeatureEnabled(FeatureFlag.ALERTS_ATTACH_REPORTS) || isReport);
+  /* NGLS - END */
 
   const [notificationAddState, setNotificationAddState] =
     useState<NotificationAddStatus>('active');
@@ -585,10 +590,9 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
         owner => (owner as MetaObject).value || owner.id,
       ),
       recipients,
-      report_format:
-        contentType === 'dashboard'
-          ? DEFAULT_NOTIFICATION_FORMAT
-          : reportFormat || DEFAULT_NOTIFICATION_FORMAT,
+      /* NGLS - BEGIN */
+      report_format: reportFormat || DEFAULT_NOTIFICATION_FORMAT,
+      /* NGLS - END */
     };
 
     if (data.recipients && !data.recipients.length) {
@@ -1021,11 +1025,9 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
           : 'active',
       );
       setContentType(resource.chart ? 'chart' : 'dashboard');
-      setReportFormat(
-        resource.chart
-          ? resource.report_format || DEFAULT_NOTIFICATION_FORMAT
-          : DEFAULT_NOTIFICATION_FORMAT,
-      );
+      /* NGLS - BEGIN */
+      setReportFormat(resource.report_format || DEFAULT_NOTIFICATION_FORMAT);
+      /* NGLS - END */
       const validatorConfig =
         typeof resource.validator_config_json === 'string'
           ? JSON.parse(resource.validator_config_json)
@@ -1098,6 +1100,31 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
   if (isHidden && show) {
     setIsHidden(false);
   }
+
+  /* NGLS - BEGIN */
+  const supportedFormats = (
+    <>
+      <div className="inline-container">
+        <StyledRadioGroup onChange={onFormatChange} value={reportFormat}>
+          <StyledRadio value="PNG">{TRANSLATIONS.SEND_AS_PNG_TEXT}</StyledRadio>
+          <StyledRadio value="PDF">{TRANSLATIONS.SEND_AS_PDF_TEXT}</StyledRadio>
+          {chartFormatOptionEnabled && (
+            <>
+              <StyledRadio value="CSV">
+                {TRANSLATIONS.SEND_AS_CSV_TEXT}
+              </StyledRadio>
+              {TEXT_BASED_VISUALIZATION_TYPES.includes(chartVizType) && (
+                <StyledRadio value="TEXT">
+                  {TRANSLATIONS.SEND_AS_TEXT}
+                </StyledRadio>
+              )}
+            </>
+          )}
+        </StyledRadioGroup>
+      </div>
+    </>
+  );
+  /* NGLS - END */
 
   return (
     <StyledModal
@@ -1417,28 +1444,6 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
                 onChange={onDashboardChange}
               />
             )}
-            {formatOptionEnabled && (
-              <>
-                <div className="inline-container">
-                  <StyledRadioGroup
-                    onChange={onFormatChange}
-                    value={reportFormat}
-                  >
-                    <StyledRadio value="PNG">
-                      {TRANSLATIONS.SEND_AS_PNG_TEXT}
-                    </StyledRadio>
-                    <StyledRadio value="CSV">
-                      {TRANSLATIONS.SEND_AS_CSV_TEXT}
-                    </StyledRadio>
-                    {TEXT_BASED_VISUALIZATION_TYPES.includes(chartVizType) && (
-                      <StyledRadio value="TEXT">
-                        {TRANSLATIONS.SEND_AS_TEXT}
-                      </StyledRadio>
-                    )}
-                  </StyledRadioGroup>
-                </div>
-              </>
-            )}
             {(isReport || contentType === 'dashboard') && (
               <div className="inline-container">
                 <StyledCheckbox
@@ -1451,6 +1456,9 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
                 </StyledCheckbox>
               </div>
             )}
+            {/* NGLS - BEGIN */}
+            {supportedFormats}
+            {/* NGLS - END */}
             <StyledSectionTitle>
               <h4>{TRANSLATIONS.NOTIFICATION_METHOD_TEXT}</h4>
               <span className="required">*</span>

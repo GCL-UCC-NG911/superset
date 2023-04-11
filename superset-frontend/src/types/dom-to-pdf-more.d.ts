@@ -1,3 +1,4 @@
+/* NGLS - EXCLUSIVE */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,24 +17,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { NotificationMethodOption } from './CRUD/alert/types';
 
-/* NGLS - BEGIN */
-export enum NOTIFICATION_FORMATS {
-  TEXT = 'TEXT',
-  PNG = 'PNG',
-  CSV = 'CSV',
-  PDF = 'PDF',
-}
-/* NGLS - END */
+declare module 'dom-to-pdf-more' {
+  export interface Options {
+    filter?: ((node: Node) => boolean) | undefined;
+    bgcolor?: string | undefined;
+    width?: number | undefined;
+    height?: number | undefined;
+    style?: {} | undefined;
+    quality?: number | undefined;
+    imagePlaceholder?: string | undefined;
+    cacheBust?: boolean | undefined;
+  }
 
-export interface ViewState {
-  common: {
-    conf: {
-      SQLALCHEMY_DOCS_URL: string;
-      SQLALCHEMY_DISPLAY_TEXT: string;
-      ALERT_REPORTS_NOTIFICATION_METHODS: NotificationMethodOption[];
-    };
-  };
-  messageToast: Array<Object>;
+  class DomToPdfMore {
+    static DomToPdf(node: Node, options?: Options): Promise<string>;
+  }
+
+  export default DomToPdfMore;
 }

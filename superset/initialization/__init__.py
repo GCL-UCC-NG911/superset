@@ -25,6 +25,15 @@ import wtforms_json
 from deprecation import deprecated
 from flask import Flask, redirect
 from flask_appbuilder import expose, IndexView
+# NGLS - BEGIN #
+from flask_appbuilder.security.sqla.apis import (
+    PermissionApi,
+    PermissionViewMenuApi,
+    RoleApi,
+    UserApi,
+    ViewMenuApi,
+)
+# NGLS - END #
 from flask_babel import gettext as __, lazy_gettext as _
 from flask_compress import Compress
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -381,6 +390,15 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
             ),
         )
         appbuilder.add_api(SecurityRestApi)
+        # NGLS - BEGIN #
+        if self.config["FAB_ADD_SECURITY_API"]:
+            appbuilder.add_api(PermissionApi)
+            appbuilder.add_api(PermissionViewMenuApi)
+            appbuilder.add_api(RoleApi)
+            appbuilder.add_api(UserApi)
+            appbuilder.add_api(ViewMenuApi)
+        # NGLS - END #
+
         #
         # Conditionally setup email views
         #

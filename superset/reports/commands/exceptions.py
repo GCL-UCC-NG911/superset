@@ -159,6 +159,12 @@ class ReportScheduleCsvFailedError(CommandException):
     message = _("Report Schedule execution failed when generating a csv.")
 
 
+# NGLS - BEGIN #
+class ReportSchedulePdfFailedError(CommandException):
+    message = _("Report Schedule execution failed when generating a pdf.")
+# NGLS - END #
+
+
 class ReportScheduleDataFrameFailedError(CommandException):
     message = _("Report Schedule execution failed when generating a dataframe.")
 
@@ -236,6 +242,13 @@ class ReportScheduleScreenshotTimeout(CommandException):
 class ReportScheduleCsvTimeout(CommandException):
     status = 408
     message = _("A timeout occurred while generating a csv.")
+
+
+# NGLS - BEGIN #
+class ReportSchedulePdfTimeout(CommandException):
+    status = 408
+    message = _("A timeout occurred while generating a pdf.")
+# NGLS - END #
 
 
 class ReportScheduleDataFrameTimeout(CommandException):

@@ -32,11 +32,19 @@ import injectCustomCss from 'src/dashboard/util/injectCustomCss';
 import { SAVE_TYPE_NEWDASHBOARD } from 'src/dashboard/util/constants';
 import FilterScopeModal from 'src/dashboard/components/filterscope/FilterScopeModal';
 import downloadAsImage from 'src/utils/downloadAsImage';
+/* NGLS - BEGIN */
+import downloadAsPdf from 'src/utils/downloadAsPdf';
+/* NGLS - END */
 import getDashboardUrl from 'src/dashboard/util/getDashboardUrl';
 import { getActiveFilters } from 'src/dashboard/util/activeDashboardFilters';
 import { getUrlParam } from 'src/utils/urlUtils';
 import { FILTER_BOX_MIGRATION_STATES } from 'src/explore/constants';
-import { LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE } from 'src/logger/LogUtils';
+import {
+  LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE,
+  /* NGLS - BEGIN */
+  LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF,
+  /* NGLS - END */
+} from 'src/logger/LogUtils';
 
 const propTypes = {
   addSuccessToast: PropTypes.func.isRequired,
@@ -94,6 +102,10 @@ const MENU_KEYS = {
   EDIT_PROPERTIES: 'edit-properties',
   EDIT_CSS: 'edit-css',
   DOWNLOAD_AS_IMAGE: 'download-as-image',
+  /* NGLS - BEGIN */
+  DOWNLOAD_AS_PDF: 'download-as-pdf',
+  DOWNLOAD_SUBMENU: 'download-submenu',
+  /* NGLS - END */
   TOGGLE_FULLSCREEN: 'toggle-fullscreen',
   MANAGE_EMBEDDED: 'manage-embedded',
   MANAGE_EMAIL_REPORT: 'manage-email-report',
@@ -187,6 +199,25 @@ class HeaderActionsDropdown extends React.PureComponent {
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE);
         break;
       }
+      /* NGLS - BEGIN */
+      case MENU_KEYS.DOWNLOAD_AS_PDF: {
+        // menu closes with a delay, we need to hide it manually,
+        // so that we don't capture it on the screenshot
+        const menu = document.querySelector(
+          '.ant-dropdown:not(.ant-dropdown-hidden)',
+        );
+        menu.style.visibility = 'hidden';
+        downloadAsPdf(
+          SCREENSHOT_NODE_SELECTOR,
+          this.props.dashboardTitle,
+          true,
+        )(domEvent).then(() => {
+          menu.style.visibility = 'visible';
+        });
+        this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF);
+        break;
+      }
+      /* NGLS - END */
       case MENU_KEYS.TOGGLE_FULLSCREEN: {
         const url = getDashboardUrl({
           pathname: window.location.pathname,
@@ -315,13 +346,21 @@ class HeaderActionsDropdown extends React.PureComponent {
             />
           </Menu.Item>
         )}
-        {!editMode && (
-          <Menu.Item
-            key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
-            onClick={this.handleMenuClick}
-          >
-            {t('Download as image')}
-          </Menu.Item>
+        {/* NGLS */ !editMode && (
+          <Menu.SubMenu title={t('Download')} key={MENU_KEYS.DOWNLOAD_SUBMENU}>
+            <Menu.Item
+              key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
+              onClick={this.handleMenuClick}
+            >
+              {t('Download as image')}
+            </Menu.Item>
+            <Menu.Item
+              key={MENU_KEYS.DOWNLOAD_AS_PDF}
+              onClick={this.handleMenuClick}
+            >
+              {t('Download as PDF')}
+            </Menu.Item>
+          </Menu.SubMenu>
         )}
         {userCanShare && (
           <Menu.SubMenu

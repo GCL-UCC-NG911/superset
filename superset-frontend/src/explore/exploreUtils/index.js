@@ -243,7 +243,9 @@ export const exportChart = ({
 }) => {
   let url;
   let payload;
-  if (shouldUseLegacyApi(formData)) {
+  /* NGLS - BEGIN */
+  if (resultFormat !== 'pdf' && shouldUseLegacyApi(formData)) {
+  /* NGLS - END */
     const endpointType = getLegacyEndpointType({ resultFormat, resultType });
     url = getExploreUrl({
       formData,

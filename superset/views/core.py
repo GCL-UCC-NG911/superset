@@ -127,7 +127,9 @@ from superset.sqllab.utils import apply_display_max_row_configuration_if_require
 from superset.sqllab.validators import CanAccessQueryValidatorImpl
 from superset.superset_typing import FlaskResponse
 from superset.tasks.async_queries import load_explore_json_into_cache
-from superset.utils import core as utils, csv
+# NGLS - BEGIN #
+from superset.utils import core as utils, csv, pdf
+# NGLS - END #
 from superset.utils.async_query_manager import AsyncQueryTokenException
 from superset.utils.cache import etag_cache
 from superset.utils.core import (
@@ -151,6 +153,9 @@ from superset.views.base import (
     json_error_response,
     json_errors_response,
     json_success,
+    # NGLS - BEGIN #
+    PdfResponse,
+    # NGLS - END #
     validate_sqlatable,
 )
 from superset.views.log.dao import LogDAO
@@ -486,6 +491,13 @@ class Superset(BaseSupersetView):  # pylint: disable=too-many-public-methods
             return CsvResponse(
                 viz_obj.get_csv(), headers=generate_download_headers("csv")
             )
+
+        # NGLS - BEGIN #
+        if response_type == ChartDataResultFormat.PDF:
+            return PdfResponse(
+                viz_obj.get_pdf(), headers=generate_download_headers("pdf")
+            )
+        # NGLS - END #
 
         if response_type == ChartDataResultType.QUERY:
             return self.get_query_string_response(viz_obj)

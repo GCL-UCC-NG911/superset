@@ -1,3 +1,4 @@
+# NGLS - EXCLUSIVE #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -14,38 +15,26 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-from enum import Enum
-from typing import Set
+import io
+import logging
+import re
+import urllib.request
+from typing import Any, Dict, Optional
+from urllib.error import URLError
 
+import numpy as np
+import pandas as pd
+import simplejson
+import pdfkit
 
-class ChartDataResultFormat(str, Enum):
-    """
-    Chart data response format
-    """
+from superset.utils.core import GenericDataType
 
-    CSV = "csv"
-    JSON = "json"
-    XLSX = "xlsx"
-    # NGLS - BEGIN #
-    PDF = "pdf"
-    # NGLS - END #
+logger = logging.getLogger(__name__)
 
-    @classmethod
-    def table_like(cls) -> Set["ChartDataResultFormat"]:
-    # NGLS - BEGIN #
-        return {cls.CSV} | {cls.XLSX} | {cls.PDF}
-    # NGLS - END #
+def df_to_pdf(df: pd.DataFrame, **kwargs: Any) -> Any:
+    # convert the pandas dataframe to html
+    html = df.to_html()
+    # convert html to pdf
+    output = pdfkit.from_string(html, False)
 
-class ChartDataResultType(str, Enum):
-    """
-    Chart data response type
-    """
-
-    COLUMNS = "columns"
-    FULL = "full"
-    QUERY = "query"
-    RESULTS = "results"
-    SAMPLES = "samples"
-    TIMEGRAINS = "timegrains"
-    POST_PROCESSED = "post_processed"
-    DRILL_DETAIL = "drill_detail"
+    return output

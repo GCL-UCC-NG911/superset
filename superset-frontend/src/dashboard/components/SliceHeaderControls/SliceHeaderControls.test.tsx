@@ -43,6 +43,9 @@ const createProps = (viz_type = 'sunburst') =>
     addSuccessToast: jest.fn(),
     exploreChart: jest.fn(),
     exportCSV: jest.fn(),
+    /* NGLS - BEGIN */
+    exportPDF: jest.fn(),
+    /* NGLS - END */
     exportFullCSV: jest.fn(),
     forceRefresh: jest.fn(),
     handleToggleFullSize: jest.fn(),
@@ -125,6 +128,10 @@ test('Should render default props', () => {
   delete props.exploreChart;
   // @ts-ignore
   delete props.exportCSV;
+  /* NGLS - BEGIN */
+  // @ts-ignore
+  delete props.exportPDF;
+  /* NGLS - END */
   // @ts-ignore
   delete props.cachedDttm;
   // @ts-ignore
@@ -169,6 +176,18 @@ test('Should "export to CSV"', async () => {
   expect(props.exportCSV).toBeCalledTimes(1);
   expect(props.exportCSV).toBeCalledWith(371);
 });
+
+/* NGLS - BEGIN */
+test('Should "Download as PDF"', async () => {
+  const props = createProps();
+  renderWrapper(props);
+  expect(props.exportPDF).toBeCalledTimes(0);
+  userEvent.hover(screen.getByText('Download'));
+  userEvent.click(await screen.findByText('Download as PDF'));
+  expect(props.exportPDF).toBeCalledTimes(1);
+  expect(props.exportPDF).toBeCalledWith(371);
+});
+/* NGLS - END */
 
 test('Should not show "Download" if slice is filter box', () => {
   const props = createProps('filter_box');

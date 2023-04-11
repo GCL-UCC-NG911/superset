@@ -71,8 +71,8 @@ module.exports = {
     'prettier',
     'react',
     'file-progress',
-    'theme-colors',
-    'translation-vars',
+    'superset-theme-colors',
+    'superset-translation-vars',
   ],
   overrides: [
     {
@@ -205,15 +205,15 @@ module.exports = {
         'packages/superset-ui-core/src/style/index.tsx',
       ],
       rules: {
-        'theme-colors/no-literal-colors': 0,
-        'translation-vars/no-template-vars': 0,
+        'superset-theme-colors/no-literal-colors': 0,
+        'superset-translation-vars/no-template-vars': 0,
         'no-restricted-imports': 0,
       },
     },
   ],
   rules: {
-    'theme-colors/no-literal-colors': 'error',
-    'translation-vars/no-template-vars': ['error', true],
+    'superset-theme-colors/no-literal-colors': 'error',
+    'superset-translation-vars/no-template-vars': ['error', true],
     camelcase: [
       'error',
       {

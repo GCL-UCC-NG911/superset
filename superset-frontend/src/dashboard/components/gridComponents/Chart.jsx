@@ -35,6 +35,9 @@ import {
   LOG_ACTIONS_CHANGE_DASHBOARD_FILTER,
   LOG_ACTIONS_EXPLORE_DASHBOARD_CHART,
   LOG_ACTIONS_EXPORT_CSV_DASHBOARD_CHART,
+  /* NGLS - BEGIN */
+  LOG_ACTIONS_EXPORT_PDF_DASHBOARD_CHART,
+  /* NGLS - END */
   LOG_ACTIONS_FORCE_REFRESH_CHART,
 } from 'src/logger/LogUtils';
 import { areObjectsEqual } from 'src/reduxUtils';
@@ -155,6 +158,9 @@ class Chart extends React.Component {
     this.handleFilterMenuOpen = this.handleFilterMenuOpen.bind(this);
     this.handleFilterMenuClose = this.handleFilterMenuClose.bind(this);
     this.exportCSV = this.exportCSV.bind(this);
+    /* NGLS - BEGIN */
+    this.exportPDF = this.exportPDF.bind(this);
+    /* NGLS - END */
     this.exportFullCSV = this.exportFullCSV.bind(this);
     this.forceRefresh = this.forceRefresh.bind(this);
     this.resize = this.resize.bind(this);
@@ -360,6 +366,21 @@ class Chart extends React.Component {
     });
   }
 
+  /* NGLS - BEGIN */
+  exportPDF() {
+    this.props.logEvent(LOG_ACTIONS_EXPORT_PDF_DASHBOARD_CHART, {
+      slice_id: this.props.slice.slice_id,
+      is_cached: this.props.isCached,
+    });
+    exportChart({
+      formData: this.props.formData,
+      resultType: 'full',
+      resultFormat: 'pdf',
+      force: true,
+    });
+  }
+  /* NGLS - END */
+
   exportFullCSV() {
     this.exportCSV(true);
   }
@@ -464,6 +485,9 @@ class Chart extends React.Component {
           logEvent={logEvent}
           onExploreChart={this.onExploreChart}
           exportCSV={this.exportCSV}
+          /* NGLS - BEGIN */
+          exportPDF={this.exportPDF}
+          /* NGLS - END */
           exportFullCSV={this.exportFullCSV}
           updateSliceName={updateSliceName}
           sliceName={sliceName}

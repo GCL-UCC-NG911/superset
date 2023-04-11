@@ -46,7 +46,9 @@ from superset.exceptions import (
 from superset.extensions import cache_manager, security_manager
 from superset.models.helpers import QueryResult
 from superset.models.sql_lab import Query
-from superset.utils import csv, excel
+# NGLS - BEGIN #
+from superset.utils import csv, excel, pdf
+# NGLS - END #
 from superset.utils.cache import generate_cache_key, set_and_log_cache
 from superset.utils.core import (
     DatasourceType,
@@ -462,6 +464,10 @@ class QueryContextProcessor:
                 )
             elif self._query_context.result_format == ChartDataResultFormat.XLSX:
                 result = excel.df_to_excel(df, **config["EXCEL_EXPORT"])
+            # NGLS - BEGIN #
+            elif self._query_context.result_format == ChartDataResultFormat.PDF:
+                result = pdf.df_to_pdf(df, **config["PDF_EXPORT"])
+            # NGLS - END #
             return result or ""
 
         return df.to_dict(orient="records")

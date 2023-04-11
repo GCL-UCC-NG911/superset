@@ -46,7 +46,7 @@ from superset.exceptions import QueryObjectValidationError
 from superset.extensions import event_logger
 from superset.utils.async_query_manager import AsyncQueryTokenException
 from superset.utils.core import create_zip, get_user_id, json_int_dttm_ser
-from superset.views.base import CsvResponse, generate_download_headers, XlsxResponse
+from superset.views.base import CsvResponse, generate_download_headers, PdfResponse, XlsxResponse
 from superset.views.base_api import statsd_metrics
 
 if TYPE_CHECKING:
@@ -361,13 +361,15 @@ class ChartDataRestApi(ChartRestApi):
             if not result["queries"]:
                 return self.response_400(_("Empty query result"))
 
-            is_csv_format = result_format == ChartDataResultFormat.CSV
-
             if len(result["queries"]) == 1:
                 # return single query results
                 data = result["queries"][0]["data"]
-                if is_csv_format:
+                if result_format == ChartDataResultFormat.CSV:
                     return CsvResponse(data, headers=generate_download_headers("csv"))
+                # NGLS - BEGIN #
+                elif result_format == ChartDataResultFormat.PDF:
+                    return PdfResponse(data, headers=generate_download_headers("pdf"))
+                # NGLS - END #
 
                 return XlsxResponse(data, headers=generate_download_headers("xlsx"))
 

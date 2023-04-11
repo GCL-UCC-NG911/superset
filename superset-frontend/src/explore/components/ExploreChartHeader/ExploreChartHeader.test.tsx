@@ -259,12 +259,20 @@ describe('Additional actions tests', () => {
     expect(screen.queryByText('Export to .CSV')).not.toBeInTheDocument();
     expect(screen.queryByText('Export to .JSON')).not.toBeInTheDocument();
     expect(screen.queryByText('Download as image')).not.toBeInTheDocument();
+    /* NGLS - BEGIN */
+    expect(screen.queryByText('Export to Excel')).not.toBeInTheDocument();
+    expect(screen.queryByText('Export to PDF')).not.toBeInTheDocument();
+    /* NGLS - END */
 
     expect(screen.getByText('Download')).toBeInTheDocument();
     userEvent.hover(screen.getByText('Download'));
     expect(await screen.findByText('Export to .CSV')).toBeInTheDocument();
     expect(await screen.findByText('Export to .JSON')).toBeInTheDocument();
     expect(await screen.findByText('Download as image')).toBeInTheDocument();
+    /* NGLS - BEGIN */
+    expect(await screen.findByText('Export to Excel')).toBeInTheDocument();
+    expect(await screen.findByText('Export to PDF')).toBeInTheDocument();
+    /* NGLS - END */
   });
 
   test('Should open share submenu', async () => {
@@ -367,6 +375,22 @@ describe('Additional actions tests', () => {
 
       expect(spy).toBeCalledTimes(1);
     });
+
+    /* NGLS - BEGIN */
+    test('Should call downloadAsPdf when click on "Export to PDF"', async () => {
+      const props = createProps();
+      render(<ExploreHeader {...props} />, {
+        useRedux: true,
+      });
+
+      userEvent.click(screen.getByLabelText('Menu actions trigger'));
+      userEvent.hover(screen.getByText('Download'));
+      const exportPDFElement = await screen.findByText('Export to PDF');
+      userEvent.click(exportPDFElement);
+      expect(spyExportChart.callCount).toBe(1);
+      spyExportChart.restore();
+    });
+    /* NGLS - END */
 
     test('Should not export to CSV if canDownload=false', async () => {
       const props = createProps();

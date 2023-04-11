@@ -225,6 +225,7 @@ function ReportModal({
     </>
   );
 
+  /* NGLS - BEGIN */
   const renderMessageContentSection = (
     <>
       <StyledMessageContentTitle>
@@ -245,13 +246,19 @@ function ReportModal({
           <StyledRadio value={NOTIFICATION_FORMATS.PNG}>
             {t('Image (PNG) embedded in email')}
           </StyledRadio>
-          <StyledRadio value={NOTIFICATION_FORMATS.CSV}>
-            {t('Formatted CSV attached in email')}
+          {isChart && (
+            <StyledRadio value={NOTIFICATION_FORMATS.CSV}>
+              {t('Formatted CSV attached in email')}
+            </StyledRadio>
+          )}
+          <StyledRadio value={NOTIFICATION_FORMATS.PDF}>
+            {t('Formatted PDF attached in email')}
           </StyledRadio>
         </StyledRadioGroup>
       </div>
     </>
   );
+  /* NGLS - END */
 
   return (
     <StyledModal
@@ -325,7 +332,7 @@ function ReportModal({
             setCurrentReport({ timezone: value });
           }}
         />
-        {isChart && renderMessageContentSection}
+        {renderMessageContentSection}
       </StyledBottomSection>
       {currentReport.error && (
         <Alert

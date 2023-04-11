@@ -1,7 +1,7 @@
 {
-  "name": "eslint-plugin-translation-vars",
+  "name": "eslint-plugin-superset-theme-colors",
   "version": "1.0.0",
-  "description": "Warns about translation variables",
+  "description": "Warns about rgb(a)/hex/literal colors",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,8 +9,5 @@
   "keywords": [],
   "license": "Apache-2.0",
   "author": "Apache",
-  "dependencies": {},
-  "peerDependencies": {
-    "eslint": ">=0.8.0"
-  }
+  "dependencies": {}
 }

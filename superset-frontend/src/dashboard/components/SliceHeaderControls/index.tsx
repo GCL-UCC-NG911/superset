@@ -59,6 +59,9 @@ import { LOG_ACTIONS_CHART_DOWNLOAD_AS_IMAGE } from 'src/logger/LogUtils';
 const MENU_KEYS = {
   CROSS_FILTER_SCOPING: 'cross_filter_scoping',
   DOWNLOAD_AS_IMAGE: 'download_as_image',
+  /* NGLS - BEGIN */
+  DOWNLOAD_AS_PDF: 'download_as_pdf',
+  /* NGLS - END */
   EXPLORE_CHART: 'explore_chart',
   EXPORT_CSV: 'export_csv',
   EXPORT_FULL_CSV: 'export_full_csv',
@@ -140,6 +143,9 @@ export interface SliceHeaderControlsProps {
   logEvent?: (eventName: string, eventData?: object) => void;
   toggleExpandSlice?: (sliceId: number) => void;
   exportCSV?: (sliceId: number) => void;
+  /* NGLS - BEGIN */
+  exportPDF?: (sliceId: number) => void;
+  /* NGLS - END */
   exportFullCSV?: (sliceId: number) => void;
   handleToggleFullSize: () => void;
 
@@ -302,6 +308,12 @@ class SliceHeaderControls extends React.PureComponent<
         // eslint-disable-next-line no-unused-expressions
         this.props.exportCSV?.(this.props.slice.slice_id);
         break;
+      /* NGLS - BEGIN */
+      case MENU_KEYS.DOWNLOAD_AS_PDF:
+        // eslint-disable-next-line no-unused-expressions
+        this.props.exportPDF?.(this.props.slice.slice_id);
+        break;
+      /* NGLS - END */
       case MENU_KEYS.FULLSCREEN:
         this.props.handleToggleFullSize();
         break;
@@ -531,6 +543,14 @@ class SliceHeaderControls extends React.PureComponent<
               >
                 {t('Download as image')}
               </Menu.Item>
+              {/* NGLS - BEGIN */}
+              <Menu.Item
+                key={MENU_KEYS.DOWNLOAD_AS_PDF}
+                icon={<Icons.FileImageOutlined css={dropdownIconsStyles} />}
+              >
+                {t('Download as PDF')}
+              </Menu.Item>
+              {/* NGLS - END */}
             </Menu.SubMenu>
           )}
       </Menu>
