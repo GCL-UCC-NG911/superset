@@ -346,22 +346,28 @@ class HeaderActionsDropdown extends React.PureComponent {
             />
           </Menu.Item>
         )}
-        {/* NGLS */ !editMode && (
-          <Menu.SubMenu title={t('Download')} key={MENU_KEYS.DOWNLOAD_SUBMENU}>
-            <Menu.Item
-              key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
-              onClick={this.handleMenuClick}
+        {
+          /* NGLS */
+          !editMode && (
+            <Menu.SubMenu
+              title={t('Download')}
+              key={MENU_KEYS.DOWNLOAD_SUBMENU}
             >
-              {t('Download as image')}
-            </Menu.Item>
-            <Menu.Item
-              key={MENU_KEYS.DOWNLOAD_AS_PDF}
-              onClick={this.handleMenuClick}
-            >
-              {t('Download as PDF')}
-            </Menu.Item>
-          </Menu.SubMenu>
-        )}
+              <Menu.Item
+                key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
+                onClick={this.handleMenuClick}
+              >
+                {t('Download as image')}
+              </Menu.Item>
+              <Menu.Item
+                key={MENU_KEYS.DOWNLOAD_AS_PDF}
+                onClick={this.handleMenuClick}
+              >
+                {t('Download as PDF')}
+              </Menu.Item>
+            </Menu.SubMenu>
+          )
+        }
         {userCanShare && (
           <Menu.SubMenu
             key={MENU_KEYS.SHARE_DASHBOARD}

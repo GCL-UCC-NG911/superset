@@ -108,7 +108,7 @@ test('should render the menu items', async () => {
   expect(screen.getByText('Set auto-refresh interval')).toBeInTheDocument();
   /* NGLS - BEGIN */
   expect(screen.getByText('Download')).toBeInTheDocument();
-/* NGLS - END */
+  /* NGLS - END */
   expect(screen.getByText('Enter fullscreen')).toBeInTheDocument();
 });
 

@@ -48,6 +48,7 @@ module.exports = {
     ecmaFeatures: {
       experimentalObjectRestSpread: true,
     },
+    requireConfigFile: false,
   },
   env: {
     browser: true,
