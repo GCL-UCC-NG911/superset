@@ -91,12 +91,12 @@ export const downloadPdf = (dom, options, cb) => {
   };
 
   const {
-    filename,
+    compression,
     excludeClassNames = [],
     excludeTagNames = ['button', 'input', 'select'],
+    filename,
     overrideWidth,
     proxyUrl,
-    compression = 'NONE',
     scale,
   } = options;
 
