@@ -18,9 +18,19 @@
  * under the License.
  */
 import { SyntheticEvent } from 'react';
+import kebabCase from 'lodash/kebabCase';
 import { t } from '@superset-ui/core';
 import { addWarningToast } from 'src/components/MessageToasts/actions';
 import { downloadPdf } from 'src/utils/generatePdf';
+
+/**
+ * generate a consistent file stem from a description and date
+ *
+ * @param description title or description of content of file
+ * @param date date when file was generated
+ */
+const generateFileStem = (description: string, date = new Date()) =>
+  `${kebabCase(description)}-${date.toISOString().replace(/[: ]/g, '-')}`;
 
 /**
  * Create an event handler for turning an element into an image
@@ -43,7 +53,7 @@ export default function downloadAsPdf(
 
     if (!elementToPrint) {
       return addWarningToast(
-        t('Pdf download failed, please refresh and try again.'),
+        t('PDF download failed, please refresh and try again.'),
       );
     }
 
@@ -51,7 +61,7 @@ export default function downloadAsPdf(
     // See https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL#exceptions
 
     return downloadPdf(elementToPrint, {
-      filename: `${description}.pdf`,
+      filename: `${generateFileStem(description)}.pdf`,
     });
   };
 }
