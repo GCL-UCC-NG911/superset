@@ -62,7 +62,7 @@ const generatePdf = (canvas: HTMLCanvasElement, filename: string) => {
   const pageHeightPx = Math.floor(canvasWidthPx * pageRatio);
 
   // Calculate the number of pages
-  let nPages = Math.ceil(canvasHeightPx / pageHeightPx);
+  const nPages = Math.ceil(canvasHeightPx / pageHeightPx);
 
   let adjustedCanvas;
   if (canvasHeightPx % pageHeightPx !== 0) {
