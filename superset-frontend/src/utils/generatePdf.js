@@ -322,7 +322,7 @@ export const downloadPdfNew = (canvas, options) => {
   });
 
   // PDF page width and height in points
-  const { width: pageWidthPt, heigh: pageHeightPt } = pdf.internal.pageSize;
+  const { width: pageWidthPt, height: pageHeightPt } = pdf.internal.pageSize;
 
   // Calculate the height of a single page in pixels
   const pageRatio = pageHeightPt / pageWidthPt;
