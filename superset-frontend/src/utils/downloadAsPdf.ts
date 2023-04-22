@@ -20,9 +20,9 @@
 import { SyntheticEvent } from 'react';
 import domToImage from 'dom-to-image-more';
 import kebabCase from 'lodash/kebabCase';
+import { jsPDF } from 'jspdf';
 import { t, supersetTheme } from '@superset-ui/core';
 import { addWarningToast } from 'src/components/MessageToasts/actions';
-import { downloadPdf, downloadPdfNew } from 'src/utils/generatePdf';
 
 /**
  * generate a consistent file stem from a description and date
@@ -32,6 +32,92 @@ import { downloadPdf, downloadPdfNew } from 'src/utils/generatePdf';
  */
 const generateFileStem = (description: string, date = new Date()) =>
   `${kebabCase(description)}-${date.toISOString().replace(/[: ]/g, '-')}`;
+
+/**
+ * Generate and save the PDF file
+ *
+ * @param canvas the canvas element populated by dom-to-image-more package.
+ * @param file the PDF filename.
+ * @returns promise resolved when PDF is saved
+ */
+const generatePdf = (canvas: HTMLCanvasElement, filename: string) => {
+  // @ts-ignore
+  if (window.testError) {
+    throw new Error('test error');
+  }
+
+  // Canvas width and height in pixels
+  const { width: canvasWidthPx, height: canvasHeightPx } = canvas;
+
+  const pdf = new jsPDF({
+    orientation: 'l', // Always use landscape
+    unit: 'pt',
+    format: 'letter',
+    compress: true,
+  });
+
+  // PDF page width and height in points
+  const { width: pageWidthPt, height: pageHeightPt } = pdf.internal.pageSize;
+
+  // Calculate the height of a single page in pixels
+  const pageRatio = pageHeightPt / pageWidthPt;
+  const pageHeightPx = Math.floor(canvasWidthPx * pageRatio);
+
+  // Calculate the number of pages
+  const nPages = Math.ceil(canvasHeightPx / pageHeightPx);
+
+  let heightPt;
+  // @ts-ignore
+  if (nPages === 1 && !window.testPages) {
+    heightPt = pageWidthPt * (canvasHeightPx / canvasWidthPx);
+    pdf.addImage(
+      canvas.toDataURL('image/PNG'),
+      'PNG',
+      0,
+      0,
+      pageWidthPt,
+      heightPt,
+    );
+  } else {
+    // Create separate canvas for each page
+    const pageCanvas = document.createElement('canvas');
+    const pageCtx = pageCanvas.getContext('2d');
+    pageCanvas.width = canvas.width;
+    pageCanvas.height = pageHeightPx;
+
+    let pageNr = 0;
+    while (pageNr < nPages) {
+      if (pageNr === nPages - 1 && canvasHeightPx % pageHeightPx !== 0) {
+        // Adjust height for last page
+        pageCanvas.height = canvasHeightPx % pageHeightPx;
+        heightPt = pageWidthPt * (pageCanvas.height / pageCanvas.width);
+      } else {
+        heightPt = pageHeightPt;
+      }
+      const { width: w, height: h } = pageCanvas;
+      pageCtx!.fillStyle = 'white';
+      pageCtx!.fillRect(0, 0, w, h);
+      pageCtx!.drawImage(canvas, 0, pageNr * pageHeightPx, w, h, 0, 0, w, h);
+
+      // Add a new page to the PDF.
+      if (pageNr > 0) {
+        pdf.addPage();
+      }
+
+      pdf.addImage(
+        pageCanvas.toDataURL('image/PNG'),
+        'PNG',
+        0,
+        0,
+        pageWidthPt,
+        heightPt,
+      );
+      pageNr += 1;
+    }
+  }
+
+  return pdf.save(filename);
+};
 
 /**
  * Create an event handler for turning an element into an image
@@ -58,16 +144,6 @@ export default function downloadAsPdf(
       );
     }
 
-    // @ts-ignore
-    if (window.pdfOld) {
-      // Mapbox controls are loaded from different origin, causing CORS error
-      // See https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL#exceptions
-
-      return downloadPdf(elementToPrint, {
-        filename: `${generateFileStem(description)}.pdf`,
-      });
-    }
-
     // Mapbox controls are loaded from different origin, causing CORS error
     // See https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL#exceptions
     const filter = (node: Element) => {
@@ -85,20 +161,14 @@ export default function downloadAsPdf(
         bgcolor: supersetTheme.colors.grayscale.light4,
         filter,
       })
-      .then(canvas => {
-        // @ts-ignore
-        if (window.pdfImage) {
-          const link = document.createElement('a');
-          link.download = `${generateFileStem(description)}.png`;
-          link.href = canvas.toDataURL('image/PNG');
-          link.click();
-        }
-        return downloadPdfNew(canvas, {
-          filename: `${generateFileStem(description)}.pdf`,
-        });
-      })
+      .then(canvas =>
+        generatePdf(canvas, `${generateFileStem(description)}.pdf`),
+      )
       .catch(e => {
-        console.error('Creating image failed', e);
+        console.error('Creating PDF failed', e);
+        addWarningToast(
+          t('PDF download failed, please refresh and try again.'),
+        );
       });
   };
 }
