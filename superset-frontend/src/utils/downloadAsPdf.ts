@@ -85,11 +85,18 @@ export default function downloadAsPdf(
         bgcolor: supersetTheme.colors.grayscale.light4,
         filter,
       })
-      .then(canvas =>
-        downloadPdfNew(canvas, {
+      .then(canvas => {
+        // @ts-ignore
+        if (window.pdfImage) {
+          const link = document.createElement('a');
+          link.download = `${generateFileStem(description)}.png`;
+          link.href = canvas.toDataURL('image/PNG');
+          link.click();
+        }
+        return downloadPdfNew(canvas, {
           filename: `${generateFileStem(description)}.pdf`,
-        }),
-      )
+        });
+      })
       .catch(e => {
         console.error('Creating image failed', e);
       });
