@@ -123,13 +123,13 @@ const generatePdf = (canvas: HTMLCanvasElement, filename: string) => {
     // Create separate canvas for each page
     const pageCanvas = document.createElement('canvas');
     const pageCtx = pageCanvas.getContext('2d');
-    pageCanvas.width = canvas.width;
+    pageCanvas.width = canvasWidthPx;
     pageCanvas.height = pageHeightPx;
     const { width: w, height: h } = pageCanvas;
 
     let pageNr = 0;
     while (pageNr < nPages) {
-      pageCtx!.drawImage(canvas, 0, pageNr * pageHeightPx, w, h, 0, 0, w, h);
+      pageCtx!.drawImage(adjustedCanvas, 0, pageNr * pageHeightPx, w, h, 0, 0, w, h);
 
       // Add a new page to the PDF.
       if (pageNr > 0) {
