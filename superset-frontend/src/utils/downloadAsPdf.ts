@@ -190,6 +190,7 @@ export default function downloadAsPdf(
 
     return domToImage
       .toCanvas(elementToPrint, {
+        /* eslint-disable-next-line superset-theme-colors/no-literal-colors */
         bgcolor: 'white',
         filter,
       })
