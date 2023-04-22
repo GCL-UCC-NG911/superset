@@ -24,6 +24,8 @@ import { jsPDF } from 'jspdf';
 import { t } from '@superset-ui/core';
 import { addWarningToast } from 'src/components/MessageToasts/actions';
 
+const MARGIN_PT = 10;
+
 /**
  * generate a consistent file stem from a description and date
  *
@@ -57,7 +59,8 @@ const generatePdf = (canvas: HTMLCanvasElement, filename: string) => {
   });
 
   // PDF page width and height in points
-  const { width: pageWidthPt, height: pageHeightPt } = pdf.internal.pageSize;
+  const pageWidthPt = pdf.internal.pageSize.width;
+  const pageHeightPt = pdf.internal.pageSize.height - 2 * MARGIN_PT;
 
   // Calculate the height of a single page in pixels
   const pageRatio = pageHeightPt / pageWidthPt;
@@ -115,7 +118,7 @@ const generatePdf = (canvas: HTMLCanvasElement, filename: string) => {
       adjustedCanvas.toDataURL('image/PNG'),
       'PNG',
       0,
-      0,
+      MARGIN_PT,
       pageWidthPt,
       pageHeightPt,
     );
@@ -129,6 +132,8 @@ const generatePdf = (canvas: HTMLCanvasElement, filename: string) => {
 
     let pageNr = 0;
     while (pageNr < nPages) {
+      pageCtx!.fillStyle = 'white';
+      pageCtx!.fillRect(0, 0, w, h);
       pageCtx!.drawImage(
         adjustedCanvas,
         0,
@@ -150,7 +155,7 @@ const generatePdf = (canvas: HTMLCanvasElement, filename: string) => {
         pageCanvas.toDataURL('image/PNG'),
         'PNG',
         0,
-        0,
+        MARGIN_PT,
         pageWidthPt,
         pageHeightPt,
       );
