@@ -24,7 +24,7 @@ import { jsPDF } from 'jspdf';
 import { t } from '@superset-ui/core';
 import { addWarningToast } from 'src/components/MessageToasts/actions';
 
-const MARGIN_PT = 0;
+const MARGIN_PT = 10;
 
 /**
  * generate a consistent file stem from a description and date
