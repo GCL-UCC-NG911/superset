@@ -31,6 +31,7 @@ declare module 'dom-to-image-more' {
 
   class DomToImageMore {
     static toJpeg(node: Node, options?: Options): Promise<string>;
+    static toCanvas(node: Node, options?: Options): Promise<any>;
   }
 
   export default DomToImageMore;
