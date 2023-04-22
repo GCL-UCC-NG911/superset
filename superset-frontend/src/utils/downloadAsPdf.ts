@@ -97,7 +97,7 @@ const generatePdf = (canvas: HTMLCanvasElement, filename: string) => {
       ctx!.drawImage(
         canvas,
         0,
-        canvasHeightPx,
+        0,
         canvasWidthPx,
         canvasHeightPx,
         0,
