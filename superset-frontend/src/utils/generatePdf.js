@@ -307,3 +307,78 @@ export const downloadPdf = (dom, options, cb) => {
       console.error(error);
     });
 };
+
+export const downloadPdfNew = (canvas, options) => {
+  const { filename } = options;
+
+  // Canvas width and height in pixels
+  const { width: canvasWidthPx, height: canvasHeightPx } = canvas;
+
+  const pdf = new jsPDF({
+    orientation: 'l', // Always use landscape
+    unit: 'pt',
+    format: 'letter',
+    compress: true,
+  });
+
+  // PDF page width and height in points
+  const { width: pageWidthPt, heigh: pageHeightPt } = pdf.internal.pageSize;
+
+  // Calculate the height of a single page in pixels
+  const pageRatio = pageHeightPt / pageWidthPt;
+  const pageHeightPx = Math.floor(canvasWidthPx * pageRatio);
+
+  // Calculate the number of pages
+  const nPages = Math.ceil(canvasHeightPx / pageHeightPx);
+
+  let heightPt;
+  if (nPages === 1) {
+    heightPt = pageWidthPt * (canvasHeightPx / canvasWidthPx);
+    pdf.addImage(
+      canvas.toDataURL('image/PNG'),
+      'PNG',
+      0,
+      0,
+      pageWidthPt,
+      heightPt,
+    );
+  } else {
+    // Create separate canvas for each page
+    const pageCanvas = document.createElement('canvas');
+    const pageCtx = pageCanvas.getContext('2d');
+    pageCanvas.width = canvas.width;
+    pageCanvas.height = pageHeightPx;
+
+    let pageNr = 0;
+    while (pageNr < nPages) {
+      if (pageNr === nPages - 1 && canvasHeightPx % pageHeightPx !== 0) {
+        // Adjust height for last page
+        pageCanvas.height = canvasHeightPx % pageHeightPx;
+        heightPt = pageWidthPt * (pageCanvas.height / pageCanvas.width);
+      } else {
+        heightPt = pageHeightPt;
+      }
+      const { width: w, height: h } = pageCanvas;
+      pageCtx.fillStyle = 'white';
+      pageCtx.fillRect(0, 0, w, h);
+      pageCtx.drawImage(canvas, 0, pageNr * pageHeightPx, w, h, 0, 0, w, h);
+
+      // Add a new page to the PDF.
+      if (pageNr > 0) {
+        pdf.addPage();
+      }
+
+      pdf.addImage(
+        pageCanvas.toDataURL('image/PNG'),
+        'PNG',
+        0,
+        0,
+        pageWidthPt,
+        heightPt,
+      );
+      pageNr += 1;
+    }
+  }
+
+  return pdf.save(filename);
+};

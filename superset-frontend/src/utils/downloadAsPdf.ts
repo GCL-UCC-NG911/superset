@@ -18,10 +18,11 @@
  * under the License.
  */
 import { SyntheticEvent } from 'react';
+import domToImage from 'dom-to-image-more';
 import kebabCase from 'lodash/kebabCase';
-import { t } from '@superset-ui/core';
+import { t, supersetTheme } from '@superset-ui/core';
 import { addWarningToast } from 'src/components/MessageToasts/actions';
-import { downloadPdf } from 'src/utils/generatePdf';
+import { downloadPdf, downloadPdfNew } from 'src/utils/generatePdf';
 
 /**
  * generate a consistent file stem from a description and date
@@ -57,11 +58,40 @@ export default function downloadAsPdf(
       );
     }
 
+    // @ts-ignore
+    if (window.pdfOld) {
+      // Mapbox controls are loaded from different origin, causing CORS error
+      // See https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL#exceptions
+
+      return downloadPdf(elementToPrint, {
+        filename: `${generateFileStem(description)}.pdf`,
+      });
+    }
+
     // Mapbox controls are loaded from different origin, causing CORS error
     // See https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL#exceptions
+    const filter = (node: Element) => {
+      if (typeof node.className === 'string') {
+        return (
+          node.className !== 'mapboxgl-control-container' &&
+          !node.className.includes('ant-dropdown')
+        );
+      }
+      return true;
+    };
 
-    return downloadPdf(elementToPrint, {
-      filename: `${generateFileStem(description)}.pdf`,
-    });
+    return domToImage
+      .toCanvas(elementToPrint, {
+        bgcolor: supersetTheme.colors.grayscale.light4,
+        filter,
+      })
+      .then(canvas =>
+        downloadPdfNew(canvas, {
+          filename: `${generateFileStem(description)}.pdf`,
+        }),
+      )
+      .catch(e => {
+        console.error('Creating image failed', e);
+      });
   };
 }
