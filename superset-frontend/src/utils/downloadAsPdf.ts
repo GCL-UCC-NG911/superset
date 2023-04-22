@@ -21,7 +21,7 @@ import { SyntheticEvent } from 'react';
 import domToImage from 'dom-to-image-more';
 import kebabCase from 'lodash/kebabCase';
 import { jsPDF } from 'jspdf';
-import { t, supersetTheme } from '@superset-ui/core';
+import { t } from '@superset-ui/core';
 import { addWarningToast } from 'src/components/MessageToasts/actions';
 
 /**
@@ -64,19 +64,60 @@ const generatePdf = (canvas: HTMLCanvasElement, filename: string) => {
   const pageHeightPx = Math.floor(canvasWidthPx * pageRatio);
 
   // Calculate the number of pages
-  const nPages = Math.ceil(canvasHeightPx / pageHeightPx);
+  let nPages = Math.ceil(canvasHeightPx / pageHeightPx);
 
-  let heightPt;
   // @ts-ignore
-  if (nPages === 1 && !window.testPages) {
-    heightPt = pageWidthPt * (canvasHeightPx / canvasWidthPx);
+  if (window.testPages) {
+    nPages *= 2;
+  }
+
+  let adjustedCanvas;
+  if (canvasHeightPx % pageHeightPx !== 0) {
+    // Create an adjusted canvas with the exact size of the PDF pages
+    adjustedCanvas = document.createElement('canvas');
+    adjustedCanvas.width = canvasWidthPx;
+    adjustedCanvas.height = nPages * pageHeightPx;
+    adjustedCanvas.style.backgroundColor = 'white';
+    // Copy original canvas content
+    const ctx = adjustedCanvas.getContext('2d');
+    ctx!.drawImage(
+      canvas,
+      0,
+      0,
+      canvasWidthPx,
+      canvasHeightPx,
+      0,
+      0,
+      canvasWidthPx,
+      canvasHeightPx,
+    );
+
+    // @ts-ignore
+    if (window.testPages) {
+      ctx!.drawImage(
+        canvas,
+        0,
+        canvasHeightPx,
+        canvasWidthPx,
+        canvasHeightPx,
+        0,
+        canvasHeightPx,
+        canvasWidthPx,
+        canvasHeightPx,
+      );
+    }
+  } else {
+    adjustedCanvas = canvas;
+  }
+
+  if (nPages === 1) {
     pdf.addImage(
-      canvas.toDataURL('image/PNG'),
+      adjustedCanvas.toDataURL('image/PNG'),
       'PNG',
       0,
       0,
       pageWidthPt,
-      heightPt,
+      pageHeightPt,
     );
   } else {
     // Create separate canvas for each page
@@ -84,19 +125,10 @@ const generatePdf = (canvas: HTMLCanvasElement, filename: string) => {
     const pageCtx = pageCanvas.getContext('2d');
     pageCanvas.width = canvas.width;
     pageCanvas.height = pageHeightPx;
+    const { width: w, height: h } = pageCanvas;
 
     let pageNr = 0;
     while (pageNr < nPages) {
-      if (pageNr === nPages - 1 && canvasHeightPx % pageHeightPx !== 0) {
-        // Adjust height for last page
-        pageCanvas.height = canvasHeightPx % pageHeightPx;
-        heightPt = pageWidthPt * (pageCanvas.height / pageCanvas.width);
-      } else {
-        heightPt = pageHeightPt;
-      }
-      const { width: w, height: h } = pageCanvas;
-      pageCtx!.fillStyle = 'white';
-      pageCtx!.fillRect(0, 0, w, h);
       pageCtx!.drawImage(canvas, 0, pageNr * pageHeightPx, w, h, 0, 0, w, h);
 
       // Add a new page to the PDF.
@@ -110,7 +142,7 @@ const generatePdf = (canvas: HTMLCanvasElement, filename: string) => {
         0,
         0,
         pageWidthPt,
-        heightPt,
+        pageHeightPt,
       );
       pageNr += 1;
     }
@@ -158,7 +190,7 @@ export default function downloadAsPdf(
 
     return domToImage
       .toCanvas(elementToPrint, {
-        bgcolor: supersetTheme.colors.grayscale.light4,
+        bgcolor: 'white',
         filter,
       })
       .then(canvas =>
@@ -166,9 +198,6 @@ export default function downloadAsPdf(
       )
       .catch(e => {
         console.error('Creating PDF failed', e);
-        addWarningToast(
-          t('PDF download failed, please refresh and try again.'),
-        );
       });
   };
 }
