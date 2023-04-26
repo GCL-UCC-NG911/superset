@@ -365,7 +365,7 @@ const config = {
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true,
+              sourceMap: isDevMode,
             },
           },
         ],
@@ -378,13 +378,13 @@ const config = {
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true,
+              sourceMap: isDevMode,
             },
           },
           {
             loader: 'less-loader',
             options: {
-              sourceMap: true,
+              sourceMap: isDevMode,
               lessOptions: {
                 javascriptEnabled: true,
                 modifyVars: {
@@ -475,7 +475,7 @@ const config = {
     'react/lib/ReactContext': true,
   },
   plugins,
-  devtool: 'source-map',
+  devtool: isDevMode ? 'source-map' : false,
 };
 
 // find all the symlinked plugins and use their source code for imports
@@ -493,7 +493,6 @@ console.log(''); // pure cosmetic new line
 let proxyConfig = getProxyConfig();
 
 if (isDevMode) {
-  config.devtool = 'eval-cheap-module-source-map';
   config.devServer = {
     onBeforeSetupMiddleware(devServer) {
       // load proxy config when manifest updates
