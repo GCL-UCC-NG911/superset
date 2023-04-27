@@ -15,26 +15,15 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import io
-import logging
-import re
-import urllib.request
-from typing import Any, Dict, Optional
-from urllib.error import URLError
+from typing import Any, Dict
 
-import numpy as np
 import pandas as pd
-import simplejson
 import pdfkit
 
-from superset.utils.core import GenericDataType
-
-logger = logging.getLogger(__name__)
-
-def df_to_pdf(df: pd.DataFrame, **kwargs: Any) -> Any:
+def df_to_pdf(df: pd.DataFrame, options: Dict = None) -> Any:
     # convert the pandas dataframe to html
     html = df.to_html()
     # convert html to pdf
-    output = pdfkit.from_string(html, False)
+    output = pdfkit.from_string(html, False, options=options)
 
     return output

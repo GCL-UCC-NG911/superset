@@ -276,7 +276,7 @@ class BaseReportState:
             config = app.config
             logger.info("Getting chart from %s as user %s", url, user.username)
             dataframe = get_chart_dataframe(url, auth_cookies)
-            pdf_data = df_to_pdf(dataframe, **config["PDF_EXPORT"])
+            pdf_data = df_to_pdf(dataframe, config["PDF_EXPORT"])
         except SoftTimeLimitExceeded as ex:
             raise ReportSchedulePdfTimeout() from ex
         except Exception as ex:
