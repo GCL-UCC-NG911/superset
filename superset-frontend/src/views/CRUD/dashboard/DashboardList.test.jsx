@@ -140,7 +140,7 @@ describe('DashboardList', () => {
     const callsD = fetchMock.calls(/dashboard\/\?q/);
     expect(callsD).toHaveLength(1);
     expect(callsD[0][0]).toMatchInlineSnapshot(
-      `"http://localhost/api/v1/dashboard/?q=(order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:25)"`,
+      `"http://localhost/api/v1/dashboard/?q=(order_column:dashboard_title,order_direction:asc,page:0,page_size:25)"`,
     );
   });
 
