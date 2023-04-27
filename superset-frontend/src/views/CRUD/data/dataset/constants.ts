@@ -19,7 +19,7 @@
 import { t } from '@superset-ui/core';
 
 export const PAGE_SIZE = 25;
-export const SORT_BY = [{ id: 'changed_on_delta_humanized', desc: true }];
+export const SORT_BY = [{ id: 'table_name', asc: true }];
 export const PASSWORDS_NEEDED_MESSAGE = t(
   'The passwords for the databases below are needed in order to ' +
     'import them together with the datasets. Please note that the ' +

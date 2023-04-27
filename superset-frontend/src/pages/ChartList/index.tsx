@@ -219,7 +219,7 @@ function ChartList(props: ChartListProps) {
   const canDelete = hasPerm('can_write');
   const canExport =
     hasPerm('can_export') && isFeatureEnabled(FeatureFlag.VERSIONED_EXPORT);
-  const initialSort = [{ id: 'changed_on_delta_humanized', desc: true }];
+  const initialSort = [{ id: 'slice_name', asc: true }];
   const enableBroadUserAccess =
     bootstrapData.common.conf.ENABLE_BROAD_ACTIVITY_ACCESS;
   const handleBulkChartExport = (chartsToExport: Chart[]) => {
