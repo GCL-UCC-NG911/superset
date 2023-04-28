@@ -23,10 +23,11 @@ import pdfkit
 css = """
 <style>
     table {
-        border-spacing: 0px
+        border-spacing: 0px;
+        font-size: small;
     }
-    td {
-        padding: 2px
+    th, td {
+        padding: 2px 4px;
     }
 </style>
 """

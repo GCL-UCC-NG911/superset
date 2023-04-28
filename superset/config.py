@@ -758,9 +758,9 @@ EXCEL_EXPORT = {"encoding": "utf-8"}
 # PDF Options: Options dictionary that will be passed as argument to pdfkit.
 PDF_EXPORT = {
     "page-size": "Letter",
-    "margin-top": "0.1in",
+    "margin-top": "0.2in",
     "margin-right": "0.1in",
-    "margin-bottom": "0.1in",
+    "margin-bottom": "0.2in",
     "margin-left": "0.1in",
     "encoding": "UTF-8",
     "orientation": "Landscape"
