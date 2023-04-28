@@ -32,10 +32,10 @@ css = """
 </style>
 """
 
-def df_to_pdf(df: pd.DataFrame, options: Dict = None) -> Any:
-    print("WTF4")
+def df_to_pdf(df: pd.DataFrame, options: Dict = None, title: str = None) -> Any:
+    title_header = f"<strong>{title}</strong>" if title else ""
     # convert the pandas dataframe to html
     html = df.to_html(index=False, justify="left")
     # convert html to pdf
-    output = pdfkit.from_string(css + html, False, options=options)
+    output = pdfkit.from_string(css + title_header + html, False, options=options)
     return output

@@ -466,8 +466,8 @@ class QueryContextProcessor:
                 result = excel.df_to_excel(df, **config["EXCEL_EXPORT"])
             # NGLS - BEGIN #
             elif self._query_context.result_format == ChartDataResultFormat.PDF:
-                print("WTF2")
-                result = pdf.df_to_pdf(df, config["PDF_EXPORT"])
+                print(f"WTF2 {self._query_context.slice_name}")
+                result = pdf.df_to_pdf(df, config["PDF_EXPORT"], self._query_context.slice_name)
             # NGLS - END #
             return result or ""
 
