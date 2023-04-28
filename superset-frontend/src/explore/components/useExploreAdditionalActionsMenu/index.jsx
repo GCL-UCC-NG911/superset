@@ -124,7 +124,9 @@ export const useExploreAdditionalActionsMenu = (
   const { datasource } = latestQueryFormData;
 
   /* NGLS - BEGIN */
-  latestQueryFormData.slice_name = slice.slice_name;
+  if (slice?.slice_name) {
+    latestQueryFormData.report_name = slice.slice_name;
+  }
   /* NGLS - END */
 
   const shareByEmail = useCallback(async () => {
