@@ -256,9 +256,9 @@ describe('Additional actions tests', () => {
 
     userEvent.click(screen.getByLabelText('Menu actions trigger'));
 
-    expect(screen.queryByText('Export to .CSV')).not.toBeInTheDocument();
-    expect(screen.queryByText('Export to .JSON')).not.toBeInTheDocument();
-    expect(screen.queryByText('Download as image')).not.toBeInTheDocument();
+    expect(screen.queryByText('Export to CSV')).not.toBeInTheDocument();
+    expect(screen.queryByText('Export to JSON')).not.toBeInTheDocument();
+    expect(screen.queryByText('Export to image')).not.toBeInTheDocument();
     /* NGLS - BEGIN */
     expect(screen.queryByText('Export to Excel')).not.toBeInTheDocument();
     expect(screen.queryByText('Export to PDF')).not.toBeInTheDocument();
@@ -266,9 +266,9 @@ describe('Additional actions tests', () => {
 
     expect(screen.getByText('Download')).toBeInTheDocument();
     userEvent.hover(screen.getByText('Download'));
-    expect(await screen.findByText('Export to .CSV')).toBeInTheDocument();
-    expect(await screen.findByText('Export to .JSON')).toBeInTheDocument();
-    expect(await screen.findByText('Download as image')).toBeInTheDocument();
+    expect(await screen.findByText('Export to CSV')).toBeInTheDocument();
+    expect(await screen.findByText('Export to JSON')).toBeInTheDocument();
+    expect(await screen.findByText('Export to image')).toBeInTheDocument();
     /* NGLS - BEGIN */
     expect(await screen.findByText('Export to Excel')).toBeInTheDocument();
     expect(await screen.findByText('Export to PDF')).toBeInTheDocument();
@@ -369,7 +369,7 @@ describe('Additional actions tests', () => {
 
       userEvent.hover(screen.getByText('Download'));
       const downloadAsImageElement = await screen.findByText(
-        'Download as image',
+        'Export to image',
       );
       userEvent.click(downloadAsImageElement);
 
@@ -399,7 +399,7 @@ describe('Additional actions tests', () => {
       });
       userEvent.click(screen.getByLabelText('Menu actions trigger'));
       userEvent.hover(screen.getByText('Download'));
-      const exportCSVElement = await screen.findByText('Export to .CSV');
+      const exportCSVElement = await screen.findByText('Export to CSV');
       userEvent.click(exportCSVElement);
       expect(spyExportChart.callCount).toBe(0);
       spyExportChart.restore();
@@ -414,7 +414,7 @@ describe('Additional actions tests', () => {
 
       userEvent.click(screen.getByLabelText('Menu actions trigger'));
       userEvent.hover(screen.getByText('Download'));
-      const exportCSVElement = await screen.findByText('Export to .CSV');
+      const exportCSVElement = await screen.findByText('Export to CSV');
       userEvent.click(exportCSVElement);
       expect(spyExportChart.callCount).toBe(1);
       spyExportChart.restore();
@@ -428,7 +428,7 @@ describe('Additional actions tests', () => {
 
       userEvent.click(screen.getByLabelText('Menu actions trigger'));
       userEvent.hover(screen.getByText('Download'));
-      const exportJsonElement = await screen.findByText('Export to .JSON');
+      const exportJsonElement = await screen.findByText('Export to JSON');
       userEvent.click(exportJsonElement);
       expect(spyExportChart.callCount).toBe(1);
     });
