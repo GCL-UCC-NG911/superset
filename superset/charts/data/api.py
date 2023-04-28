@@ -368,6 +368,7 @@ class ChartDataRestApi(ChartRestApi):
                     return CsvResponse(data, headers=generate_download_headers("csv"))
                 # NGLS - BEGIN #
                 elif result_format == ChartDataResultFormat.PDF:
+                    print(f"WTF00")
                     return PdfResponse(data, headers=generate_download_headers("pdf"))
                 # NGLS - END #
 

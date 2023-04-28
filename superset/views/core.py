@@ -494,6 +494,7 @@ class Superset(BaseSupersetView):  # pylint: disable=too-many-public-methods
 
         # NGLS - BEGIN #
         if response_type == ChartDataResultFormat.PDF:
+            print("WTF11")
             return PdfResponse(
                 viz_obj.get_pdf(), headers=generate_download_headers("pdf")
             )

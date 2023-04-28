@@ -467,9 +467,8 @@ class QueryContextProcessor:
             # NGLS - BEGIN #
             elif self._query_context.result_format == ChartDataResultFormat.PDF:
                 if self._query_context.form_data:
-                    slice_name = self._query_context.form_data.get("slice_name")
-                print(f"WTF2 {slice_name}")
-                result = pdf.df_to_pdf(df, config["PDF_EXPORT"], slice_name)
+                    title = self._query_context.form_data.get("slice_name")
+                result = pdf.df_to_pdf(df, config["PDF_EXPORT"], title)
             # NGLS - END #
             return result or ""
 
