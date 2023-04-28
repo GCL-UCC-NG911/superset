@@ -180,7 +180,7 @@ def data_payload_response(payload_json: str, has_error: bool = False) -> FlaskRe
 
 def generate_filename(description: str) -> str:
     date_str = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-    return f"{slugify(description)-{date_str}}"
+    return f"{slugify(description)}-{date_str}"
 
 
 def generate_download_headers(
