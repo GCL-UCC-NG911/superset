@@ -33,6 +33,7 @@ css = """
 """
 
 def df_to_pdf(df: pd.DataFrame, options: Dict = None) -> Any:
+    print("WTF4")
     # convert the pandas dataframe to html
     html = df.to_html(index=False, justify="left")
     # convert html to pdf
