@@ -46,6 +46,7 @@ from flask_jwt_extended.exceptions import NoAuthorizationError
 from flask_wtf.csrf import CSRFError
 from flask_wtf.form import FlaskForm
 from pkg_resources import resource_filename
+from slugify import slugify
 from sqlalchemy import exc
 from sqlalchemy.orm import Query
 from werkzeug.exceptions import HTTPException
@@ -175,6 +176,11 @@ def json_success(json_msg: str, status: int = 200) -> FlaskResponse:
 def data_payload_response(payload_json: str, has_error: bool = False) -> FlaskResponse:
     status = 400 if has_error else 200
     return json_success(payload_json, status=status)
+
+
+def generate_filename(description: str) -> str:
+    date_str = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    return f"{slugify(description)-{date_str}}"
 
 
 def generate_download_headers(

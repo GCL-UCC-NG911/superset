@@ -46,7 +46,13 @@ from superset.exceptions import QueryObjectValidationError
 from superset.extensions import event_logger
 from superset.utils.async_query_manager import AsyncQueryTokenException
 from superset.utils.core import create_zip, get_user_id, json_int_dttm_ser
-from superset.views.base import CsvResponse, generate_download_headers, PdfResponse, XlsxResponse
+from superset.views.base import (
+    CsvResponse,
+    generate_download_headers,
+    generate_filename,
+    PdfResponse,
+    XlsxResponse,
+)
 from superset.views.base_api import statsd_metrics
 
 if TYPE_CHECKING:
@@ -347,6 +353,10 @@ class ChartDataRestApi(ChartRestApi):
         result_type = result["query_context"].result_type
         result_format = result["query_context"].result_format
 
+        if form_data:
+            title = form_data.get("slice_name")
+            filename = generate_filename(title) if title else None
+
         # Post-process the data so it matches the data presented in the chart.
         # This is needed for sending reports based on text charts that do the
         # post-processing of data, eg, the pivot table.
@@ -368,8 +378,7 @@ class ChartDataRestApi(ChartRestApi):
                     return CsvResponse(data, headers=generate_download_headers("csv"))
                 # NGLS - BEGIN #
                 elif result_format == ChartDataResultFormat.PDF:
-                    print(f"WTF00")
-                    return PdfResponse(data, headers=generate_download_headers("pdf"))
+                    return PdfResponse(data, headers=generate_download_headers("pdf", filename=filename))
                 # NGLS - END #
 
                 return XlsxResponse(data, headers=generate_download_headers("xlsx"))

@@ -56,8 +56,6 @@ linear-tsv==1.1.0
     # via tabulator
 matplotlib-inline==0.1.3
     # via ipython
-mysqlclient==2.1.0
-    # via apache-superset
 openpyxl==3.0.7
     # via tabulator
 parso==0.8.3
@@ -80,8 +78,6 @@ pure-sasl==0.6.2
     # via thrift-sasl
 pydruid==0.6.5
     # via apache-superset
-pygments==2.12.0
-    # via ipython
 pyhive[hive]==0.6.5
     # via apache-superset
 pyinstrument==4.0.2

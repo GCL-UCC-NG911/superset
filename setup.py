@@ -126,6 +126,8 @@ setup(
         "wtforms>=2.3.3, <2.4",
         "wtforms-json",
         "xlsxwriter>=3.0.7, <3.1",
+        # NGLS packages
+        "python-slugify",
     ],
     extras_require={
         "athena": ["pyathena[pandas]>=2, <3"],
@@ -161,7 +163,7 @@ setup(
         "kusto": ["sqlalchemy-kusto>=2.0.0, <3"],
         "kylin": ["kylinpy>=2.8.1, <2.9"],
         "mssql": ["pymssql>=2.1.4, <2.2"],
-        "mysql": ["mysqlclient>=2.1.0, <3"],
+        #"mysql": ["mysqlclient>=2.1.0, <3"],
         "oracle": ["cx-Oracle>8.0.0, <8.1"],
         "pinot": ["pinotdb>=0.3.3, <0.4"],
         "postgres": ["psycopg2-binary==2.9.5"],
