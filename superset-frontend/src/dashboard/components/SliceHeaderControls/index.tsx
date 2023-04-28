@@ -522,7 +522,7 @@ class SliceHeaderControls extends React.PureComponent<
                 key={MENU_KEYS.EXPORT_CSV}
                 icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
               >
-                {t('Export to .CSV')}
+                {t('Export to CSV')}
               </Menu.Item>
 
               {this.props.slice.viz_type !== 'filter_box' &&

@@ -172,7 +172,7 @@ test('Should "export to CSV"', async () => {
   renderWrapper(props);
   expect(props.exportCSV).toBeCalledTimes(0);
   userEvent.hover(screen.getByText('Download'));
-  userEvent.click(await screen.findByText('Export to .CSV'));
+  userEvent.click(await screen.findByText('Export to CSV'));
   expect(props.exportCSV).toBeCalledTimes(1);
   expect(props.exportCSV).toBeCalledWith(371);
 });
@@ -203,7 +203,7 @@ test('Export full CSV is under featureflag', async () => {
   const props = createProps('table');
   renderWrapper(props);
   userEvent.hover(screen.getByText('Download'));
-  expect(await screen.findByText('Export to .CSV')).toBeInTheDocument();
+  expect(await screen.findByText('Export to CSV')).toBeInTheDocument();
   expect(screen.queryByText('Export to full .CSV')).not.toBeInTheDocument();
 });
 
@@ -228,7 +228,7 @@ test('Should not show export full CSV if report is not table', async () => {
   };
   renderWrapper();
   userEvent.hover(screen.getByText('Download'));
-  expect(await screen.findByText('Export to .CSV')).toBeInTheDocument();
+  expect(await screen.findByText('Export to CSV')).toBeInTheDocument();
   expect(screen.queryByText('Export to full .CSV')).not.toBeInTheDocument();
 });
 
