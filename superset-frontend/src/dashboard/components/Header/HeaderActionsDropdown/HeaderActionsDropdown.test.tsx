@@ -119,13 +119,13 @@ test('Should open download submenu', async () => {
 
   userEvent.click(screen.getByRole('button', { name: 'Download' }));
 
-  expect(screen.queryByText('Export to image')).not.toBeInTheDocument();
-  expect(screen.queryByText('Export to PDF')).not.toBeInTheDocument();
+  expect(screen.queryByText('Download as image')).not.toBeInTheDocument();
+  expect(screen.queryByText('Download as PDF')).not.toBeInTheDocument();
 
   expect(screen.getByText('Download')).toBeInTheDocument();
   userEvent.hover(screen.getByText('Download'));
-  expect(await screen.findByText('Export to image')).toBeInTheDocument();
-  expect(await screen.findByText('Export to PDF')).toBeInTheDocument();
+  expect(await screen.findByText('Download as image')).toBeInTheDocument();
+  expect(await screen.findByText('Download as PDF')).toBeInTheDocument();
 });
 /* NGLS - END */
 

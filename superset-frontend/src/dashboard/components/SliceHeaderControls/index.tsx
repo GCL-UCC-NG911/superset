@@ -522,7 +522,7 @@ class SliceHeaderControls extends React.PureComponent<
                 key={MENU_KEYS.EXPORT_CSV}
                 icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
               >
-                {t('Export to CSV')}
+                {t('Export to .CSV')}
               </Menu.Item>
 
               {this.props.slice.viz_type !== 'filter_box' &&
@@ -541,14 +541,14 @@ class SliceHeaderControls extends React.PureComponent<
                 key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
                 icon={<Icons.FileImageOutlined css={dropdownIconsStyles} />}
               >
-                {t('Export to image')}
+                {t('Download as image')}
               </Menu.Item>
               {/* NGLS - BEGIN */}
               <Menu.Item
                 key={MENU_KEYS.DOWNLOAD_AS_PDF}
                 icon={<Icons.FileImageOutlined css={dropdownIconsStyles} />}
               >
-                {t('Export to PDF')}
+                {t('Download as PDF')}
               </Menu.Item>
               {/* NGLS - END */}
             </Menu.SubMenu>

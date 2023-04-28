@@ -357,13 +357,13 @@ class HeaderActionsDropdown extends React.PureComponent {
                 key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
                 onClick={this.handleMenuClick}
               >
-                {t('Export to image')}
+                {t('Download as image')}
               </Menu.Item>
               <Menu.Item
                 key={MENU_KEYS.DOWNLOAD_AS_PDF}
                 onClick={this.handleMenuClick}
               >
-                {t('Export to PDF')}
+                {t('Download as PDF')}
               </Menu.Item>
             </Menu.SubMenu>
           )

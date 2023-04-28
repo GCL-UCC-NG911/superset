@@ -337,26 +337,26 @@ export const useExploreAdditionalActionsMenu = (
               icon={<Icons.FileOutlined css={iconReset} />}
               disabled={!canDownloadCSV}
             >
-              {t('Export to CSV')}
+              {t('Export to .CSV')}
             </Menu.Item>
           )}
           <Menu.Item
-            key={MENU_KEYS.EXPORT_TO_XLSX}
+            key={MENU_KEYS.EXPORT_TO_JSON}
             icon={<Icons.FileOutlined css={iconReset} />}
           >
-            {t('Export to Excel')}
+            {t('Export to .JSON')}
           </Menu.Item>
           <Menu.Item
             key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
             icon={<Icons.FileImageOutlined css={iconReset} />}
           >
-            {t('Export to image')}
+            {t('Download as image')}
           </Menu.Item>
           <Menu.Item
-            key={MENU_KEYS.EXPORT_TO_JSON}
+            key={MENU_KEYS.EXPORT_TO_XLSX}
             icon={<Icons.FileOutlined css={iconReset} />}
           >
-            {t('Export to JSON')}
+            {t('Export to Excel')}
           </Menu.Item>
           {/* NGLS - BEGIN */}
           <Menu.Item
