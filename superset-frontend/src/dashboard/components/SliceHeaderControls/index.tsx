@@ -59,12 +59,12 @@ import { LOG_ACTIONS_CHART_DOWNLOAD_AS_IMAGE } from 'src/logger/LogUtils';
 const MENU_KEYS = {
   CROSS_FILTER_SCOPING: 'cross_filter_scoping',
   DOWNLOAD_AS_IMAGE: 'download_as_image',
-  /* NGLS - BEGIN */
-  DOWNLOAD_AS_PDF: 'download_as_pdf',
-  /* NGLS - END */
   EXPLORE_CHART: 'explore_chart',
   EXPORT_CSV: 'export_csv',
   EXPORT_FULL_CSV: 'export_full_csv',
+  /* NGLS - BEGIN */
+  EXPORT_PDF: 'export_pdf',
+  /* NGLS - END */
   FORCE_REFRESH: 'force_refresh',
   FULLSCREEN: 'fullscreen',
   TOGGLE_CHART_DESCRIPTION: 'toggle_chart_description',
@@ -309,7 +309,7 @@ class SliceHeaderControls extends React.PureComponent<
         this.props.exportCSV?.(this.props.slice.slice_id);
         break;
       /* NGLS - BEGIN */
-      case MENU_KEYS.DOWNLOAD_AS_PDF:
+      case MENU_KEYS.EXPORT_PDF:
         // eslint-disable-next-line no-unused-expressions
         this.props.exportPDF?.(this.props.slice.slice_id);
         break;
@@ -546,7 +546,7 @@ class SliceHeaderControls extends React.PureComponent<
 
               {/* NGLS - BEGIN */}
               <Menu.Item
-                key={MENU_KEYS.DOWNLOAD_AS_PDF}
+                key={MENU_KEYS.EXPORT_PDF}
                 icon={<Icons.FileImageOutlined css={dropdownIconsStyles} />}
               >
                 {t('Export to PDF')}
