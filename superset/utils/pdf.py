@@ -22,7 +22,7 @@ import pdfkit
 
 def df_to_pdf(df: pd.DataFrame, options: Dict = None) -> Any:
     # convert the pandas dataframe to html
-    html = df.to_html()
+    html = df.to_html(border=1, style='border-style: single; font-size: 12px;')
     # convert html to pdf
     output = pdfkit.from_string(html, False, options=options)
 

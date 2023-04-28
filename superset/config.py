@@ -755,14 +755,13 @@ CSV_EXPORT = {"encoding": "utf-8"}
 EXCEL_EXPORT = {"encoding": "utf-8"}
 
 # NGLS - BEGIN #
-# PDF Options: Configuration object that will be passed as argument to DataFrame.to_pdf
-# method.
+# PDF Options: Options dictionary that will be passed as argument to pdfkit.
 PDF_EXPORT = {
     "page-size": "Letter",
-    "margin-top": "0.75in",
-    "margin-right": "0.75in",
-    "margin-bottom": "0.75in",
-    "margin-left": "0.75in",
+    "margin-top": "0.1in",
+    "margin-right": "0.1in",
+    "margin-bottom": "0.1in",
+    "margin-left": "0.1in",
     "encoding": "UTF-8",
     "orientation": "Landscape"
 }
