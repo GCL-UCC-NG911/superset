@@ -519,6 +519,13 @@ class SliceHeaderControls extends React.PureComponent<
           this.props.supersetCanCSV && (
             <Menu.SubMenu title={t('Download')}>
               <Menu.Item
+                key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
+                icon={<Icons.FileImageOutlined css={dropdownIconsStyles} />}
+              >
+                {t('Download as image')}
+              </Menu.Item>
+
+              <Menu.Item
                 key={MENU_KEYS.EXPORT_CSV}
                 icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
               >
@@ -533,22 +540,16 @@ class SliceHeaderControls extends React.PureComponent<
                     key={MENU_KEYS.EXPORT_FULL_CSV}
                     icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
                   >
-                    {t('Export to full .CSV')}
+                    {t('Export to full CSV')}
                   </Menu.Item>
                 )}
 
-              <Menu.Item
-                key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
-                icon={<Icons.FileImageOutlined css={dropdownIconsStyles} />}
-              >
-                {t('Download as image')}
-              </Menu.Item>
               {/* NGLS - BEGIN */}
               <Menu.Item
                 key={MENU_KEYS.DOWNLOAD_AS_PDF}
                 icon={<Icons.FileImageOutlined css={dropdownIconsStyles} />}
               >
-                {t('Download as PDF')}
+                {t('Export to PDF')}
               </Menu.Item>
               {/* NGLS - END */}
             </Menu.SubMenu>

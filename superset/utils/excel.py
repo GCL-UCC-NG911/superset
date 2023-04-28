@@ -21,6 +21,10 @@ import pandas as pd
 
 
 def df_to_excel(df: pd.DataFrame, **kwargs: Any) -> Any:
+    # NGLS - BEGIN
+    df['Date/Time'] = df['Date/Time'].dt.tz_localize(None)
+    # NGLS - END
+
     output = io.BytesIO()
     # pylint: disable=abstract-class-instantiated
     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
