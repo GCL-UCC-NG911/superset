@@ -20,10 +20,20 @@ from typing import Any, Dict
 import pandas as pd
 import pdfkit
 
+css = """
+<style>
+    table {
+        border-spacing: 0px
+    }
+    td {
+        padding: 2px
+    }
+</style>
+"""
+
 def df_to_pdf(df: pd.DataFrame, options: Dict = None) -> Any:
     # convert the pandas dataframe to html
-    html = df.to_html(border=1, style='border-style: single; font-size: 12px;')
+    html = df.to_html(index=False, justify="left")
     # convert html to pdf
-    output = pdfkit.from_string(html, False, options=options)
-
+    output = pdfkit.from_string(css + html, False, options=options)
     return output
