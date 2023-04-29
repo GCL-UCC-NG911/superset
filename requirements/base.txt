@@ -60,7 +60,7 @@ cron-descriptor==1.2.24
     # via apache-superset
 croniter==1.0.15
     # via apache-superset
-cryptography==39.0.0
+cryptography==39.0.2
     # via
     #   apache-superset
     #   paramiko
@@ -155,7 +155,7 @@ korean-lunar-calendar==0.2.1
     # via holidays
 limits==3.4.0
     # via flask-limiter
-mako==1.1.4
+mako==1.2.4
     # via alembic
 markdown==3.3.4
     # via apache-superset
@@ -165,6 +165,7 @@ markupsafe==2.1.1
     # via
     #   jinja2
     #   mako
+    #   werkzeug
     #   wtforms
 marshmallow==3.13.0
     # via
@@ -307,7 +308,7 @@ wcwidth==0.2.5
     # via prompt-toolkit
 webencodings==0.5.1
     # via bleach
-werkzeug==2.1.2
+werkzeug==2.3.2
     # via
     #   flask
     #   flask-jwt-extended

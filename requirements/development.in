@@ -17,7 +17,7 @@
 # under the License.
 #
 -r base.in
--e .[cors,druid,hive,mysql,postgres,thumbnails]
+-e .[cors,druid,hive,mysql,ngls,postgres,thumbnails]
 ipython
 progress>=1.5,<2
 pyinstrument>=4.0.2,<5
