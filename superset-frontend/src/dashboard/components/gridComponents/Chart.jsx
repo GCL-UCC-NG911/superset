@@ -357,7 +357,7 @@ class Chart extends React.Component {
     });
     const formData = {
       ...this.props.formData,
-      report_name: this.props.slice.slice_name
+      report_name: this.props.slice.slice_name,
     };
     if (isFullCSV) {
       formData.row_limit = this.props.maxRows;
@@ -379,7 +379,7 @@ class Chart extends React.Component {
     });
     const formData = {
       ...this.props.formData,
-      report_name: this.props.slice.slice_name
+      report_name: this.props.slice.slice_name,
     };
     exportChart({
       formData,
