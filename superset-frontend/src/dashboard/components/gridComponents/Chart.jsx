@@ -355,10 +355,15 @@ class Chart extends React.Component {
       slice_id: this.props.slice.slice_id,
       is_cached: this.props.isCached,
     });
+    const formData = {
+      ...this.props.formData,
+      report_name: this.props.slice.slice_name
+    };
+    if (isFullCSV) {
+      formData.row_limit = this.props.maxRows;
+    }
     exportChart({
-      formData: isFullCSV
-        ? { ...this.props.formData, row_limit: this.props.maxRows }
-        : this.props.formData,
+      formData,
       resultType: 'full',
       resultFormat: 'csv',
       force: true,
@@ -372,8 +377,12 @@ class Chart extends React.Component {
       slice_id: this.props.slice.slice_id,
       is_cached: this.props.isCached,
     });
+    const formData = {
+      ...this.props.formData,
+      report_name: this.props.slice.slice_name
+    };
     exportChart({
-      formData: this.props.formData,
+      formData,
       resultType: 'full',
       resultFormat: 'pdf',
       force: true,

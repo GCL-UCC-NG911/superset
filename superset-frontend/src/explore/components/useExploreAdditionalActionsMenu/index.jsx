@@ -123,6 +123,12 @@ export const useExploreAdditionalActionsMenu = (
 
   const { datasource } = latestQueryFormData;
 
+  /* NGLS - BEGIN */
+  if (slice?.slice_name) {
+    latestQueryFormData.report_name = slice.slice_name;
+  }
+  /* NGLS - END */
+
   const shareByEmail = useCallback(async () => {
     try {
       const subject = t('Superset Chart');
@@ -314,6 +320,12 @@ export const useExploreAdditionalActionsMenu = (
           <Menu.Divider />
         </>
         <Menu.SubMenu title={t('Download')} key={MENU_KEYS.DOWNLOAD_SUBMENU}>
+          <Menu.Item
+            key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
+            icon={<Icons.FileImageOutlined css={iconReset} />}
+          >
+            {t('Download as image')}
+          </Menu.Item>
           {VIZ_TYPES_PIVOTABLE.includes(latestQueryFormData.viz_type) ? (
             <>
               <Menu.Item
@@ -321,14 +333,14 @@ export const useExploreAdditionalActionsMenu = (
                 icon={<Icons.FileOutlined css={iconReset} />}
                 disabled={!canDownloadCSV}
               >
-                {t('Export to original .CSV')}
+                {t('Export to original CSV')}
               </Menu.Item>
               <Menu.Item
                 key={MENU_KEYS.EXPORT_TO_CSV_PIVOTED}
                 icon={<Icons.FileOutlined css={iconReset} />}
                 disabled={!canDownloadCSV}
               >
-                {t('Export to pivoted .CSV')}
+                {t('Export to pivoted CSV')}
               </Menu.Item>
             </>
           ) : (
@@ -337,26 +349,20 @@ export const useExploreAdditionalActionsMenu = (
               icon={<Icons.FileOutlined css={iconReset} />}
               disabled={!canDownloadCSV}
             >
-              {t('Export to .CSV')}
+              {t('Export to CSV')}
             </Menu.Item>
           )}
-          <Menu.Item
-            key={MENU_KEYS.EXPORT_TO_JSON}
-            icon={<Icons.FileOutlined css={iconReset} />}
-          >
-            {t('Export to .JSON')}
-          </Menu.Item>
-          <Menu.Item
-            key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
-            icon={<Icons.FileImageOutlined css={iconReset} />}
-          >
-            {t('Download as image')}
-          </Menu.Item>
           <Menu.Item
             key={MENU_KEYS.EXPORT_TO_XLSX}
             icon={<Icons.FileOutlined css={iconReset} />}
           >
             {t('Export to Excel')}
+          </Menu.Item>
+          <Menu.Item
+            key={MENU_KEYS.EXPORT_TO_JSON}
+            icon={<Icons.FileOutlined css={iconReset} />}
+          >
+            {t('Export to JSON')}
           </Menu.Item>
           {/* NGLS - BEGIN */}
           <Menu.Item

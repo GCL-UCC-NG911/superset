@@ -84,7 +84,7 @@ from superset.utils.celery import session_scope
 from superset.utils.core import HeaderDataType, override_user
 from superset.utils.csv import get_chart_csv_data, get_chart_dataframe
 # NGLS - BEGIN #
-from superset.utils.pdf import df_to_pdf
+from superset.utils import pdf
 # NGLS - END #
 from superset.utils.screenshots import ChartScreenshot, DashboardScreenshot
 from superset.utils.urls import get_url_path
@@ -276,7 +276,7 @@ class BaseReportState:
             config = app.config
             logger.info("Getting chart from %s as user %s", url, user.username)
             dataframe = get_chart_dataframe(url, auth_cookies)
-            pdf_data = df_to_pdf(dataframe, **config["PDF_EXPORT"])
+            pdf_data = pdf.df_to_pdf(dataframe, config["PDF_EXPORT"])
         except SoftTimeLimitExceeded as ex:
             raise ReportSchedulePdfTimeout() from ex
         except Exception as ex:

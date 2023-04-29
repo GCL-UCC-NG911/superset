@@ -167,23 +167,23 @@ test('Should render default props', () => {
   expect(screen.getByTestId('NoAnimationDropdown')).toBeInTheDocument();
 });
 
-test('Should "export to CSV"', async () => {
+test('Should "Export to CSV"', async () => {
   const props = createProps();
   renderWrapper(props);
   expect(props.exportCSV).toBeCalledTimes(0);
   userEvent.hover(screen.getByText('Download'));
-  userEvent.click(await screen.findByText('Export to .CSV'));
+  userEvent.click(await screen.findByText('Export to CSV'));
   expect(props.exportCSV).toBeCalledTimes(1);
   expect(props.exportCSV).toBeCalledWith(371);
 });
 
 /* NGLS - BEGIN */
-test('Should "Download as PDF"', async () => {
+test('Should "Export to PDF"', async () => {
   const props = createProps();
   renderWrapper(props);
   expect(props.exportPDF).toBeCalledTimes(0);
   userEvent.hover(screen.getByText('Download'));
-  userEvent.click(await screen.findByText('Download as PDF'));
+  userEvent.click(await screen.findByText('Export to PDF'));
   expect(props.exportPDF).toBeCalledTimes(1);
   expect(props.exportPDF).toBeCalledWith(371);
 });
@@ -203,8 +203,8 @@ test('Export full CSV is under featureflag', async () => {
   const props = createProps('table');
   renderWrapper(props);
   userEvent.hover(screen.getByText('Download'));
-  expect(await screen.findByText('Export to .CSV')).toBeInTheDocument();
-  expect(screen.queryByText('Export to full .CSV')).not.toBeInTheDocument();
+  expect(await screen.findByText('Export to CSV')).toBeInTheDocument();
+  expect(screen.queryByText('Export to full CSV')).not.toBeInTheDocument();
 });
 
 test('Should "export full CSV"', async () => {
@@ -216,7 +216,7 @@ test('Should "export full CSV"', async () => {
   renderWrapper(props);
   expect(props.exportFullCSV).toBeCalledTimes(0);
   userEvent.hover(screen.getByText('Download'));
-  userEvent.click(await screen.findByText('Export to full .CSV'));
+  userEvent.click(await screen.findByText('Export to full CSV'));
   expect(props.exportFullCSV).toBeCalledTimes(1);
   expect(props.exportFullCSV).toBeCalledWith(371);
 });
@@ -228,8 +228,8 @@ test('Should not show export full CSV if report is not table', async () => {
   };
   renderWrapper();
   userEvent.hover(screen.getByText('Download'));
-  expect(await screen.findByText('Export to .CSV')).toBeInTheDocument();
-  expect(screen.queryByText('Export to full .CSV')).not.toBeInTheDocument();
+  expect(await screen.findByText('Export to CSV')).toBeInTheDocument();
+  expect(screen.queryByText('Export to full CSV')).not.toBeInTheDocument();
 });
 
 test('Should "Show chart description"', () => {
