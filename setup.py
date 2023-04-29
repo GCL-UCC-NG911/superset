@@ -126,8 +126,16 @@ setup(
         "wtforms>=2.3.3, <2.4",
         "wtforms-json",
         "xlsxwriter>=3.0.7, <3.1",
-        # NGLS packages
-        "python-slugify",
+        # NGLS dependencies
+        "appdirs==1.4.4",
+        "google==3.0.0",
+        "google_oauth2_tool==0.0.3",
+        "google-cloud-storage==2.7.0",
+        "jsonpath-python==1.0.6",
+        "pdfkit==1.0.0",
+        "psutil==5.9.4",
+        "python-slugify==8.0.1",
+        "requests_cache==0.9.8",
     ],
     extras_require={
         "athena": ["pyathena[pandas]>=2, <3"],

@@ -16,4 +16,4 @@
 #
 -r base.in
 -e .[postgres]
-gevent
+gevent==22.10.2
