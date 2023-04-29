@@ -125,6 +125,7 @@ export const useExploreAdditionalActionsMenu = (
 
   /* NGLS - BEGIN */
   if (slice?.slice_name) {
+    // eslint-disable-next-line no-param-reassign
     latestQueryFormData.report_name = slice.slice_name;
   }
   /* NGLS - END */

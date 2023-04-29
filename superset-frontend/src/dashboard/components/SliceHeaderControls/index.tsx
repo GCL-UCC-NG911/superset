@@ -547,7 +547,7 @@ class SliceHeaderControls extends React.PureComponent<
               {/* NGLS - BEGIN */}
               <Menu.Item
                 key={MENU_KEYS.EXPORT_PDF}
-                icon={<Icons.FileImageOutlined css={dropdownIconsStyles} />}
+                icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
               >
                 {t('Export to PDF')}
               </Menu.Item>

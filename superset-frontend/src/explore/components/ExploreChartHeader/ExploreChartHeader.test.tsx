@@ -443,9 +443,7 @@ describe('Additional actions tests', () => {
 
       userEvent.click(screen.getByLabelText('Menu actions trigger'));
       userEvent.hover(screen.getByText('Download'));
-      const exportCSVElement = await screen.findByText(
-        'Export to pivoted CSV',
-      );
+      const exportCSVElement = await screen.findByText('Export to pivoted CSV');
       userEvent.click(exportCSVElement);
       expect(spyExportChart.callCount).toBe(1);
     });
