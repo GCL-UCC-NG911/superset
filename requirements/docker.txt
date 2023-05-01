@@ -14,6 +14,8 @@ appdirs==1.4.4
     # via
     #   apache-superset
     #   requests-cache
+authlib==1.2.0
+    # via apache-superset
 beautifulsoup4==4.12.2
     # via google
 boto3==1.26.123

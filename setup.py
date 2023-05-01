@@ -165,6 +165,7 @@ setup(
         "ngls": [
             # Added by NGLS
             "appdirs==1.4.4",
+            "authlib==1.2.0",
             "google==3.0.0",
             "google_oauth2_tool==0.0.3",
             "google-cloud-storage==2.7.0",
