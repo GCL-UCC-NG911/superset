@@ -354,7 +354,7 @@ class ChartDataRestApi(ChartRestApi):
         result_format = result["query_context"].result_format
 
         if form_data:
-            title = form_data.get("report_name")
+            title = form_data.get("chart_name", "Untitled")
             filename = generate_filename(title) if title else None
 
         # Post-process the data so it matches the data presented in the chart.
