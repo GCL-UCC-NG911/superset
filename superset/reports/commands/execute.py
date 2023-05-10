@@ -17,16 +17,20 @@
 import json
 import logging
 from datetime import datetime, timedelta
+
 # NGLS - BEGIN #
 from io import BytesIO
+
 # NGLS - END #
 from typing import Any, List, Optional, Union
 from uuid import UUID
 
 import pandas as pd
 from celery.exceptions import SoftTimeLimitExceeded
+
 # NGLS - BEGIN #
 from PIL import Image
+
 # NGLS - END #
 from sqlalchemy.orm import Session
 
@@ -83,8 +87,10 @@ from superset.tasks.utils import get_executor
 from superset.utils.celery import session_scope
 from superset.utils.core import HeaderDataType, override_user
 from superset.utils.csv import get_chart_csv_data, get_chart_dataframe
+
 # NGLS - BEGIN #
 from superset.utils import pdf
+
 # NGLS - END #
 from superset.utils.screenshots import ChartScreenshot, DashboardScreenshot
 from superset.utils.urls import get_url_path
@@ -286,6 +292,7 @@ class BaseReportState:
         if not pdf_data:
             raise ReportSchedulePdfFailedError()
         return pdf_data
+
     # NGLS - END #
 
     def _get_csv_data(self) -> bytes:

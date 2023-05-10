@@ -25,6 +25,7 @@ import wtforms_json
 from deprecation import deprecated
 from flask import Flask, redirect
 from flask_appbuilder import expose, IndexView
+
 # NGLS - BEGIN #
 from flask_appbuilder.security.sqla.apis import (
     PermissionApi,
@@ -33,6 +34,7 @@ from flask_appbuilder.security.sqla.apis import (
     UserApi,
     ViewMenuApi,
 )
+
 # NGLS - END #
 from flask_babel import gettext as __, lazy_gettext as _
 from flask_compress import Compress

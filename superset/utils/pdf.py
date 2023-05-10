@@ -32,6 +32,7 @@ css = """
 </style>
 """
 
+
 def df_to_pdf(df: pd.DataFrame, options: Dict = None, title: str = None) -> Any:
     title_header = f"<h2>{title}</h2>" if title else ""
     # convert the pandas dataframe to html

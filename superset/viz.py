@@ -76,8 +76,10 @@ from superset.superset_typing import (
     VizData,
     VizPayload,
 )
+
 # NGLS - BEGIN #
 from superset.utils import core as utils, csv, pdf
+
 # NGLS - END #
 from superset.utils.cache import set_and_log_cache
 from superset.utils.core import (
@@ -677,6 +679,7 @@ class BaseViz:  # pylint: disable=too-many-public-methods
     def get_pdf(self) -> Optional[str]:
         df = self.get_df_payload()["df"]  # leverage caching logic
         return pdf.df_to_pdf(df, config["PDF_EXPORT"])
+
     # NGLS - END #
 
     def get_data(self, df: pd.DataFrame) -> VizData:  # pylint: disable=no-self-use

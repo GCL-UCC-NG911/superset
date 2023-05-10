@@ -313,7 +313,7 @@ werkzeug==2.3.2
     #   flask
     #   flask-jwt-extended
     #   flask-login
-wrapt==1.15.0
+wrapt==1.12.0
     # via deprecated
 wtforms==2.3.3
     # via

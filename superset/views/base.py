@@ -709,6 +709,7 @@ class XlsxResponse(Response):
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
+
 # NGLS - BEGIN #
 class PdfResponse(Response):
     """
@@ -717,7 +718,10 @@ class PdfResponse(Response):
 
     charset = "utf-8"
     default_mimetype = "application/pdf"
+
+
 # NGLS - END #
+
 
 def bind_field(
     _: Any, form: DynamicForm, unbound_field: UnboundField, options: Dict[Any, Any]

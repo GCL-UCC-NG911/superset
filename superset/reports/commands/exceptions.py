@@ -162,6 +162,8 @@ class ReportScheduleCsvFailedError(CommandException):
 # NGLS - BEGIN #
 class ReportSchedulePdfFailedError(CommandException):
     message = _("Report Schedule execution failed when generating a pdf.")
+
+
 # NGLS - END #
 
 
@@ -248,6 +250,8 @@ class ReportScheduleCsvTimeout(CommandException):
 class ReportSchedulePdfTimeout(CommandException):
     status = 408
     message = _("A timeout occurred while generating a pdf.")
+
+
 # NGLS - END #
 
 
