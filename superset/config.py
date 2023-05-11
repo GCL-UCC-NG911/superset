@@ -763,7 +763,7 @@ PDF_EXPORT = {
     "margin-bottom": "0.2in",
     "margin-left": "0.1in",
     "encoding": "UTF-8",
-    "orientation": "Landscape"
+    "orientation": "Landscape",
 }
 # NGLS - END #
 

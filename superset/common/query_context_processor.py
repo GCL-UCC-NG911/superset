@@ -46,8 +46,10 @@ from superset.exceptions import (
 from superset.extensions import cache_manager, security_manager
 from superset.models.helpers import QueryResult
 from superset.models.sql_lab import Query
+
 # NGLS - BEGIN #
 from superset.utils import csv, excel, pdf
+
 # NGLS - END #
 from superset.utils.cache import generate_cache_key, set_and_log_cache
 from superset.utils.core import (

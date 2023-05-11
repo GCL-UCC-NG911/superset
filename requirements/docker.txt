@@ -81,8 +81,6 @@ google-resumable-media==2.5.0
     # via google-cloud-storage
 googleapis-common-protos==1.59.0
     # via google-api-core
-greenlet==2.0.2
-    # via gevent
 httplib2==0.22.0
     # via
     #   google-api-python-client

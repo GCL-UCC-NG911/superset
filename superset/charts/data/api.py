@@ -375,12 +375,20 @@ class ChartDataRestApi(ChartRestApi):
                 # return single query results
                 data = result["queries"][0]["data"]
                 if result_format == ChartDataResultFormat.CSV:
-                    return CsvResponse(data, headers=generate_download_headers("csv", filename=filename))
+                    return CsvResponse(
+                        data,
+                        headers=generate_download_headers("csv", filename=filename),
+                    )
                 # NGLS - BEGIN #
-                elif result_format == ChartDataResultFormat.PDF:
-                    return PdfResponse(data, headers=generate_download_headers("pdf", filename=filename))
+                if result_format == ChartDataResultFormat.PDF:
+                    return PdfResponse(
+                        data,
+                        headers=generate_download_headers("pdf", filename=filename),
+                    )
                 # NGLS - END #
-                return XlsxResponse(data, headers=generate_download_headers("xlsx", filename=filename))
+                return XlsxResponse(
+                    data, headers=generate_download_headers("xlsx", filename=filename)
+                )
 
             # return multi-query results bundled as a zip file
             def _process_data(query_data: Any) -> Any:

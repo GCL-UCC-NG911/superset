@@ -23,7 +23,7 @@ freezegun
 openapi-spec-validator
 parameterized
 pyfakefs
-pylint
+pylint==2.9.6
 pytest
 pytest-cov
 pytest-mock
