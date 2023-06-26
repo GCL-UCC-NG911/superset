@@ -174,17 +174,9 @@ class HeaderActionsDropdown extends React.PureComponent {
     this.setShowReportSubMenu = this.setShowReportSubMenu.bind(this);
   }
 
-  downloadAllAsPdf = props => {
-    useCallback(
-      () =>
-        exportTables({
-          formData: props,
-          resultType: 'results',
-          resultFormat: 'pdf',
-        }),
-      [props],
-    );
-  };
+  downloadAllAsPdf(props) {
+    console.log(props)
+  }
 
   UNSAFE_componentWillMount() {
     SupersetClient.get({ endpoint: '/csstemplateasyncmodelview/api/read' })
@@ -272,7 +264,7 @@ class HeaderActionsDropdown extends React.PureComponent {
         break;
       }
       case MENU_KEYS.DOWNLOAD_CUSTOM_AS_PDF: {
-        downloadAllAsPdf(this.props);
+        this.downloadAllAsPdf(this.props);
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF);
         break;
       }
