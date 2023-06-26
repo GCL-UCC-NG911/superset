@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 
 import { SupersetClient, t } from '@superset-ui/core';
@@ -43,7 +43,7 @@ import {
   LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE,
   /* NGLS - BEGIN */
   LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF,
-  LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF
+  LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF,
   /* NGLS - END */
 } from 'src/logger/LogUtils';
 
@@ -116,38 +116,6 @@ const MENU_KEYS = {
 const SCREENSHOT_NODE_SELECTOR = '.dashboard';
 
 /* NGLS - BEGIN */
-export const buildV1Tables = ({
-  formData,
-  force,
-  resultFormat,
-  resultType,
-  setDataMask,
-  ownState,
-}) => {
-  const buildQuery =
-    getChartBuildQueryRegistry().get(formData.viz_type) ??
-    (buildQueryformData =>
-      buildQueryContext(buildQueryformData, baseQueryObject => [
-        {
-          ...baseQueryObject,
-        },
-      ]));
-  return buildQuery(
-    {
-      ...formData,
-      force,
-      result_format: resultFormat,
-      result_type: resultType,
-    },
-    {
-      ownState,
-      hooks: {
-        setDataMask,
-      },
-    },
-  );
-};
-
 export const exportTables = ({
   formData,
   resultFormat = 'json',
@@ -155,18 +123,22 @@ export const exportTables = ({
   force = false,
   ownState = {},
 }) => {
-  let url;
-  let payload;
+  // let url;
+  // let payload;
   // get embede coded urls
-  url = '/superset/explore/p/O2BZ5NYRG1X/?standalone=1&height=400';
-  console.log("### exportTables start - resultFormat, resultType, force, ownState, formData");
+  const url = '/superset/explore/p/O2BZ5NYRG1X/?standalone=1&height=400';
+  console.log(
+    '### exportTables start - resultFormat, resultType, force, ownState, formData',
+  );
   console.log(resultFormat);
   console.log(resultType);
   console.log(force);
   console.log(ownState);
   console.log(formData);
   console.log(url);
-  console.log("### exportTables end - resultFormat, resultType, force, ownState, formData");
+  console.log(
+    '### exportTables end - resultFormat, resultType, force, ownState, formData',
+  );
   // url = 'https://ngls.mshome.net:8443/superset/explore/p/O2BZ5NYRG1X/?standalone=1&height=400'
   /*
   url = '/api/v1/chart/data';
@@ -182,13 +154,12 @@ export const exportTables = ({
   */
 };
 
-const downloadAllAsPdf = useCallback(
-  () =>
-    exportTables({
-      formData: this.props,
-      resultType: 'results',
-      resultFormat: 'pdf',
-    }),
+const downloadAllAsPdf = useCallback(() =>
+  exportTables({
+    formData: this.props,
+    resultType: 'results',
+    resultFormat: 'pdf',
+  }),
 );
 /* NGLS - END */
 
