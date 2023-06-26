@@ -179,6 +179,9 @@ class HeaderActionsDropdown extends React.PureComponent {
     console.log(props.dashboardId);
     console.log(props.dashboardTitle);
     console.log(props.dashboardInfo);
+    props.dashboardInfo.charts.forEach(element => {
+      console.log(element);
+    });
   }
 
   UNSAFE_componentWillMount() {
