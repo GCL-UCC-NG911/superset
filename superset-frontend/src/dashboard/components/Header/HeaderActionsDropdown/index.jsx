@@ -154,13 +154,18 @@ export const exportTables = ({
   */
 };
 
-const downloadAllAsPdf = useCallback(() =>
-  exportTables({
-    formData: this.props,
-    resultType: 'results',
-    resultFormat: 'pdf',
-  }),
-);
+const downloadAllAsPdf = (
+  props
+) => {
+  useCallback(() =>
+    exportTables({
+      formData: props,
+      resultType: 'results',
+      resultFormat: 'pdf',
+    }),
+    [props]
+  );
+}
 /* NGLS - END */
 
 class HeaderActionsDropdown extends React.PureComponent {
@@ -268,7 +273,7 @@ class HeaderActionsDropdown extends React.PureComponent {
         break;
       }
       case MENU_KEYS.DOWNLOAD_CUSTOM_AS_PDF: {
-        downloadAllAsPdf();
+        downloadAllAsPdf(this.props);
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF);
         break;
       }
