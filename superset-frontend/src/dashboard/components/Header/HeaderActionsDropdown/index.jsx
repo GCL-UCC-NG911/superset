@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { useCallback } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 
 import { SupersetClient, t } from '@superset-ui/core';
@@ -175,7 +175,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log(props)
+    console.log(props);
   }
 
   UNSAFE_componentWillMount() {
