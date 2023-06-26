@@ -176,6 +176,9 @@ class HeaderActionsDropdown extends React.PureComponent {
 
   downloadAllAsPdf(props) {
     console.log(props);
+    console.log(props.dashboardId);
+    console.log(props.dashboardTitle);
+    console.log(props.dashboardInfo);
   }
 
   UNSAFE_componentWillMount() {
