@@ -43,6 +43,7 @@ import {
   LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE,
   /* NGLS - BEGIN */
   LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF,
+  LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF
   /* NGLS - END */
 } from 'src/logger/LogUtils';
 
@@ -104,6 +105,7 @@ const MENU_KEYS = {
   DOWNLOAD_AS_IMAGE: 'download-as-image',
   /* NGLS - BEGIN */
   DOWNLOAD_AS_PDF: 'download-as-pdf',
+  DOWNLOAD_CUSTOM_AS_PDF: 'download-custom-as-pdf',
   DOWNLOAD_SUBMENU: 'download-submenu',
   /* NGLS - END */
   TOGGLE_FULLSCREEN: 'toggle-fullscreen',
@@ -112,6 +114,83 @@ const MENU_KEYS = {
 };
 
 const SCREENSHOT_NODE_SELECTOR = '.dashboard';
+
+/* NGLS - BEGIN */
+export const buildV1Tables = ({
+  formData,
+  force,
+  resultFormat,
+  resultType,
+  setDataMask,
+  ownState,
+}) => {
+  const buildQuery =
+    getChartBuildQueryRegistry().get(formData.viz_type) ??
+    (buildQueryformData =>
+      buildQueryContext(buildQueryformData, baseQueryObject => [
+        {
+          ...baseQueryObject,
+        },
+      ]));
+  return buildQuery(
+    {
+      ...formData,
+      force,
+      result_format: resultFormat,
+      result_type: resultType,
+    },
+    {
+      ownState,
+      hooks: {
+        setDataMask,
+      },
+    },
+  );
+};
+
+export const exportTables = ({
+  formData,
+  resultFormat = 'json',
+  resultType = 'full',
+  force = false,
+  ownState = {},
+}) => {
+  let url;
+  let payload;
+  // get embede coded urls
+  url = '/superset/explore/p/O2BZ5NYRG1X/?standalone=1&height=400';
+  console.log("### exportTables start - resultFormat, resultType, force, ownState, formData");
+  console.log(resultFormat);
+  console.log(resultType);
+  console.log(force);
+  console.log(ownState);
+  console.log(formData);
+  console.log(url);
+  console.log("### exportTables end - resultFormat, resultType, force, ownState, formData");
+  // url = 'https://ngls.mshome.net:8443/superset/explore/p/O2BZ5NYRG1X/?standalone=1&height=400'
+  /*
+  url = '/api/v1/chart/data';
+  payload = buildV1ChartDataPayload({
+    formData,
+    force,
+    resultFormat,
+    resultType,
+    ownState,
+  });
+
+  SupersetClient.postForm(url, { form_data: safeStringify(payload) });
+  */
+};
+
+const downloadAllAsPdf = useCallback(
+  () =>
+    exportTables({
+      formData: this.props,
+      resultType: 'results',
+      resultFormat: 'pdf',
+    }),
+);
+/* NGLS - END */
 
 class HeaderActionsDropdown extends React.PureComponent {
   static discardChanges() {
@@ -215,6 +294,11 @@ class HeaderActionsDropdown extends React.PureComponent {
           menu.style.visibility = 'visible';
         });
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF);
+        break;
+      }
+      case MENU_KEYS.DOWNLOAD_CUSTOM_AS_PDF: {
+        downloadAllAsPdf();
+        this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF);
         break;
       }
       /* NGLS - END */
@@ -363,7 +447,13 @@ class HeaderActionsDropdown extends React.PureComponent {
                 key={MENU_KEYS.DOWNLOAD_AS_PDF}
                 onClick={this.handleMenuClick}
               >
-                {t('Download as PDF')}
+                {t('Download screen as PDF')}
+              </Menu.Item>
+              <Menu.Item
+                key={MENU_KEYS.DOWNLOAD_CUSTOM_AS_PDF}
+                onClick={this.handleMenuClick}
+              >
+                {t('Download data as PDF')}
               </Menu.Item>
             </Menu.SubMenu>
           )

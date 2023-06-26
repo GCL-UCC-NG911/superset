@@ -252,6 +252,8 @@ class BaseReportState:
     # NGLS - BEGIN #
     def get_pdf_image(self) -> Optional[bytes]:
         images = []
+        logger.info("##### get_pdf_image #####")
+        logger.info(vars(self))
         snapshots = self._get_screenshots()
 
         for snap in snapshots:
@@ -263,6 +265,7 @@ class BaseReportState:
         new_pdf = BytesIO()
         images[0].save(new_pdf, "PDF", save_all=True, append_images=images[1:])
         new_pdf.seek(0)
+        logger.info("##### get_pdf_image #####")
         return new_pdf.read()
 
     def get_pdf_data(self) -> bytes:
