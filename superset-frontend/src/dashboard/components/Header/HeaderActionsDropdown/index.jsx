@@ -183,9 +183,11 @@ class HeaderActionsDropdown extends React.PureComponent {
       console.log(element); // return charts' name
     });
     console.log(props.dashboardInfo.position_json);
-    props.dashboardInfo.metadata.native_filter_configuration.forEach(element => {
-      console.log(element);
-    });
+    props.dashboardInfo.metadata.native_filter_configuration.forEach(
+      element => {
+        console.log(element);
+      },
+    );
   }
 
   UNSAFE_componentWillMount() {
