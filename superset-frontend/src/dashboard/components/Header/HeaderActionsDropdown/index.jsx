@@ -153,19 +153,6 @@ export const exportTables = ({
   SupersetClient.postForm(url, { form_data: safeStringify(payload) });
   */
 };
-
-const downloadAllAsPdf = (
-  props
-) => {
-  useCallback(() =>
-    exportTables({
-      formData: props,
-      resultType: 'results',
-      resultFormat: 'pdf',
-    }),
-    [props]
-  );
-}
 /* NGLS - END */
 
 class HeaderActionsDropdown extends React.PureComponent {
@@ -186,6 +173,18 @@ class HeaderActionsDropdown extends React.PureComponent {
     this.handleMenuClick = this.handleMenuClick.bind(this);
     this.setShowReportSubMenu = this.setShowReportSubMenu.bind(this);
   }
+
+  downloadAllAsPdf = props => {
+    useCallback(
+      () =>
+        exportTables({
+          formData: props,
+          resultType: 'results',
+          resultFormat: 'pdf',
+        }),
+      [props],
+    );
+  };
 
   UNSAFE_componentWillMount() {
     SupersetClient.get({ endpoint: '/csstemplateasyncmodelview/api/read' })
