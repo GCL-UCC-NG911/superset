@@ -176,20 +176,22 @@ class HeaderActionsDropdown extends React.PureComponent {
 
   // Get all tables
   getAllTables(props, element) {
-    if(props === null || element === null || element === '') {
-      return;
+    if (props === null || element === null || element === '') {
+      return [];
     }
 
     const children = props[element];
-    if(children.type === 'CHART') {
-      return [{
-        chartId: children.meta.chartId,
-        sliceName: children.meta.sliceName,
-        uuid: children.meta.uuid,
-      }];
+    if (children.type === 'CHART') {
+      return [
+        {
+          chartId: children.meta.chartId,
+          sliceName: children.meta.sliceName,
+          uuid: children.meta.uuid,
+        },
+      ];
     }
     const alltables = [];
-    for (let i = 0; i < props[element].children.length; i = i + 1) {
+    for (let i = 0; i < props[element].children.length; i += 1) {
       const table = this.getAllTables(props, props[element].children[i]);
       console.log(table);
       alltables.concat(table);
