@@ -185,7 +185,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       countCharts++;
     });
     console.log(props?.dashboardInfo?.position_json);
-    console.log('native_filter_configuration');
+    console.log('### native_filter_configuration');
     props?.dashboardInfo?.metadata?.native_filter_configuration?.forEach(
       element => {
         console.log(element);
@@ -193,9 +193,9 @@ class HeaderActionsDropdown extends React.PureComponent {
         console.log(element?.name);
       },
     );
-    console.log('layout');
+    console.log('### layout');
     console.log(JSON.stringify(props?.layout));
-    console.log('children');
+    console.log('### children');
     var objectCharts = [];
     const gridChildren = props?.layout?.GRID_ID?.children;
     gridChildren.forEach(element => {
@@ -207,7 +207,7 @@ class HeaderActionsDropdown extends React.PureComponent {
         objectChart.sliceName = element?.meta?.sliceName;
         objectChart.uuid = element?.meta?.uuid;
         objectCharts.push(objectChart)
-        console.log('type == CHART for: ' + objectChart.sliceName);
+        console.log('### type == CHART for: ' + objectChart.sliceName);
       }
     });
   }
