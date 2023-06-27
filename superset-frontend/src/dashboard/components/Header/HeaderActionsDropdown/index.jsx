@@ -193,9 +193,10 @@ class HeaderActionsDropdown extends React.PureComponent {
     const alltables = [];
     for (let i = 0; i < props[element].children.length; i += 1) {
       const table = this.getAllTables(props, props[element].children[i]);
-      console.log(table);
+      console.log(props[element].children[i]);
       alltables.concat(table);
     }
+    console.log(alltables);
     return alltables;
   }
 
@@ -240,7 +241,9 @@ class HeaderActionsDropdown extends React.PureComponent {
       });
     */
     console.log(gridChildren.length);
-    this.getAllTables(props?.layout, 'ROOT_ID');
+    const allTables = this.getAllTables(props?.layout, 'ROOT_ID');
+    console.log('### allTables');
+    console.log(allTables);
   }
 
   UNSAFE_componentWillMount() {
