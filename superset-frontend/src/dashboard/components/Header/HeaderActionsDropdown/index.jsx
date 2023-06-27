@@ -176,22 +176,25 @@ class HeaderActionsDropdown extends React.PureComponent {
 
   // Get all tables
   getAllTables(props, element) {
-    if(props === null || element === null || element === "") {
+    if(props === null || element === null || element === '') {
       return;
     }
 
     const children = props[element];
-    if(children.type === "CHART") {
-      return {chartId: children.meta.chartId, sliceName: children.meta.sliceName, uuid: children.meta.uuid,};
-    } else {
-      let alltables = [];
-      for(let i = 0; i < props[element].children.length; i++) {
-        let table = this.getAllTables(props, props[element].children[i]);
-        console.log(table);
-        alltables.push(table);
-      }
-      return alltables;
+    if(children.type === 'CHART') {
+      return [{
+        chartId: children.meta.chartId,
+        sliceName: children.meta.sliceName,
+        uuid: children.meta.uuid,
+      }];
     }
+    const alltables = [];
+    for (let i = 0; i < props[element].children.length; i = i + 1) {
+      const table = this.getAllTables(props, props[element].children[i]);
+      console.log(table);
+      alltables.concat(table);
+    }
+    return alltables;
   }
 
   downloadAllAsPdf(props) {
