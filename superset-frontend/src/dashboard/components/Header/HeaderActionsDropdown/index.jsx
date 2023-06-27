@@ -176,18 +176,21 @@ class HeaderActionsDropdown extends React.PureComponent {
 
   downloadAllAsPdf(props) {
     console.log(props);
-    console.log(props.dashboardId);
-    console.log(props.dashboardTitle);
-    console.log(props.dashboardInfo);
-    props.dashboardInfo.charts.forEach(element => {
+    console.log(props?.dashboardId);
+    console.log(props?.dashboardTitle);
+    console.log(props?.dashboardInfo);
+    props?.dashboardInfo?.charts?.forEach(element => {
       console.log(element); // return charts' name
     });
-    console.log(props.dashboardInfo.position_json);
-    props.dashboardInfo.metadata.native_filter_configuration.forEach(
+    console.log(props?.dashboardInfo?.position_json);
+    props?.dashboardInfo?.metadata?.native_filter_configuration?.forEach(
       element => {
         console.log(element);
+        console.log(element?.id);
+        console.log(element?.name);
       },
     );
+    console.log(JSON.stringify(props?.layout));
   }
 
   UNSAFE_componentWillMount() {
