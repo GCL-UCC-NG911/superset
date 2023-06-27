@@ -174,28 +174,9 @@ class HeaderActionsDropdown extends React.PureComponent {
     this.setShowReportSubMenu = this.setShowReportSubMenu.bind(this);
   }
 
-  downloadAllAsPdf(props) {
-    console.log(props);
-    console.log(props?.dashboardId);
-    console.log(props?.dashboardTitle);
-    console.log(props?.dashboardInfo);
-    countCharts = 0;
-    props?.dashboardInfo?.charts?.forEach(element => {
-      console.log(element); // return charts' name
-      countCharts += 1;
-    });
-    console.log(props?.dashboardInfo?.position_json);
-    console.log('### native_filter_configuration');
-    props?.dashboardInfo?.metadata?.native_filter_configuration?.forEach(
-      element => {
-        console.log(element);
-        console.log(element?.id);
-        console.log(element?.name);
-      },
-    );
-    console.log('### layout');
-    console.log(JSON.stringify(props?.layout));
-    console.log('### children');
+  /*
+  // Get all tables
+  getAllTables() {
     objectCharts = [];
     const gridChildren = props?.layout?.GRID_ID?.children;
     gridChildren.forEach(element => {
@@ -209,8 +190,55 @@ class HeaderActionsDropdown extends React.PureComponent {
         objectCharts.push(objectChart);
         console.log('### type == CHART for: ');
         console.log(objectChart.sliceName);
+      } else if (element.type !== "CHART") {
+        // Possibilities: 
+
       }
     });
+  }
+  */
+
+  downloadAllAsPdf(props) {
+    console.log(props);
+    console.log(props?.dashboardId);
+    console.log(props?.dashboardTitle);
+    console.log(props?.dashboardInfo);
+    // countCharts = 0;
+    // props?.dashboardInfo?.charts?.forEach(element => {
+    //  console.log(element); // return charts' name
+    //  countCharts += 1;
+    // });
+    console.log(props?.dashboardInfo?.charts?.length);
+    console.log(props?.dashboardInfo?.position_json);
+    console.log('### native_filter_configuration');
+    props?.dashboardInfo?.metadata?.native_filter_configuration?.forEach(
+      element => {
+        console.log(element);
+        console.log(element?.id);
+        console.log(element?.name);
+      },
+    );
+    console.log('### layout');
+    console.log(JSON.stringify(props?.layout));
+    console.log('### children');
+    // objectCharts = [];
+    const gridChildren = props?.layout?.GRID_ID?.children;
+    /*
+      gridChildren.forEach(element => {
+        console.log(element);
+        console.log(props?.layout[element].children);
+        if(element.type === "CHART") {
+          const objectChart = null;
+          objectChart.chartId = element?.meta?.chartId;
+          objectChart.sliceName = element?.meta?.sliceName;
+          objectChart.uuid = element?.meta?.uuid;
+          objectCharts.push(objectChart);
+          console.log('### type == CHART for: ');
+          console.log(objectChart.sliceName);
+        }
+      });
+    */
+    console.log(gridChildren.length);
   }
 
   UNSAFE_componentWillMount() {
