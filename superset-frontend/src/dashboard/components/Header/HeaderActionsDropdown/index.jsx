@@ -240,7 +240,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       });
     */
     console.log(gridChildren.length);
-    this.getAllTables(props, 'ROOT_ID');
+    this.getAllTables(props?.layout, 'ROOT_ID');
   }
 
   UNSAFE_componentWillMount() {
