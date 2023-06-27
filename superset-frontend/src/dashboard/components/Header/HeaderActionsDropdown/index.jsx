@@ -174,29 +174,25 @@ class HeaderActionsDropdown extends React.PureComponent {
     this.setShowReportSubMenu = this.setShowReportSubMenu.bind(this);
   }
 
-  /*
   // Get all tables
-  getAllTables() {
-    objectCharts = [];
-    const gridChildren = props?.layout?.GRID_ID?.children;
-    gridChildren.forEach(element => {
-      console.log(element);
-      console.log(props?.layout[element].children);
-      if(element.type === "CHART") {
-        const objectChart = null;
-        objectChart.chartId = element?.meta?.chartId;
-        objectChart.sliceName = element?.meta?.sliceName;
-        objectChart.uuid = element?.meta?.uuid;
-        objectCharts.push(objectChart);
-        console.log('### type == CHART for: ');
-        console.log(objectChart.sliceName);
-      } else if (element.type !== "CHART") {
-        // Possibilities: 
+  getAllTables(props, element) {
+    if(props === null || element === null || element === "") {
+      return;
+    }
 
+    const children = props[element];
+    if(children.type === "CHART") {
+      return {chartId: children.meta.chartId, sliceName: children.meta.sliceName, uuid: children.meta.uuid,};
+    } else {
+      let alltables = [];
+      for(let i = 0; i < props[element].children.length; i++) {
+        let table = this.getAllTables(props, props[element].children[i]);
+        console.log(table);
+        alltables.push(table);
       }
-    });
+      return alltables;
+    }
   }
-  */
 
   downloadAllAsPdf(props) {
     console.log(props);
@@ -239,6 +235,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       });
     */
     console.log(gridChildren.length);
+    this.getAllTables(props, 'ROOT_ID');
   }
 
   UNSAFE_componentWillMount() {
