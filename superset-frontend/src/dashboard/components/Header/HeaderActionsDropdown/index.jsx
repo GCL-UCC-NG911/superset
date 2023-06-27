@@ -179,10 +179,13 @@ class HeaderActionsDropdown extends React.PureComponent {
     console.log(props?.dashboardId);
     console.log(props?.dashboardTitle);
     console.log(props?.dashboardInfo);
+    var countCharts = 0;
     props?.dashboardInfo?.charts?.forEach(element => {
       console.log(element); // return charts' name
+      countCharts++;
     });
     console.log(props?.dashboardInfo?.position_json);
+    console.log('native_filter_configuration');
     props?.dashboardInfo?.metadata?.native_filter_configuration?.forEach(
       element => {
         console.log(element);
@@ -190,11 +193,22 @@ class HeaderActionsDropdown extends React.PureComponent {
         console.log(element?.name);
       },
     );
+    console.log('layout');
     console.log(JSON.stringify(props?.layout));
+    console.log('children');
+    var objectCharts = [];
     const gridChildren = props?.layout?.GRID_ID?.children;
     gridChildren.forEach(element => {
       console.log(element);
       console.log(props?.layout[element].children);
+      if(element.type == "CHART") {
+        var objectChart = null;
+        objectChart.chartId = element?.meta?.chartId;
+        objectChart.sliceName = element?.meta?.sliceName;
+        objectChart.uuid = element?.meta?.uuid;
+        objectCharts.push(objectChart)
+        console.log('type == CHART for: ' + objectChart.sliceName);
+      }
     });
   }
 
