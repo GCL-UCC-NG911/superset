@@ -191,6 +191,11 @@ class HeaderActionsDropdown extends React.PureComponent {
       },
     );
     console.log(JSON.stringify(props?.layout));
+    const gridChildren = props?.layout?.GRID_ID?.children;
+    gridChildren.forEach(element => {
+      console.log(element);
+      console.log(props?.layout[element].children);
+    });
   }
 
   UNSAFE_componentWillMount() {
