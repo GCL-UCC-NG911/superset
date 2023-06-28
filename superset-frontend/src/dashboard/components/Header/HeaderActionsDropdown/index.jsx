@@ -205,8 +205,8 @@ class HeaderActionsDropdown extends React.PureComponent {
       console.log(childrenElement.children[i]);
       console.log(table);
       alltables.push(table);
+      console.log(alltables);
     }
-    // console.log(alltables);
     return alltables;
   }
 
