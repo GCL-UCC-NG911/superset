@@ -212,7 +212,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       console.log('commit 34');
       table.forEach(element => {
         alltables.push(element);
-      })
+      });
     }
     return alltables;
   }
