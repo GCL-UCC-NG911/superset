@@ -183,18 +183,18 @@ class HeaderActionsDropdown extends React.PureComponent {
       console.log('type === CHART');
       return [
         {
-          'chartId': childrenElement.meta.chartId,
-          'sliceName': childrenElement.meta.sliceName,
-          'uuid': childrenElement.meta.uuid,
-          'type': 'CHART'
+          chartId: childrenElement.meta.chartId,
+          sliceName: childrenElement.meta.sliceName,
+          uuid: childrenElement.meta.uuid,
+          type: 'CHART',
         },
       ];
     } else if (childrenElement?.type === 'MARKDOWN') {
       console.log('type === MARKDOWN');
       return [
         {
-          'code': childrenElement.meta.code,
-          'type': 'MARKDOWN'
+          code: childrenElement.meta.code,
+          type: 'MARKDOWN',
         },
       ];
     }
