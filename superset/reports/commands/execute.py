@@ -252,11 +252,12 @@ class BaseReportState:
     # NGLS - BEGIN #
     def get_pdf_image(self) -> Optional[bytes]:
         images = []
-        logger.info("##### get_pdf_image #####")
+        logger.info("##### start get_pdf_image #####")
         logger.info(vars(self))
         snapshots = self._get_screenshots()
 
         for snap in snapshots:
+            logger.info("##### snap #####")
             img = Image.open(BytesIO(snap))
             if img.mode == "RGBA":
                 img = img.convert("RGB")
@@ -265,7 +266,26 @@ class BaseReportState:
         new_pdf = BytesIO()
         images[0].save(new_pdf, "PDF", save_all=True, append_images=images[1:])
         new_pdf.seek(0)
-        logger.info("##### get_pdf_image #####")
+        logger.info("##### end get_pdf_image #####")
+        return new_pdf.read()
+
+    def get_all_pdf_image(self) -> Optional[bytes]:
+        images = []
+        logger.info("##### start get_all_pdf_image #####")
+        logger.info(vars(self))
+        snapshots = self._get_screenshots()
+
+        for snap in snapshots:
+            logger.info("##### snap #####")
+            img = Image.open(BytesIO(snap))
+            if img.mode == "RGBA":
+                img = img.convert("RGB")
+            images.append(img)
+
+        new_pdf = BytesIO()
+        images[0].save(new_pdf, "PDF", save_all=True, append_images=images[1:])
+        new_pdf.seek(0)
+        logger.info("##### end get_all_pdf_image #####")
         return new_pdf.read()
 
     def get_pdf_data(self) -> bytes:

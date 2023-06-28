@@ -73,6 +73,7 @@ from superset.dashboards.schemas import (
     EmbeddedDashboardResponseSchema,
     get_delete_ids_schema,
     get_export_ids_schema,
+    get_dashboard_download,
     get_fav_star_ids_schema,
     GetFavStarIdsSchema,
     openapi_spec_methods_override,
@@ -270,6 +271,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
     apispec_parameter_schemas = {
         "get_delete_ids_schema": get_delete_ids_schema,
         "get_export_ids_schema": get_export_ids_schema,
+        "get_dashboard_download":get_dashboard_download,
         "thumbnail_query_schema": thumbnail_query_schema,
         "get_fav_star_ids_schema": get_fav_star_ids_schema,
     }
@@ -875,6 +877,99 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                     properties:
                       message:
                         type: string
+            302:
+              description: Redirects to the current digest
+            401:
+              $ref: '#/components/responses/401'
+            404:
+              $ref: '#/components/responses/404'
+            422:
+              $ref: '#/components/responses/422'
+            500:
+              $ref: '#/components/responses/500'
+        """
+        dashboard = cast(Dashboard, self.datamodel.get(pk, self._base_filters))
+        if not dashboard:
+            return self.response_404()
+
+        dashboard_url = get_url_path(
+            "Superset.dashboard", dashboard_id_or_slug=dashboard.id
+        )
+        # If force, request a screenshot from the workers
+        current_user = get_current_user()
+        if kwargs["rison"].get("force", False):
+            cache_dashboard_thumbnail.delay(
+                current_user=current_user,
+                dashboard_id=dashboard.id,
+                force=True,
+            )
+            return self.response(202, message="OK Async")
+        # fetch the dashboard screenshot using the current user and cache if set
+        screenshot = DashboardScreenshot(
+            dashboard_url, dashboard.digest
+        ).get_from_cache(cache=thumbnail_cache)
+        # If the screenshot does not exist, request one from the workers
+        if not screenshot:
+            self.incr_stats("async", self.thumbnail.__name__)
+            cache_dashboard_thumbnail.delay(
+                current_user=current_user,
+                dashboard_id=dashboard.id,
+                force=True,
+            )
+            return self.response(202, message="OK Async")
+        # If digests
+        if dashboard.digest != digest:
+            self.incr_stats("redirect", self.thumbnail.__name__)
+            return redirect(
+                url_for(
+                    f"{self.__class__.__name__}.thumbnail",
+                    pk=pk,
+                    digest=dashboard.digest,
+                )
+            )
+        self.incr_stats("from_cache", self.thumbnail.__name__)
+        return Response(
+            FileWrapper(screenshot), mimetype="image/png", direct_passthrough=True
+        )
+
+    @expose("/<pk>/download", methods=["GET"])
+    @protect()
+    @safe
+    @rison(get_dashboard_download)
+    @event_logger.log_this_with_context(
+        action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.dashboard_download",
+        log_to_statsd=False,
+    )
+    def dashboardDownload(self, pk: int, digest: str, **kwargs: Any) -> WerkzeugResponse:
+        """Get Dashboard
+        ---
+        get:
+          description: >-
+            Export all information in dashboard as pdf.
+          parameters:
+          - in: path
+            schema:
+              type: integer
+            name: pk
+          - in: path
+            name: digest
+            description: A hex digest that makes this dashboard unique
+            schema:
+              type: string
+          - in: query
+            name: q
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/get_dashboard_download'
+          responses:
+            200:
+              description: Dashboard image
+              content:
+               image/*:
+                 schema:
+                   type: string
+                   format: binary
             302:
               description: Redirects to the current digest
             401:

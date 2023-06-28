@@ -172,7 +172,6 @@ class HeaderActionsDropdown extends React.PureComponent {
     this.setShowReportSubMenu = this.setShowReportSubMenu.bind(this);
   }
 
-  // Get all tables
   getAllTables(props, element) {
     if (props === null || element === null || element === '') {
       return [];
@@ -180,7 +179,7 @@ class HeaderActionsDropdown extends React.PureComponent {
 
     const childrenElement = props[element];
     if (childrenElement?.type === 'CHART') {
-      console.log('type === CHART');
+      // console.log('type === CHART');
       return [
         {
           chartId: childrenElement.meta.chartId,
@@ -193,7 +192,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       ];
     }
     if (childrenElement?.type === 'MARKDOWN') {
-      console.log('type === MARKDOWN');
+      // console.log('type === MARKDOWN');
       return [
         {
           code: childrenElement.meta.code,
@@ -206,10 +205,9 @@ class HeaderActionsDropdown extends React.PureComponent {
     const alltables = [];
     for (let i = 0; i < childrenElement.children.length; i += 1) {
       const table = this.getAllTables(props, childrenElement.children[i]);
-      console.log(childrenElement.children[i]);
-      console.log(table);
-      console.log(table.length);
-      console.log('commit 34');
+      // console.log(childrenElement.children[i]);
+      // console.log(table);
+      //console.log(table.length);
       table.forEach(element => {
         alltables.push(element);
       });
@@ -218,17 +216,20 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
+    console.log('commit 35');
     console.log(props);
-    console.log(props?.dashboardId);
-    console.log(props?.dashboardTitle);
-    console.log(props?.dashboardInfo);
-    // countCharts = 0;
-    // props?.dashboardInfo?.charts?.forEach(element => {
-    //  console.log(element); // return charts' name
-    //  countCharts += 1;
-    // });
-    console.log(props?.dashboardInfo?.charts?.length);
-    console.log(props?.dashboardInfo?.position_json);
+    // console.log(props?.dashboardId);
+    // console.log(props?.dashboardTitle);
+    // console.log(props?.dashboardInfo);
+    // console.log(props?.dashboardInfo?.charts?.length);
+    // console.log(props?.dashboardInfo?.position_json);
+    const dashboardInfo = [
+      {
+        dashboardId: props?.dashboardId,
+        dashboardTitle: props?.dashboardTitle,
+        type: 'DASHBOARD',
+      }
+    ];
     console.log('### native_filter_configuration');
     props?.dashboardInfo?.metadata?.native_filter_configuration?.forEach(
       element => {
@@ -239,28 +240,17 @@ class HeaderActionsDropdown extends React.PureComponent {
     );
     console.log('### layout');
     console.log(JSON.stringify(props?.layout));
-    console.log('### children');
-    // objectCharts = [];
-    const gridChildren = props?.layout?.GRID_ID?.children;
-    /*
-      gridChildren.forEach(element => {
-        console.log(element);
-        console.log(props?.layout[element].children);
-        if(element.type === "CHART") {
-          const objectChart = null;
-          objectChart.chartId = element?.meta?.chartId;
-          objectChart.sliceName = element?.meta?.sliceName;
-          objectChart.uuid = element?.meta?.uuid;
-          objectCharts.push(objectChart);
-          console.log('### type == CHART for: ');
-          console.log(objectChart.sliceName);
-        }
-      });
-    */
-    console.log(gridChildren.length);
+    // console.log('### children');
+    // const gridChildren = props?.layout?.GRID_ID?.children;
+    // console.log(gridChildren.length);
     const allTables = this.getAllTables(props?.layout, 'ROOT_ID');
     console.log('### allTables');
     console.log(allTables);
+    allTables.forEach(element => {
+      dashboardInfo.push(element);
+    })
+    console.log('### dashboardInfo');
+    console.log(dashboardInfo);
   }
 
   UNSAFE_componentWillMount() {

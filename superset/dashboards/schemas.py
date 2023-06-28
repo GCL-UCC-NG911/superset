@@ -26,6 +26,7 @@ from superset.utils import core as utils
 
 get_delete_ids_schema = {"type": "array", "items": {"type": "integer"}}
 get_export_ids_schema = {"type": "array", "items": {"type": "integer"}}
+get_dashboard_download = []
 get_fav_star_ids_schema = {"type": "array", "items": {"type": "integer"}}
 thumbnail_query_schema = {
     "type": "object",
