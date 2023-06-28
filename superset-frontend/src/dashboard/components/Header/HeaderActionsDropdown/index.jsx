@@ -205,14 +205,14 @@ class HeaderActionsDropdown extends React.PureComponent {
     }
     const alltables = [];
     for (let i = 0; i < childrenElement.children.length; i += 1) {
-      const table = this.getAllTables(props, childrenElement.children[i]); // GRID -> TABS -> TAB
+      const table = this.getAllTables(props, childrenElement.children[i]);
       console.log(childrenElement.children[i]);
       console.log(table);
-      console.log('commit 33');
-      if (table.length > 1) {
-        alltables.push(table);
-      }
-      console.log(alltables);
+      console.log(table.length);
+      console.log('commit 34');
+      table.forEach(element => {
+        alltables.push(element);
+      })
     }
     return alltables;
   }
