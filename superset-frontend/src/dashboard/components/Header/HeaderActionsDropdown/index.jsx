@@ -197,16 +197,17 @@ class HeaderActionsDropdown extends React.PureComponent {
           type: 'MARKDOWN',
         },
       ];
+    } else {
+      const alltables = [];
+      for (let i = 0; i < childrenElement.children.length; i += 1) {
+        const table = this.getAllTables(props, childrenElement.children[i]); // GRID -> TABS -> TAB
+        console.log(childrenElement.children[i]);
+        console.log(table);
+        alltables.concat(table);
+      }
+      console.log(alltables);
+      return alltables;
     }
-    const alltables = [];
-    for (let i = 0; i < childrenElement.children.length; i += 1) {
-      const table = this.getAllTables(props, childrenElement.children[i]); // GRID -> TABS -> TAB
-      console.log(childrenElement.children[i]);
-      console.log(table);
-      alltables.concat(table);
-    }
-    console.log(alltables);
-    return alltables;
   }
 
   downloadAllAsPdf(props) {
