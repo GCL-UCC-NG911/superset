@@ -116,12 +116,11 @@ const MENU_KEYS = {
 const SCREENSHOT_NODE_SELECTOR = '.dashboard';
 
 /* NGLS - BEGIN */
-export const exportTables = ({
+export const downloadPDFTables = ({
   formData,
   resultFormat = 'json',
   resultType = 'full',
   force = false,
-  ownState = {},
 }) => {
   // let url;
   // let payload;
@@ -133,7 +132,6 @@ export const exportTables = ({
   console.log(resultFormat);
   console.log(resultType);
   console.log(force);
-  console.log(ownState);
   console.log(formData);
   console.log(url);
   console.log(
@@ -180,20 +178,21 @@ class HeaderActionsDropdown extends React.PureComponent {
       return [];
     }
 
-    const children = props[element];
-    if (children.type === 'CHART') {
+    const childrenElement = props[element];
+    if (childrenElement.type === 'CHART') {
       return [
         {
-          chartId: children.meta.chartId,
-          sliceName: children.meta.sliceName,
-          uuid: children.meta.uuid,
+          chartId: childrenElement.meta.chartId,
+          sliceName: childrenElement.meta.sliceName,
+          uuid: childrenElement.meta.uuid,
         },
       ];
     }
     const alltables = [];
-    for (let i = 0; i < props[element].children.length; i += 1) {
-      const table = this.getAllTables(props, props[element].children[i]);
-      console.log(props[element].children[i]);
+    for (let i = 0; i < childrenElement.children.length; i += 1) {
+      const table = this.getAllTables(props, childrenElement.children[i]);
+      console.log(childrenElement.children[i]);
+      console.log(table);
       alltables.concat(table);
     }
     console.log(alltables);
