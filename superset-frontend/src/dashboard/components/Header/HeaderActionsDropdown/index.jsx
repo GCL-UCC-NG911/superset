@@ -186,6 +186,8 @@ class HeaderActionsDropdown extends React.PureComponent {
           chartId: childrenElement.meta.chartId,
           sliceName: childrenElement.meta.sliceName,
           uuid: childrenElement.meta.uuid,
+          height: childrenElement.meta.height,
+          width: childrenElement.meta.width,
           type: 'CHART',
         },
       ];
@@ -195,6 +197,8 @@ class HeaderActionsDropdown extends React.PureComponent {
       return [
         {
           code: childrenElement.meta.code,
+          height: childrenElement.meta.height,
+          width: childrenElement.meta.width,
           type: 'MARKDOWN',
         },
       ];
@@ -204,9 +208,9 @@ class HeaderActionsDropdown extends React.PureComponent {
       const table = this.getAllTables(props, childrenElement.children[i]); // GRID -> TABS -> TAB
       console.log(childrenElement.children[i]);
       console.log(table);
-      console.log('commit 32');
+      console.log('commit 33');
       if (table.length > 1) {
-        alltables.concat(table);
+        alltables.push(table);
       }
       console.log(alltables);
     }
