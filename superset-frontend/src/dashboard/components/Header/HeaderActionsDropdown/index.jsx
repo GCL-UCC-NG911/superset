@@ -179,18 +179,28 @@ class HeaderActionsDropdown extends React.PureComponent {
     }
 
     const childrenElement = props[element];
-    if (childrenElement.type === 'CHART') {
+    if (childrenElement?.type === 'CHART') {
+      console.log('type === CHART');
       return [
         {
-          chartId: childrenElement.meta.chartId,
-          sliceName: childrenElement.meta.sliceName,
-          uuid: childrenElement.meta.uuid,
+          'chartId': childrenElement.meta.chartId,
+          'sliceName': childrenElement.meta.sliceName,
+          'uuid': childrenElement.meta.uuid,
+          'type': 'CHART'
+        },
+      ];
+    } else if (childrenElement?.type === 'MARKDOWN') {
+      console.log('type === MARKDOWN');
+      return [
+        {
+          'code': childrenElement.meta.code,
+          'type': 'MARKDOWN'
         },
       ];
     }
     const alltables = [];
     for (let i = 0; i < childrenElement.children.length; i += 1) {
-      const table = this.getAllTables(props, childrenElement.children[i]);
+      const table = this.getAllTables(props, childrenElement.children[i]); // GRID -> TABS -> TAB
       console.log(childrenElement.children[i]);
       console.log(table);
       alltables.concat(table);
