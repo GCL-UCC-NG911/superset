@@ -139,7 +139,7 @@ export const downloadPDFTables = ({
   );
   // url = 'https://ngls.mshome.net:8443/superset/explore/p/O2BZ5NYRG1X/?standalone=1&height=400'
   /*
-  url = '/api/v1/chart/data';
+  url = '/api/v1/dashboard/download';
   payload = buildV1ChartDataPayload({
     formData,
     force,
@@ -207,7 +207,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       const table = this.getAllTables(props, childrenElement.children[i]);
       // console.log(childrenElement.children[i]);
       // console.log(table);
-      //console.log(table.length);
+      // console.log(table.length);
       table.forEach(element => {
         alltables.push(element);
       });
@@ -228,7 +228,7 @@ class HeaderActionsDropdown extends React.PureComponent {
         dashboardId: props?.dashboardId,
         dashboardTitle: props?.dashboardTitle,
         type: 'DASHBOARD',
-      }
+      },
     ];
     console.log('### native_filter_configuration');
     props?.dashboardInfo?.metadata?.native_filter_configuration?.forEach(
@@ -248,7 +248,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     console.log(allTables);
     allTables.forEach(element => {
       dashboardInfo.push(element);
-    })
+    });
     console.log('### dashboardInfo');
     console.log(dashboardInfo);
   }
