@@ -116,7 +116,22 @@ const MENU_KEYS = {
 const SCREENSHOT_NODE_SELECTOR = '.dashboard';
 
 /* NGLS - BEGIN */
-export const downloadPDFTables = ({
+const buildV1DashboardDataPayload = ({
+  formData,
+  force,
+  resultFormat,
+  resultType,
+}) => {
+  return {
+    ...formData,
+    force,
+    result_format: resultFormat,
+    result_type: resultType,
+  };
+};
+
+const downloadPDFTables = ({
+  dashboardId,
   formData,
   resultFormat = 'json',
   resultType = 'full',
@@ -125,7 +140,7 @@ export const downloadPDFTables = ({
   // let url;
   // let payload;
   // get embede coded urls
-  const url = '/superset/explore/p/O2BZ5NYRG1X/?standalone=1&height=400';
+  const url = `/api/v1/dashboard/${dashboardId}/download`;
   console.log(
     '### exportTables start - resultFormat, resultType, force, ownState, formData',
   );
@@ -134,18 +149,28 @@ export const downloadPDFTables = ({
   console.log(force);
   console.log(formData);
   console.log(url);
+  const payload = buildV1DashboardDataPayload({
+    formData,
+    force,
+    resultFormat,
+    resultType,
+  });
+  console.log(payload)
+  // SupersetClient.postForm(url, { form_data: safeStringify(payload) });
+
   console.log(
     '### exportTables end - resultFormat, resultType, force, ownState, formData',
   );
   // url = 'https://ngls.mshome.net:8443/superset/explore/p/O2BZ5NYRG1X/?standalone=1&height=400'
   /*
-  url = '/api/v1/dashboard/download';
+  
+
+  url = '/api/v1/dashboard/${dashboardId}/download';
   payload = buildV1ChartDataPayload({
     formData,
     force,
     resultFormat,
     resultType,
-    ownState,
   });
 
   SupersetClient.postForm(url, { form_data: safeStringify(payload) });
@@ -216,7 +241,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 37');
+    console.log('commit 39');
     console.log(props);
     // console.log(props?.dashboardId);
     // console.log(props?.dashboardTitle);
@@ -251,6 +276,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     });
     console.log('### dashboardInfo');
     console.log(dashboardInfo);
+    downloadPDFTables(props?.dashboardId, dashboardInfo, 'pdf', 'full', false);
   }
 
   UNSAFE_componentWillMount() {
