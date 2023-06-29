@@ -124,7 +124,7 @@ const buildV1DashboardDataPayload = ({
 }) => {
   console.log('### buildV1DashboardDataPayload');
   return {
-    formData: formData,
+    formData,
     force,
     result_format: resultFormat,
     result_type: resultType,
