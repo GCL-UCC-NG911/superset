@@ -3269,6 +3269,67 @@
         },
         "type": "object"
       },
+      "DashboardDataDatasource": {
+        "properties": {
+          "id": {
+            "description": "Datasource id",
+            "format": "int32",
+            "type": "integer"
+          },
+          "type": {
+            "description": "Datasource type",
+            "enum": [
+              "sl_table",
+              "table",
+              "dataset",
+              "query",
+              "saved_query",
+              "view"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "DashboardDataAsyncResponseSchema": {
+        "properties": {
+          "status": {
+            "description": "Status value for async job",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "DashboardDataQueryContextSchema": {
+        "properties": {
+          "force": {
+            "description": "Should the queries be forced to load from the source. Default: `false`",
+            "nullable": true,
+            "type": "boolean"
+          },
+          "form_data": {
+            "type": "array"
+          },
+          "result_format": {},
+          "result_type": {}
+        },
+        "type": "object"
+      },
+      "DashboardDataResponseSchema": {
+        "properties": {
+          "result": {
+            "description": "A list of results for each corresponding query in the request.",
+            "items": {
+              "$ref": "#/components/schemas/DashboardDataResponseResult"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
       "DashboardGetResponseSchema": {
         "properties": {
           "certification_details": {
@@ -13969,67 +14030,56 @@
       }
     },
     "/api/v1/dashboard/{pk}/download": {
-      "get": {
-        "description": "Compute async or get already computed dashboard thumbnail from cache.",
+      "post": {
+        "description": "Takes a query context constructed in the client and returns payload data response for the given query.",
         "parameters": [
           {
+            "description": "The dashboard id",
             "in": "path",
-            "name": "pk",
+            "name": "id",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string"
             }
-          },
-          {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/thumbnail_query_schema"
-                }
-              }
-            },
-            "in": "query",
-            "name": "q"
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardDataQueryContextSchema"
+              }
+            }
+          },
+          "description": "A query context consists of a datasource from which to fetch data and one or many query objects.",
+          "required": true
+        },
         "responses": {
           "200": {
             "content": {
-              "image/*": {
+              "application/json": {
                 "schema": {
-                  "format": "binary",
-                  "type": "string"
+                  "$ref": "#/components/schemas/DashboardDataResponseSchema"
                 }
               }
             },
-            "description": "Dashboard thumbnail image"
+            "description": "Query result"
           },
           "202": {
             "content": {
               "application/json": {
                 "schema": {
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "type": "object"
+                  "$ref": "#/components/schemas/DashboardDataAsyncResponseSchema"
                 }
               }
             },
-            "description": "Thumbnail does not exist on cache, fired async to compute"
+            "description": "Async job details"
           },
-          "302": {
-            "description": "Redirects to the current digest"
+          "400": {
+            "$ref": "#/components/responses/400"
           },
           "401": {
             "$ref": "#/components/responses/401"
-          },
-          "404": {
-            "$ref": "#/components/responses/404"
-          },
-          "422": {
-            "$ref": "#/components/responses/422"
           },
           "500": {
             "$ref": "#/components/responses/500"

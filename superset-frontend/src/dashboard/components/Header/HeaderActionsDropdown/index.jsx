@@ -157,7 +157,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     resultFormat = 'json',
     resultType = 'full',
     force = false,
-    ) {
+  ) {
     const url = `/api/v1/dashboard/${dashboardId}/download`;
     console.log(
       '### exportTables start - resultFormat, resultType, force, ownState, formData',
@@ -225,7 +225,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 41');
+    console.log('commit 42');
     console.log(props);
     // console.log(props?.dashboardId);
     // console.log(props?.dashboardTitle);
@@ -266,7 +266,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       'pdf',
       'full',
       false,
-      );
+    );
   }
 
   UNSAFE_componentWillMount() {
