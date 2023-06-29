@@ -122,12 +122,13 @@ const buildV1DashboardDataPayload = ({
   resultFormat,
   resultType,
 }) => {
-  return {
+  console.log('### buildV1DashboardDataPayload');
+  return ({
     ...formData,
     force,
     result_format: resultFormat,
     result_type: resultType,
-  };
+  });
 };
 
 const downloadPDFTables = ({
@@ -155,7 +156,7 @@ const downloadPDFTables = ({
     resultFormat,
     resultType,
   });
-  console.log(payload)
+  console.log(payload);
   // SupersetClient.postForm(url, { form_data: safeStringify(payload) });
 
   console.log(
