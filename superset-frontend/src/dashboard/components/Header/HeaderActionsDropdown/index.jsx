@@ -124,7 +124,7 @@ const buildV1DashboardDataPayload = ({
 }) => {
   console.log('### buildV1DashboardDataPayload');
   return {
-    ...formData,
+    formData: formData,
     force,
     result_format: resultFormat,
     result_type: resultType,
@@ -174,7 +174,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       resultType,
     });
     console.log(payload);
-    // SupersetClient.postForm(url, { form_data: safeStringify(payload) });
+    SupersetClient.postForm(url, { form_data: safeStringify(payload) });
 
     console.log(
       '### exportTables end - resultFormat, resultType, force, ownState, formData',
@@ -225,7 +225,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 42');
+    console.log('commit 43');
     console.log(props);
     // console.log(props?.dashboardId);
     // console.log(props?.dashboardTitle);

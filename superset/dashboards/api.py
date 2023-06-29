@@ -932,107 +932,74 @@ class DashboardRestApi(BaseSupersetModelRestApi):
             FileWrapper(screenshot), mimetype="image/png", direct_passthrough=True
         )
 
-    @expose("/<pk>/download/<digest>/", methods=["GET"])
+    @expose("/<int:pk>/download", methods=["POST"])
     @protect()
     @safe
     @rison(thumbnail_query_schema)
     @event_logger.log_this_with_context(
-        action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.thumbnail",
+        action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.dashboarddownload",
         log_to_statsd=False,
     )
-    def download(self, pk: int, digest: str, **kwargs: Any) -> WerkzeugResponse:
-        """Get Dashboard thumbnail
+    def download(self, pk: int) -> WerkzeugResponse: # pylint: disable=arguments-differ
+        """Get Dashboard information and returns payload data.
         ---
-        get:
+        post:
           description: >-
-            Compute async or get already computed dashboard thumbnail from cache.
+            Takes a query context constructed in the client and returns payload data
+            response for the given query.
           parameters:
           - in: path
             schema:
               type: integer
             name: pk
-          - in: path
-            name: digest
-            description: A hex digest that makes this dashboard unique
-            schema:
-              type: string
-          - in: query
-            name: q
+            description: The annotation layer pk for this annotation
+          requestBody:
+            description: >-
+              Array of dashboard, charts and markdown informations.
+            required: true
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/thumbnail_query_schema'
+                  $ref: "#/components/schemas/DashboardDataQueryContextSchema"
           responses:
             200:
-              description: Dashboard thumbnail image
-              content:
-               image/*:
-                 schema:
-                   type: string
-                   format: binary
-            202:
-              description: Thumbnail does not exist on cache, fired async to compute
+              description: Query result
               content:
                 application/json:
                   schema:
-                    type: object
-                    properties:
-                      message:
-                        type: string
-            302:
-              description: Redirects to the current digest
+                    $ref: "#/components/schemas/DashboardDataResponseSchema"
+            202:
+              description: Async job details
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/DashboardDataAsyncResponseSchema"
+            400:
+              $ref: '#/components/responses/400'
             401:
               $ref: '#/components/responses/401'
-            404:
-              $ref: '#/components/responses/404'
-            422:
-              $ref: '#/components/responses/422'
             500:
               $ref: '#/components/responses/500'
         """
-        dashboard = cast(Dashboard, self.datamodel.get(pk, self._base_filters))
-        if not dashboard:
-            return self.response_404()
+        json_body = None
+        if request.is_json:
+            json_body = request.json
+        elif request.form.get("form_data"):
+            try:
+                json_body = json.loads(request.form["form_data"])
+            except (TypeError, json.JSONDecodeError):
+                pass
 
-        dashboard_url = get_url_path(
-            "Superset.dashboard", dashboard_id_or_slug=dashboard.id
-        )
-        # If force, request a screenshot from the workers
-        current_user = get_current_user()
-        if kwargs["rison"].get("force", False):
-            cache_dashboard_thumbnail.delay(
-                current_user=current_user,
-                dashboard_id=dashboard.id,
-                force=True,
-            )
-            return self.response(202, message="OK Async")
-        # fetch the dashboard screenshot using the current user and cache if set
-        screenshot = DashboardScreenshot(
-            dashboard_url, dashboard.digest
-        ).get_from_cache(cache=thumbnail_cache)
-        # If the screenshot does not exist, request one from the workers
-        if not screenshot:
-            self.incr_stats("async", self.thumbnail.__name__)
-            cache_dashboard_thumbnail.delay(
-                current_user=current_user,
-                dashboard_id=dashboard.id,
-                force=True,
-            )
-            return self.response(202, message="OK Async")
-        # If digests
-        if dashboard.digest != digest:
-            self.incr_stats("redirect", self.thumbnail.__name__)
-            return redirect(
-                url_for(
-                    f"{self.__class__.__name__}.thumbnail",
-                    pk=pk,
-                    digest=dashboard.digest,
-                )
-            )
-        self.incr_stats("from_cache", self.thumbnail.__name__)
-        return Response(
-            FileWrapper(screenshot), mimetype="image/png", direct_passthrough=True
-        )
+        if json_body is None:
+            return self.response_400(message=_("Request is not JSON"))
+
+        if json_body.lenght > 0:
+          return self.response(202, message="OK Async")
+
+        if pk > 0:
+            return self.response(200, message="OK Async")
+
+        return self.response_400(message=_("Request is ..."))
 
     @expose("/favorite_status/", methods=["GET"])
     @protect()
