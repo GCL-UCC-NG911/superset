@@ -151,7 +151,13 @@ class HeaderActionsDropdown extends React.PureComponent {
     this.setShowReportSubMenu = this.setShowReportSubMenu.bind(this);
   }
 
-  downloadPDFTables(dashboardId, formData, resultFormat = 'json', resultType = 'full', force = false) {
+  downloadPDFTables(
+    dashboardId,
+    formData,
+    resultFormat = 'json',
+    resultType = 'full',
+    force = false,
+    ) {
     const url = `/api/v1/dashboard/${dashboardId}/download`;
     console.log(
       '### exportTables start - resultFormat, resultType, force, ownState, formData',
@@ -169,11 +175,11 @@ class HeaderActionsDropdown extends React.PureComponent {
     });
     console.log(payload);
     // SupersetClient.postForm(url, { form_data: safeStringify(payload) });
-  
+
     console.log(
       '### exportTables end - resultFormat, resultType, force, ownState, formData',
     );
-  };
+  }
 
   getAllTables(props, element) {
     if (props === null || element === null || element === '') {
@@ -254,7 +260,13 @@ class HeaderActionsDropdown extends React.PureComponent {
     });
     console.log('### dashboardInfo');
     console.log(dashboardInfo);
-    this.downloadPDFTables(props?.dashboardId, dashboardInfo, 'pdf', 'full', false);
+    this.downloadPDFTables(
+      props?.dashboardId,
+      dashboardInfo,
+      'pdf',
+      'full',
+      false,
+      );
   }
 
   UNSAFE_componentWillMount() {
