@@ -123,12 +123,12 @@ const buildV1DashboardDataPayload = ({
   resultType,
 }) => {
   console.log('### buildV1DashboardDataPayload');
-  return ({
+  return {
     ...formData,
     force,
     result_format: resultFormat,
     result_type: resultType,
-  });
+  };
 };
 
 const downloadPDFTables = ({
