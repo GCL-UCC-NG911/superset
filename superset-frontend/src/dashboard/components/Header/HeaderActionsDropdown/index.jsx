@@ -216,7 +216,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 35');
+    console.log('commit 37');
     console.log(props);
     // console.log(props?.dashboardId);
     // console.log(props?.dashboardTitle);

@@ -3344,6 +3344,9 @@
           "slug": {
             "type": "string"
           },
+          "download_url": {
+            "type": "string"
+          },
           "thumbnail_url": {
             "type": "string"
           },
@@ -3466,6 +3469,9 @@
           },
           "status": {
             "readOnly": true
+          },
+          "download_url": {
+            "type": "string"
           },
           "thumbnail_url": {
             "readOnly": true

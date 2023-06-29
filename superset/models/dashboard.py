@@ -257,6 +257,14 @@ class Dashboard(Model, AuditMixinNullable, ImportExportMixin):
         return f"/api/v1/dashboard/{self.id}/thumbnail/{self.digest}/"
 
     @property
+    def download_url(self) -> str:
+        """
+        Returns a thumbnail URL with a HEX digest. We want to avoid browser cache
+        if the dashboard has changed
+        """
+        return f"/api/v1/dashboard/{self.id}/download/"
+
+    @property
     def changed_by_name(self) -> str:
         if not self.changed_by:
             return ""
