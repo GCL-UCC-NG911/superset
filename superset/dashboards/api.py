@@ -274,7 +274,6 @@ class DashboardRestApi(BaseSupersetModelRestApi):
     apispec_parameter_schemas = {
         "get_delete_ids_schema": get_delete_ids_schema,
         "get_export_ids_schema": get_export_ids_schema,
-        "get_dashboard_download":get_dashboard_download,
         "thumbnail_query_schema": thumbnail_query_schema,
         "get_fav_star_ids_schema": get_fav_star_ids_schema,
     }
