@@ -130,53 +130,6 @@ const buildV1DashboardDataPayload = ({
     result_type: resultType,
   };
 };
-
-const downloadPDFTables = ({
-  dashboardId,
-  formData,
-  resultFormat = 'json',
-  resultType = 'full',
-  force = false,
-}) => {
-  // let url;
-  // let payload;
-  // get embede coded urls
-  const url = `/api/v1/dashboard/${dashboardId}/download`;
-  console.log(
-    '### exportTables start - resultFormat, resultType, force, ownState, formData',
-  );
-  console.log(resultFormat);
-  console.log(resultType);
-  console.log(force);
-  console.log(formData);
-  console.log(url);
-  const payload = buildV1DashboardDataPayload({
-    formData,
-    force,
-    resultFormat,
-    resultType,
-  });
-  console.log(payload);
-  // SupersetClient.postForm(url, { form_data: safeStringify(payload) });
-
-  console.log(
-    '### exportTables end - resultFormat, resultType, force, ownState, formData',
-  );
-  // url = 'https://ngls.mshome.net:8443/superset/explore/p/O2BZ5NYRG1X/?standalone=1&height=400'
-  /*
-  
-
-  url = '/api/v1/dashboard/${dashboardId}/download';
-  payload = buildV1ChartDataPayload({
-    formData,
-    force,
-    resultFormat,
-    resultType,
-  });
-
-  SupersetClient.postForm(url, { form_data: safeStringify(payload) });
-  */
-};
 /* NGLS - END */
 
 class HeaderActionsDropdown extends React.PureComponent {
@@ -197,6 +150,30 @@ class HeaderActionsDropdown extends React.PureComponent {
     this.handleMenuClick = this.handleMenuClick.bind(this);
     this.setShowReportSubMenu = this.setShowReportSubMenu.bind(this);
   }
+
+  downloadPDFTables(dashboardId, formData, resultFormat = 'json', resultType = 'full', force = false) {
+    const url = `/api/v1/dashboard/${dashboardId}/download`;
+    console.log(
+      '### exportTables start - resultFormat, resultType, force, ownState, formData',
+    );
+    console.log(resultFormat);
+    console.log(resultType);
+    console.log(force);
+    console.log(formData);
+    console.log(url);
+    const payload = buildV1DashboardDataPayload({
+      formData,
+      force,
+      resultFormat,
+      resultType,
+    });
+    console.log(payload);
+    // SupersetClient.postForm(url, { form_data: safeStringify(payload) });
+  
+    console.log(
+      '### exportTables end - resultFormat, resultType, force, ownState, formData',
+    );
+  };
 
   getAllTables(props, element) {
     if (props === null || element === null || element === '') {
