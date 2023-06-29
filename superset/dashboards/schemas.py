@@ -26,7 +26,41 @@ from superset.utils import core as utils
 
 get_delete_ids_schema = {"type": "array", "items": {"type": "integer"}}
 get_export_ids_schema = {"type": "array", "items": {"type": "integer"}}
-get_dashboard_download = {
+DashboardDataQueryContextSchema = {
+    "type": "object",
+    "properties": {
+        "formData": {
+            "type": "array"
+        },
+        "force": {
+            "type": "boolean"
+        },
+        "result_format": {
+            "type": "array"
+        },
+        "result_type": {
+            "type": "array"
+        },
+    },
+}
+DashboardDataResponseSchema = {
+    "type": "object",
+    "properties": {
+        "formData": {
+            "type": "array"
+        },
+        "force": {
+            "type": "boolean"
+        },
+        "result_format": {
+            "type": "array"
+        },
+        "result_type": {
+            "type": "array"
+        },
+    },
+}
+DashboardDataAsyncResponseSchema = {
     "type": "object",
     "properties": {
         "formData": {

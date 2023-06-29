@@ -73,7 +73,9 @@ from superset.dashboards.schemas import (
     EmbeddedDashboardResponseSchema,
     get_delete_ids_schema,
     get_export_ids_schema,
-    get_dashboard_download,
+    DashboardDataQueryContextSchema,
+    DashboardDataResponseSchema,
+    DashboardDataAsyncResponseSchema,
     get_fav_star_ids_schema,
     GetFavStarIdsSchema,
     openapi_spec_methods_override,
@@ -953,7 +955,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
             schema:
               type: integer
             name: pk
-            description: The annotation layer pk for this annotation
+            description: The dashboard id.
           requestBody:
             description: >-
               Array of dashboard, charts and markdown informations.
