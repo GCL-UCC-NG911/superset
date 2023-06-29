@@ -146,6 +146,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         "get_embedded",
         "set_embedded",
         "delete_embedded",
+        "download",
         "thumbnail",
     }
     resource_name = "dashboard"
