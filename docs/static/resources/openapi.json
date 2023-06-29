@@ -13962,9 +13962,9 @@
         ]
       }
     },
-    "/api/v1/dashboard/{pk}/download": {
+    "/api/v1/dashboard/{pk}/download/{digest}/": {
       "get": {
-        "description": "Export all information in dashboard as pdf.",
+        "description": "Compute async or get already computed dashboard thumbnail from cache.",
         "parameters": [
           {
             "in": "path",
@@ -13987,7 +13987,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/get_dashboard_download"
+                  "$ref": "#/components/schemas/thumbnail_query_schema"
                 }
               }
             },
@@ -14005,7 +14005,22 @@
                 }
               }
             },
-            "description": "Dashboard pdf"
+            "description": "Dashboard thumbnail image"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Thumbnail does not exist on cache, fired async to compute"
           },
           "302": {
             "description": "Redirects to the current digest"

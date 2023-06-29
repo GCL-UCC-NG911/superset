@@ -932,20 +932,20 @@ class DashboardRestApi(BaseSupersetModelRestApi):
             FileWrapper(screenshot), mimetype="image/png", direct_passthrough=True
         )
 
-    @expose("/<pk>/download", methods=["GET"])
+    @expose("/<pk>/download/<digest>/", methods=["GET"])
     @protect()
     @safe
-    @rison(get_dashboard_download)
+    @rison(thumbnail_query_schema)
     @event_logger.log_this_with_context(
-        action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.dashboard_download",
+        action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.thumbnail",
         log_to_statsd=False,
     )
-    def dashboardDownload(self, pk: int, digest: str, **kwargs: Any) -> WerkzeugResponse:
-        """Get Dashboard
+    def download(self, pk: int, digest: str, **kwargs: Any) -> WerkzeugResponse:
+        """Get Dashboard thumbnail
         ---
         get:
           description: >-
-            Export all information in dashboard as pdf.
+            Compute async or get already computed dashboard thumbnail from cache.
           parameters:
           - in: path
             schema:
@@ -961,15 +961,24 @@ class DashboardRestApi(BaseSupersetModelRestApi):
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/get_dashboard_download'
+                  $ref: '#/components/schemas/thumbnail_query_schema'
           responses:
             200:
-              description: Dashboard image
+              description: Dashboard thumbnail image
               content:
                image/*:
                  schema:
                    type: string
                    format: binary
+            202:
+              description: Thumbnail does not exist on cache, fired async to compute
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      message:
+                        type: string
             302:
               description: Redirects to the current digest
             401:
