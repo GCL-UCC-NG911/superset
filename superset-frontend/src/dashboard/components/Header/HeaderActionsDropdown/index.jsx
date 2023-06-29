@@ -219,7 +219,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 39');
+    console.log('commit 41');
     console.log(props);
     // console.log(props?.dashboardId);
     // console.log(props?.dashboardTitle);
@@ -254,7 +254,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     });
     console.log('### dashboardInfo');
     console.log(dashboardInfo);
-    downloadPDFTables(props?.dashboardId, dashboardInfo, 'pdf', 'full', false);
+    this.downloadPDFTables(props?.dashboardId, dashboardInfo, 'pdf', 'full', false);
   }
 
   UNSAFE_componentWillMount() {
