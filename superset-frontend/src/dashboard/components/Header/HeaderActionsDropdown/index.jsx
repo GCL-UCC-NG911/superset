@@ -226,7 +226,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 51');
+    console.log('commit 52');
     // console.log(props);
     console.log(props.dashboardInfo.metadata.native_filter);
     console.log(props.dashboardInfo.dataMask);
@@ -250,8 +250,8 @@ class HeaderActionsDropdown extends React.PureComponent {
         console.log(element?.name);
       },
     );
-    //console.log('### layout');
-    //console.log(JSON.stringify(props?.layout));
+    // console.log('### layout');
+    // console.log(JSON.stringify(props?.layout));
     // console.log('### children');
     // const gridChildren = props?.layout?.GRID_ID?.children;
     // console.log(gridChildren.length);
