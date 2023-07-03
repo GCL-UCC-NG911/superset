@@ -88,7 +88,10 @@ from superset.models.embedded_dashboard import EmbeddedDashboard
 from superset.tasks.thumbnails import cache_dashboard_thumbnail
 from superset.tasks.utils import get_current_user
 from superset.utils.cache import etag_cache
-from superset.utils.screenshots import DashboardScreenshot
+from superset.utils.screenshots import (
+    DashboardScreenshot,
+    DashboardChartScreenshot,
+)
 from superset.utils.urls import get_url_path
 from superset.views.base import generate_download_headers
 from superset.views.base_api import (
@@ -991,6 +994,27 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                 json_body = json.loads(request.form["form_data"])
             except (TypeError, json.JSONDecodeError):
                 pass
+
+        # If force, request a screenshot from the workers
+        current_user = get_current_user()
+        DashboardChartScreenshot(current_user, json_body).print()
+        # fetch the dashboard screenshot using the current user and cache if set
+        if json_body.formData:
+          # for element in json_body.formData: # loop 
+            # if element.type == "CHART":
+              # chartId
+              # filters
+              # getUrl
+              # chartUrl = 'api/v1/${chartId}/chart'
+              # screenshot = DashboardChartScreenshot(
+                  # chartUrl
+              # ).get_from_cache(cache=thumbnail_cache)
+        
+          self.incr_stats("from_cache", self.download.__name__)
+          # return Response(
+              # FileWrapper(screenshot), mimetype="image/png", direct_passthrough=True
+          # )
+          return self.response(200, message="OK Async")
 
         if json_body is None:
             return self.response_400(message=_("Request is not JSON"))

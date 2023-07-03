@@ -199,6 +199,41 @@ class BaseScreenshot:
         new_img.seek(0)
         return new_img.read()
 
+class BaseScreenshot2:
+    # current_user, json_body
+    driver_type = current_app.config["WEBDRIVER_TYPE"]
+    thumbnail_type: str = ""
+    element: str = ""
+    window_size: WindowSize = (800, 600)
+    thumb_size: WindowSize = (400, 300)
+
+    def __init__(self, user: str, json: any):
+        self.user: str = user
+        self.json = json
+        self.screenshot: Optional[bytes] = None
+
+    def driver(self, window_size: Optional[WindowSize] = None) -> WebDriverProxy:
+        window_size = window_size or self.window_size
+        return WebDriverProxy(self.driver_type, window_size)
+
+    def cache_key(
+        self,
+        window_size: Optional[Union[bool, WindowSize]] = None,
+        thumb_size: Optional[Union[bool, WindowSize]] = None,
+    ) -> str:
+        window_size = window_size or self.window_size
+        thumb_size = thumb_size or self.thumb_size
+        args = {
+            "thumbnail_type": self.thumbnail_type,
+            "digest": self.digest,
+            "type": "thumb",
+            "window_size": window_size,
+            "thumb_size": thumb_size,
+        }
+        return md5_sha_from_dict(args)
+    
+    def print(self):
+        logger.info("##### User: [%s], json: [%s]", str(self.user), str(self.json))
 
 class ChartScreenshot(BaseScreenshot):
     thumbnail_type: str = "chart"
@@ -220,6 +255,21 @@ class ChartScreenshot(BaseScreenshot):
         self.window_size = window_size or (800, 600)
         self.thumb_size = thumb_size or (800, 600)
 
+class DashboardChartScreenshot(BaseScreenshot2):
+    thumbnail_type: str = "chart"
+    element: str = "chart-container"
+
+    def __init__(
+        self,
+        user: str,
+        json: any,
+        window_size: Optional[WindowSize] = None,
+        thumb_size: Optional[WindowSize] = None,
+    ):
+        # Chart reports are in standalone="true" mode
+        super().__init__(user, json)
+        self.window_size = window_size or (800, 600)
+        self.thumb_size = thumb_size or (800, 600)
 
 class DashboardScreenshot(BaseScreenshot):
     thumbnail_type: str = "dashboard"
