@@ -31,9 +31,9 @@ import sqlalchemy as sa
 
 def upgrade():
     with op.batch_alter_table("ab_user") as batch_op:
-        batch_op.add_column(sa.Column("old_password", sa.String(256), nullable=True))
+        batch_op.add_column(sa.Column("password_history", sa.String(256), nullable=True))
 
 
 def downgrade():
     with op.batch_alter_table("ab_user") as batch_op:
-        batch_op.drop_column("old_password")
+        batch_op.drop_column("password_history")
