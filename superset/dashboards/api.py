@@ -940,7 +940,6 @@ class DashboardRestApi(BaseSupersetModelRestApi):
     @expose("/<int:pk>/download", methods=["POST"])
     @protect()
     @safe
-    @rison(thumbnail_query_schema)
     @event_logger.log_this_with_context(
         action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.dashboarddownload",
         log_to_statsd=False,
@@ -1010,7 +1009,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                   # chartUrl
               # ).get_from_cache(cache=thumbnail_cache)
         
-          self.incr_stats("from_cache", self.download.__name__)
+          self.incr_stats("from_cache", self.dashboarddownload.__name__)
           # return Response(
               # FileWrapper(screenshot), mimetype="image/png", direct_passthrough=True
           # )
