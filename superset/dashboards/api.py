@@ -492,7 +492,6 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.post",
         log_to_statsd=False,
     )
-    @requires_json
     def post(self) -> Response:
         """Creates a new Dashboard
         ---
