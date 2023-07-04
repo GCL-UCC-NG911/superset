@@ -334,6 +334,7 @@ class BaseScreenshot2:
         return None
 
     def print(self):
+        logger.info("commit 75")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
 
 class ChartScreenshot(BaseScreenshot):
