@@ -207,11 +207,11 @@ class BaseScreenshot2:
     window_size: WindowSize = (800, 600)
     thumb_size: WindowSize = (400, 300)
 
-    def __init__(self, user: str, json: any, pk: int, digest: str):
+    def __init__(self, user: str, json: any, pk: int,):
         self.user: str = user
         self.json = json
         self.pk = pk
-        self.digest: str = digest
+        self.digest: str = ""
         self.screenshot: Optional[bytes] = None
 
     def driver(self, window_size: Optional[WindowSize] = None) -> WebDriverProxy:
@@ -365,12 +365,11 @@ class DashboardChartScreenshot(BaseScreenshot2):
         user: str,
         json: any,
         pk: int,
-        digest: str,
         window_size: Optional[WindowSize] = None,
         thumb_size: Optional[WindowSize] = None,
     ):
         # Chart reports are in standalone="true" mode
-        super().__init__(user, json, pk, digest)
+        super().__init__(user, json, pk)
         self.window_size = window_size or (800, 600)
         self.thumb_size = thumb_size or (800, 600)
 

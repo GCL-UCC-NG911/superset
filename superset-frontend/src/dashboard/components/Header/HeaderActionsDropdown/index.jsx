@@ -175,7 +175,14 @@ class HeaderActionsDropdown extends React.PureComponent {
     });
     console.log(payload);
     // SupersetClient.postForm(url, { form_data: safeStringify(payload) });
-    SupersetClient.postJsonForm(url, payload);
+
+    const querySettings = {
+      url,
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+    };
+
+    SupersetClient.post(querySettings);
 
     console.log(
       '### exportTables end - resultFormat, resultType, force, ownState, formData',
