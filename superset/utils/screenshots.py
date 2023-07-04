@@ -207,9 +207,10 @@ class BaseScreenshot2:
     window_size: WindowSize = (800, 600)
     thumb_size: WindowSize = (400, 300)
 
-    def __init__(self, user: str, json: any):
+    def __init__(self, user: str, json: any, pk: int):
         self.user: str = user
         self.json = json
+        self.pk = pk
         self.screenshot: Optional[bytes] = None
 
     def driver(self, window_size: Optional[WindowSize] = None) -> WebDriverProxy:
@@ -233,7 +234,7 @@ class BaseScreenshot2:
         return md5_sha_from_dict(args)
     
     def print(self):
-        logger.info("##### User: [%s], json: [%s]", str(self.user), str(self.json))
+        logger.info("##### User: [%s], json: [%s], pk: [%s]", str(self.user), str(self.json), str(self.pk))
 
 class ChartScreenshot(BaseScreenshot):
     thumbnail_type: str = "chart"
@@ -267,7 +268,7 @@ class DashboardChartScreenshot(BaseScreenshot2):
         thumb_size: Optional[WindowSize] = None,
     ):
         # Chart reports are in standalone="true" mode
-        super().__init__(user, json)
+        super().__init__(user, json, pk)
         self.window_size = window_size or (800, 600)
         self.thumb_size = thumb_size or (800, 600)
 
