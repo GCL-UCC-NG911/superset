@@ -996,12 +996,12 @@ class DashboardRestApi(BaseSupersetModelRestApi):
 
         # If force, request a screenshot from the workers
         current_user = get_current_user()
-        DashboardChartScreenshot(current_user, request, pk).print()
-        DashboardChartScreenshot(current_user, request.is_json, pk).print()
+        # DashboardChartScreenshot(current_user, request, pk).print()
+        # DashboardChartScreenshot(current_user, request.is_json, pk).print()
         DashboardChartScreenshot(current_user, request.json, pk).print()
-        DashboardChartScreenshot(current_user, request.form.get("form_data"), pk).print()
-        DashboardChartScreenshot(current_user, request.form.get("force"), pk).print()
-        DashboardChartScreenshot(current_user, request.form.get("force"), pk).print()
+        DashboardChartScreenshot(current_user, request.json[0].get("formData"), pk).print()
+        DashboardChartScreenshot(current_user, request.json.get("formData"), pk).print()
+        DashboardChartScreenshot(current_user, request.json.get("force"), pk).print()
         # fetch the dashboard screenshot using the current user and cache if set
         if json_body.form_data:
           self.incr_stats("from_cache", self.dashboarddownload.__name__)
