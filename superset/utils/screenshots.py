@@ -264,6 +264,7 @@ class DashboardChartScreenshot(BaseScreenshot2):
         self,
         user: str,
         json: any,
+        pk: int,
         window_size: Optional[WindowSize] = None,
         thumb_size: Optional[WindowSize] = None,
     ):
