@@ -232,7 +232,79 @@ class BaseScreenshot2:
             "thumb_size": thumb_size,
         }
         return md5_sha_from_dict(args)
-    
+
+    def compute_and_cache(  # pylint: disable=too-many-arguments
+        self,
+        user: User = None,
+        window_size: Optional[WindowSize] = None,
+        thumb_size: Optional[WindowSize] = None,
+        cache: Cache = None,
+        force: bool = True,
+    ) -> Optional[bytes]:
+        """
+        Fetches the screenshot, computes the thumbnail and caches the result
+
+        :param user: If no user is given will use the current context
+        :param cache: The cache to keep the thumbnail payload
+        :param window_size: The window size from which will process the thumb
+        :param thumb_size: The final thumbnail size
+        :param force: Will force the computation even if it's already cached
+        :return: Image payload
+        """
+        cache_key = self.cache_key(window_size, thumb_size)
+        window_size = window_size or self.window_size
+        thumb_size = thumb_size or self.thumb_size
+        if not force and cache and cache.get(cache_key):
+            logger.info("Thumb already cached, skipping...")
+            return None
+        logger.info("Processing url for thumbnail: %s", cache_key)
+
+        payload = None
+
+        # Assuming all sorts of things can go wrong with Selenium
+        try:
+            payload = self.get_screenshot(user=user, window_size=window_size)
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.warning("Failed at generating thumbnail %s", ex, exc_info=True)
+
+        if payload and window_size != thumb_size:
+            try:
+                payload = self.resize_image(payload, thumb_size=thumb_size)
+            except Exception as ex:  # pylint: disable=broad-except
+                logger.warning("Failed at resizing thumbnail %s", ex, exc_info=True)
+                payload = None
+
+        if payload:
+            logger.info("Caching thumbnail: %s", cache_key)
+            cache.set(cache_key, payload)
+            logger.info("Done caching thumbnail")
+        return payload
+
+    @classmethod
+    def resize_image(
+        cls,
+        img_bytes: bytes,
+        output: str = "png",
+        thumb_size: Optional[WindowSize] = None,
+        crop: bool = True,
+    ) -> bytes:
+        thumb_size = thumb_size or cls.thumb_size
+        img = Image.open(BytesIO(img_bytes))
+        logger.debug("Selenium image size: %s", str(img.size))
+        if crop and img.size[1] != cls.window_size[1]:
+            desired_ratio = float(cls.window_size[1]) / cls.window_size[0]
+            desired_width = int(img.size[0] * desired_ratio)
+            logger.debug("Cropping to: %s*%s", str(img.size[0]), str(desired_width))
+            img = img.crop((0, 0, img.size[0], desired_width))
+        logger.debug("Resizing to %s", str(thumb_size))
+        img = img.resize(thumb_size, Image.ANTIALIAS)
+        new_img = BytesIO()
+        if output != "png":
+            img = img.convert("RGB")
+        img.save(new_img, output)
+        new_img.seek(0)
+        return new_img.read()
+
     def print(self):
         logger.info("##### User: [%s], json: [%s], pk: [%s]", str(self.user), str(self.json), str(self.pk))
 
