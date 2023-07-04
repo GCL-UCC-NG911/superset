@@ -149,7 +149,11 @@ export default class SupersetClientClass {
     }
   }
 
-  async postJsonForm(url: string, payload: Record<string, any>, target = '_blank') {
+  async postJsonForm(
+    url: string,
+    payload: Record<string, any>,
+    target = '_blank',
+  ) {
     if (url) {
       await this.ensureAuth();
       const hiddenForm = document.createElement('form');
