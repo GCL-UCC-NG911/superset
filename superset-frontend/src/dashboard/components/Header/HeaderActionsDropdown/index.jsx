@@ -175,7 +175,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     });
     console.log(payload);
     // SupersetClient.postForm(url, { form_data: safeStringify(payload) });
-    SupersetClient.postForm(url, { formData: payload});
+    SupersetClient.postForm(url, { formData: payload });
 
     console.log(
       '### exportTables end - resultFormat, resultType, force, ownState, formData',
@@ -226,7 +226,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 55');
+    console.log('commit 56');
     console.log(props);
     console.log(props.dashboardInfo.metadata.native_filter_configuration);
     console.log(props.dataMask);
