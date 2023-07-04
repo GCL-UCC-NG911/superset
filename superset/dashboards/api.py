@@ -999,7 +999,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         # DashboardChartScreenshot(current_user, request, pk).print()
         # DashboardChartScreenshot(current_user, request.is_json, pk).print()
         DashboardChartScreenshot(current_user, request.json, pk).print()
-        DashboardChartScreenshot(current_user, request.json[0].get("formData"), pk).print()
+        # ERRADO: DashboardChartScreenshot(current_user, request.json[0].get("formData"), pk).print()
         DashboardChartScreenshot(current_user, request.json.get("formData"), pk).print()
         DashboardChartScreenshot(current_user, request.json.get("force"), pk).print()
         # fetch the dashboard screenshot using the current user and cache if set
