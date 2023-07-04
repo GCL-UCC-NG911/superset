@@ -3310,7 +3310,7 @@
             "nullable": true,
             "type": "boolean"
           },
-          "form_data": {
+          "formData": {
             "type": "array"
           },
           "result_format": {},
