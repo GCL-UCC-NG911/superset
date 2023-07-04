@@ -207,10 +207,11 @@ class BaseScreenshot2:
     window_size: WindowSize = (800, 600)
     thumb_size: WindowSize = (400, 300)
 
-    def __init__(self, user: str, json: any, pk: int):
+    def __init__(self, user: str, json: any, pk: int, digest: str):
         self.user: str = user
         self.json = json
         self.pk = pk
+        self.digest: str = digest
         self.screenshot: Optional[bytes] = None
 
     def driver(self, window_size: Optional[WindowSize] = None) -> WebDriverProxy:
@@ -304,9 +305,36 @@ class BaseScreenshot2:
         img.save(new_img, output)
         new_img.seek(0)
         return new_img.read()
+    
+    def get(
+        self,
+        user: User = None,
+        cache: Cache = None,
+        thumb_size: Optional[WindowSize] = None,
+    ) -> Optional[BytesIO]:
+        """
+            Get thumbnail screenshot has BytesIO from cache or fetch
+
+        :param user: None to use current user or User Model to login and fetch
+        :param cache: The cache to use
+        :param thumb_size: Override thumbnail site
+        """
+        payload: Optional[bytes] = None
+        cache_key = self.cache_key(self.window_size, thumb_size)
+        if cache:
+            payload = cache.get(cache_key)
+        if not payload:
+            payload = self.compute_and_cache(
+                user=user, thumb_size=thumb_size, cache=cache
+            )
+        else:
+            logger.info("Loaded thumbnail from cache: %s", cache_key)
+        if payload:
+            return BytesIO(payload)
+        return None
 
     def print(self):
-        logger.info("##### User: [%s], json: [%s], pk: [%s]", str(self.user), str(self.json), str(self.pk))
+        logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
 
 class ChartScreenshot(BaseScreenshot):
     thumbnail_type: str = "chart"
@@ -325,7 +353,7 @@ class ChartScreenshot(BaseScreenshot):
             standalone=ChartStandaloneMode.HIDE_NAV.value,
         )
         super().__init__(url, digest)
-        self.window_size = window_size or (800, 600)
+        self.window_size = window_size or (1600, 1200)
         self.thumb_size = thumb_size or (800, 600)
 
 class DashboardChartScreenshot(BaseScreenshot2):
@@ -337,11 +365,12 @@ class DashboardChartScreenshot(BaseScreenshot2):
         user: str,
         json: any,
         pk: int,
+        digest: str,
         window_size: Optional[WindowSize] = None,
         thumb_size: Optional[WindowSize] = None,
     ):
         # Chart reports are in standalone="true" mode
-        super().__init__(user, json, pk)
+        super().__init__(user, json, pk, digest)
         self.window_size = window_size or (800, 600)
         self.thumb_size = thumb_size or (800, 600)
 

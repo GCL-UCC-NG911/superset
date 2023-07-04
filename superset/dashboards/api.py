@@ -944,6 +944,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.dashboarddownload",
         log_to_statsd=False,
     )
+    @requires_json
     def download(self, pk: int) -> Response: # pylint: disable=arguments-differ
         """Get Dashboard information and returns payload data.
         ---
