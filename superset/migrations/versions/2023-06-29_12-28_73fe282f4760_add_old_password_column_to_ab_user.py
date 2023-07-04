@@ -27,18 +27,26 @@ revision = '73fe282f4760'
 down_revision = 'f3c2d8ec8595'
 
 from alembic import op
-import logging
 import sqlalchemy as sa
+from sqlalchemy import engine_from_config
+from sqlalchemy.engine import reflection
 
-logger = logging.getLogger("alembic")
+def table_has_column(table, column):
+    config = op.get_context().config
+    engine = engine_from_config(
+        config.get_section(config.config_ini_section), prefix='sqlalchemy.')
+    insp = reflection.Inspector.from_engine(engine)
+    has_column = False
+    for col in insp.get_columns(table):
+        if column not in col['name']:
+            continue
+        has_column = True
+    return has_column
 
 def upgrade():
-    try:
-        with op.batch_alter_table("ab_user") as batch_op:
+    with op.batch_alter_table("ab_user") as batch_op:
+        if not table_has_column("ab_user", "password_history"):
             batch_op.add_column(sa.Column("password_history", sa.String(256), nullable=True))
-    except Exception as e:
-        logger.exception("The password_history column is already created on ab_user model")
-        raise e
 
 def downgrade():
     with op.batch_alter_table("ab_user") as batch_op:
