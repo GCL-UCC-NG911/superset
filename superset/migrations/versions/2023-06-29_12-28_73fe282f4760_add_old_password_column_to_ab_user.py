@@ -27,12 +27,18 @@ revision = '73fe282f4760'
 down_revision = 'f3c2d8ec8595'
 
 from alembic import op
+import logging
 import sqlalchemy as sa
 
-def upgrade():
-    with op.batch_alter_table("ab_user") as batch_op:
-        batch_op.add_column(sa.Column("password_history", sa.String(256), nullable=True))
+logger = logging.getLogger("alembic")
 
+def upgrade():
+    try:
+        with op.batch_alter_table("ab_user") as batch_op:
+            batch_op.add_column(sa.Column("password_history", sa.String(256), nullable=True))
+    except Exception as e:
+        logger.exception("The password_history column is already created on ab_user model")
+        raise e
 
 def downgrade():
     with op.batch_alter_table("ab_user") as batch_op:
