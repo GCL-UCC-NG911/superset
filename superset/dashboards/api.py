@@ -998,7 +998,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         current_user = get_current_user()
         DashboardChartScreenshot(current_user, json_body, pk).print()
         # fetch the dashboard screenshot using the current user and cache if set
-        # if json_body.formData:
+        if json_body.formData:
           # for element in json_body.formData: # loop 
             # if element.type == "CHART":
               # chartId
