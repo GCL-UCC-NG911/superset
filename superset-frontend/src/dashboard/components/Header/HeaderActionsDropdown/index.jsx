@@ -179,7 +179,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     const querySettings = {
       url,
       headers: { 'Content-Type': 'application/json' },
-      body: payload,
+      body: JSON.stringify(payload),
     };
 
     SupersetClient.post(querySettings);
