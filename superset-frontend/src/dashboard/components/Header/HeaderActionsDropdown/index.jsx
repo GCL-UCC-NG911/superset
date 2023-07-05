@@ -232,7 +232,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     return alltables;
   }
 
-  getAllFilters(defaultFilters, changeFilters = {}) {
+  getAllFilters(defaultFilters, changeFilters = null) {
     if (defaultFilters === null) {
       return [];
     }
@@ -248,14 +248,19 @@ class HeaderActionsDropdown extends React.PureComponent {
       });
     });
 
-    allFilters.forEach(element => {
-      console.log(changeFilters[element.filterId]);
-      if (changeFilters[element.filterId]?.filterState?.value.length > 0) {
-        element.value = changeFilters[element.filterId]?.filterState?.value;
-      }
-    });
+    console.log(changeFilters);
+    if (!changeFilters) {
+      return allFilters;
+    }
 
-    console.log(allFilters);
+    for(let i = 0; i < allFilters.length; i++) {
+      console.log(allFilters[i].filterId);
+      console.log(changeFilters[allFilters[i].filterId]);
+      if (changeFilters[element.filterId]?.filterState?.value.length > 0) {
+        allFilters[i].value = changeFilters[element.filterId]?.filterState?.value;
+      }
+    }
+
     return allFilters;
   }
 
