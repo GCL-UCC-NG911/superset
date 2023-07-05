@@ -239,15 +239,17 @@ class HeaderActionsDropdown extends React.PureComponent {
 
     const allFilters = [];
     defaultFilters.forEach(element => {
-      allFilters.push(
-        {
-          filterId: element.id,
-          name: element.name,
-          extraFormData: element.defaultDataMask.extraFormData,
-          value: element.defaultDataMask.filterState.value,
-          filterType: element.filterType,
-        }
-      );
+      allFilters.push({
+        filterId: element.id,
+        name: element.name,
+        extraFormData: element.defaultDataMask.extraFormData,
+        value: element.defaultDataMask.filterState.value,
+        filterType: element.filterType,
+      });
+    });
+
+    changeFilters.forEach(element => {
+      console.log(element);
     });
 
     console.log(allFilters);
@@ -262,7 +264,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     this.getAllFilters(
       props.dashboardInfo.metadata.native_filter_configuration,
       props.dataMask,
-    )
+    );
     // console.log(props?.dashboardId);
     // console.log(props?.dashboardTitle);
     // console.log(props?.dashboardInfo);
