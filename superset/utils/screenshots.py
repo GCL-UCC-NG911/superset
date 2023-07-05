@@ -282,7 +282,7 @@ class BaseChartScreenshot:
         for element in self.json.get("formData"):
             logger.info(element)
             if element.get("type") == "CHART":
-                logger.info(self.get_url(chartId=element.chartId))
+                logger.info(self.get_url(chartId=element.get("chartId")))
 
         # payload: Optional[bytes] = None
         # cache_key = self.cache_key(self.window_size, thumb_size)
