@@ -257,7 +257,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       console.log(allFilters[i].filterId);
       console.log(changeFilters[allFilters[i].filterId]);
       if (
-        changeFilters[allFilters[i].filterId]?.filterState?.value.length > 0
+        changeFilters[allFilters[i].filterId]?.filterState?.value
       ) {
         allFilters[i].value =
           changeFilters[allFilters[i].filterId]?.filterState?.value;
