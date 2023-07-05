@@ -232,7 +232,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     return alltables;
   }
 
-  getAllFilters(defaultFilters, changeFilters = []) {
+  getAllFilters(defaultFilters, changeFilters = {}) {
     if (defaultFilters === null) {
       return [];
     }
@@ -248,8 +248,8 @@ class HeaderActionsDropdown extends React.PureComponent {
       });
     });
 
-    changeFilters.forEach(element => {
-      console.log(element);
+    allFilters.forEach(element => {
+      console.log(changeFilters[element.filterId]);
     });
 
     console.log(allFilters);
@@ -257,7 +257,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 78');
+    console.log('commit 79');
     console.log(props);
     console.log(props.dashboardInfo.metadata.native_filter_configuration);
     console.log(props.dataMask);
