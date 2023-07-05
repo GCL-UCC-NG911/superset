@@ -263,8 +263,9 @@ class BaseScreenshot2:
                 user=user, thumb_size=thumb_size, cache=cache
             )
         else:
-            logger.info("Loaded thumbnail from cache: %s", cache_key)
+            logger.info("### Loaded thumbnail from cache: %s", cache_key)
         if payload:
+            logger.info("### Loaded thumbnail from cache: %s", cache_key)
             return BytesIO(payload)
         return None
 

@@ -232,54 +232,37 @@ class HeaderActionsDropdown extends React.PureComponent {
     return alltables;
   }
 
-  getAllFilters(props, element) {
-    if (props === null || element === null || element === '') {
+  getAllFilters(defaultFilters, changeFilters = []) {
+    if (defaultFilters === null) {
       return [];
     }
 
-    const childrenElement = props[element];
-    if (childrenElement?.type === 'CHART') {
-      // console.log('type === CHART');
-      return [
+    const allFilters = [];
+    defaultFilters.forEach(element => {
+      allFilters.push(
         {
-          chartId: childrenElement.meta.chartId,
-          sliceName: childrenElement.meta.sliceName,
-          uuid: childrenElement.meta.uuid,
-          height: childrenElement.meta.height,
-          width: childrenElement.meta.width,
-          type: 'CHART',
-        },
-      ];
-    }
-    if (childrenElement?.type === 'MARKDOWN') {
-      // console.log('type === MARKDOWN');
-      return [
-        {
-          code: childrenElement.meta.code,
-          height: childrenElement.meta.height,
-          width: childrenElement.meta.width,
-          type: 'MARKDOWN',
-        },
-      ];
-    }
-    const alltables = [];
-    for (let i = 0; i < childrenElement.children.length; i += 1) {
-      const table = this.getAllTables(props, childrenElement.children[i]);
-      // console.log(childrenElement.children[i]);
-      // console.log(table);
-      // console.log(table.length);
-      table.forEach(element => {
-        alltables.push(element);
-      });
-    }
-    return alltables;
+          filterId: element.id,
+          name: element.name,
+          extraFormData: element.defaultDataMask.extraFormData,
+          value: element.defaultDataMask.filterState.value,
+          filterType: element.filterType,
+        }
+      );
+    });
+
+    console.log(allFilters);
+    return allFilters;
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 77');
+    console.log('commit 78');
     console.log(props);
     console.log(props.dashboardInfo.metadata.native_filter_configuration);
     console.log(props.dataMask);
+    this.getAllFilters(
+      props.dashboardInfo.metadata.native_filter_configuration,
+      props.dataMask,
+    )
     // console.log(props?.dashboardId);
     // console.log(props?.dashboardTitle);
     // console.log(props?.dashboardInfo);
