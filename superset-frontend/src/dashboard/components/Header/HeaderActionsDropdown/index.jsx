@@ -253,11 +253,12 @@ class HeaderActionsDropdown extends React.PureComponent {
       return allFilters;
     }
 
-    for(let i = 0; i < allFilters.length; i++) {
+    for (let i = 0; i < allFilters.length; i = i + 1) {
       console.log(allFilters[i].filterId);
       console.log(changeFilters[allFilters[i].filterId]);
-      if (changeFilters[element.filterId]?.filterState?.value.length > 0) {
-        allFilters[i].value = changeFilters[element.filterId]?.filterState?.value;
+      if (changeFilters[allFilters[i].filterId]?.filterState?.value.length > 0) {
+        allFilters[i].value =
+          changeFilters[allFilters[i].filterId]?.filterState?.value;
       }
     }
 
