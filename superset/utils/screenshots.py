@@ -233,6 +233,58 @@ class BaseScreenshot2:
             "thumb_size": thumb_size,
         }
         return md5_sha_from_dict(args)
+    
+    def get_screenshot(
+        self, user: User, window_size: Optional[WindowSize] = None
+    ) -> Optional[bytes]:
+        driver = self.driver(window_size)
+        self.screenshot = driver.get_screenshot(self.url, self.element, user)
+        return self.screenshot
+
+    def get(
+        self,
+        user: User = None,
+        cache: Cache = None,
+        thumb_size: Optional[WindowSize] = None,
+    ) -> Optional[BytesIO]:
+        """
+            Get thumbnail screenshot has BytesIO from cache or fetch
+
+        :param user: None to use current user or User Model to login and fetch
+        :param cache: The cache to use
+        :param thumb_size: Override thumbnail site
+        """
+        payload: Optional[bytes] = None
+        cache_key = self.cache_key(self.window_size, thumb_size)
+        if cache:
+            payload = cache.get(cache_key)
+        if not payload:
+            payload = self.compute_and_cache(
+                user=user, thumb_size=thumb_size, cache=cache
+            )
+        else:
+            logger.info("Loaded thumbnail from cache: %s", cache_key)
+        if payload:
+            return BytesIO(payload)
+        return None
+
+    def get_from_cache(
+        self,
+        cache: Cache,
+        window_size: Optional[WindowSize] = None,
+        thumb_size: Optional[WindowSize] = None,
+    ) -> Optional[BytesIO]:
+        cache_key = self.cache_key(window_size, thumb_size)
+        return self.get_from_cache_key(cache, cache_key)
+
+    @staticmethod
+    def get_from_cache_key(cache: Cache, cache_key: str) -> Optional[BytesIO]:
+        logger.info("Attempting to get from cache: %s", cache_key)
+        payload = cache.get(cache_key)
+        if payload:
+            return BytesIO(payload)
+        logger.info("Failed at getting from cache: %s", cache_key)
+        return None
 
     def compute_and_cache(  # pylint: disable=too-many-arguments
         self,
@@ -305,36 +357,9 @@ class BaseScreenshot2:
         img.save(new_img, output)
         new_img.seek(0)
         return new_img.read()
-    
-    def get(
-        self,
-        user: User = None,
-        cache: Cache = None,
-        thumb_size: Optional[WindowSize] = None,
-    ) -> Optional[BytesIO]:
-        """
-            Get thumbnail screenshot has BytesIO from cache or fetch
-
-        :param user: None to use current user or User Model to login and fetch
-        :param cache: The cache to use
-        :param thumb_size: Override thumbnail site
-        """
-        payload: Optional[bytes] = None
-        cache_key = self.cache_key(self.window_size, thumb_size)
-        if cache:
-            payload = cache.get(cache_key)
-        if not payload:
-            payload = self.compute_and_cache(
-                user=user, thumb_size=thumb_size, cache=cache
-            )
-        else:
-            logger.info("Loaded thumbnail from cache: %s", cache_key)
-        if payload:
-            return BytesIO(payload)
-        return None
 
     def print(self):
-        logger.info("commit 75")
+        logger.info("commit 77")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
 
 class ChartScreenshot(BaseScreenshot):

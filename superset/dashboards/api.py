@@ -988,24 +988,27 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         json_body = None
         if request.is_json:
             json_body = request.json
-        elif request.form.get("form_data"):
+        elif request.form.get("formData"):
             try:
-                json_body = json.loads(request.form["form_data"])
+                json_body = json.loads(request.form["formData"])
             except (TypeError, json.JSONDecodeError):
                 pass
 
         # If force, request a screenshot from the workers
         current_user = get_current_user()
+        # ERRADOS:
         # DashboardChartScreenshot(current_user, request, pk).print()
+        # DashboardChartScreenshot(current_user, request.json[0].get("formData"), pk).print()
+
         # DashboardChartScreenshot(current_user, request.is_json, pk).print()
-        DashboardChartScreenshot(current_user, request.json, pk).print()
-        # ERRADO: DashboardChartScreenshot(current_user, request.json[0].get("formData"), pk).print()
-        DashboardChartScreenshot(current_user, request.json.get("formData"), pk).print()
-        DashboardChartScreenshot(current_user, request.json.get("force"), pk).print()
+        # DashboardChartScreenshot(current_user, request.json.get("formData"), pk).print()
+        # DashboardChartScreenshot(current_user, request.json.get("force"), pk).print()
         # fetch the dashboard screenshot using the current user and cache if set
-        if json_body.form_data:
-          self.incr_stats("from_cache", self.dashboarddownload.__name__)
-        if json_body.formData:
+
+        DashboardChartScreenshot(current_user, request.json, pk).print()
+        # DashboardChartScreenshot(current_user, request.json, pk).get()
+
+        if json_body.get("formData"):
           # for element in json_body.formData: # loop 
             # if element.type == "CHART":
               # chartId

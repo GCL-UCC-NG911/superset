@@ -232,8 +232,51 @@ class HeaderActionsDropdown extends React.PureComponent {
     return alltables;
   }
 
+  getAllFilters(props, element) {
+    if (props === null || element === null || element === '') {
+      return [];
+    }
+
+    const childrenElement = props[element];
+    if (childrenElement?.type === 'CHART') {
+      // console.log('type === CHART');
+      return [
+        {
+          chartId: childrenElement.meta.chartId,
+          sliceName: childrenElement.meta.sliceName,
+          uuid: childrenElement.meta.uuid,
+          height: childrenElement.meta.height,
+          width: childrenElement.meta.width,
+          type: 'CHART',
+        },
+      ];
+    }
+    if (childrenElement?.type === 'MARKDOWN') {
+      // console.log('type === MARKDOWN');
+      return [
+        {
+          code: childrenElement.meta.code,
+          height: childrenElement.meta.height,
+          width: childrenElement.meta.width,
+          type: 'MARKDOWN',
+        },
+      ];
+    }
+    const alltables = [];
+    for (let i = 0; i < childrenElement.children.length; i += 1) {
+      const table = this.getAllTables(props, childrenElement.children[i]);
+      // console.log(childrenElement.children[i]);
+      // console.log(table);
+      // console.log(table.length);
+      table.forEach(element => {
+        alltables.push(element);
+      });
+    }
+    return alltables;
+  }
+
   downloadAllAsPdf(props) {
-    console.log('commit 70');
+    console.log('commit 77');
     console.log(props);
     console.log(props.dashboardInfo.metadata.native_filter_configuration);
     console.log(props.dataMask);
