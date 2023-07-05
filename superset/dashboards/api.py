@@ -1006,6 +1006,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         # fetch the dashboard screenshot using the current user and cache if set
 
         DashboardChartScreenshot(current_user, request.json, pk).print()
+        DashboardChartScreenshot(current_user, request.json, pk).get()
         # DashboardChartScreenshot(current_user, request.json, pk).get()
 
         if json_body.get("formData"):
@@ -1019,7 +1020,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                   # chartUrl
               # ).get_from_cache(cache=thumbnail_cache)
         
-          self.incr_stats("from_cache", self.dashboarddownload.__name__)
+          # self.incr_stats("from_cache", self.dashboarddownload.__name__)
           # return Response(
               # FileWrapper(screenshot), mimetype="image/png", direct_passthrough=True
           # )

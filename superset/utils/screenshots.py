@@ -16,9 +16,10 @@
 # under the License.
 from __future__ import annotations
 
+import json
 import logging
 from io import BytesIO
-from typing import Optional, TYPE_CHECKING, Union
+from typing import Any, Optional, TYPE_CHECKING, Union
 
 from flask import current_app
 
@@ -30,6 +31,7 @@ from superset.utils.webdriver import (
     WebDriverProxy,
     WindowSize,
 )
+from superset.utils.urls import get_url_path
 
 logger = logging.getLogger(__name__)
 
@@ -199,7 +201,7 @@ class BaseScreenshot:
         new_img.seek(0)
         return new_img.read()
 
-class BaseScreenshot2:
+class BaseChartScreenshot:
     # current_user, json_body
     driver_type = current_app.config["WEBDRIVER_TYPE"]
     thumbnail_type: str = ""
@@ -212,6 +214,8 @@ class BaseScreenshot2:
         self.json = json
         self.pk = pk
         self.digest: str = ""
+        self.result_format = "image"
+
         self.screenshot: Optional[bytes] = None
 
     def driver(self, window_size: Optional[WindowSize] = None) -> WebDriverProxy:
@@ -241,6 +245,25 @@ class BaseScreenshot2:
         self.screenshot = driver.get_screenshot(self.url, self.element, user)
         return self.screenshot
 
+    def get_url(
+        self,
+        chartId: int,
+        user_friendly: bool = False,
+        **kwargs: Any,
+    ) -> str:
+        """
+            Get the url for chart report
+        """
+        force = "true" if self.json.get("force") else "false"
+
+        return get_url_path(
+            "ExploreView.root",
+            user_friendly=user_friendly,
+            form_data=chartId,
+            force=force,
+            **kwargs,
+        )
+
     def get(
         self,
         user: User = None,
@@ -254,19 +277,26 @@ class BaseScreenshot2:
         :param cache: The cache to use
         :param thumb_size: Override thumbnail site
         """
-        payload: Optional[bytes] = None
-        cache_key = self.cache_key(self.window_size, thumb_size)
-        if cache:
-            payload = cache.get(cache_key)
-        if not payload:
-            payload = self.compute_and_cache(
-                user=user, thumb_size=thumb_size, cache=cache
-            )
-        else:
-            logger.info("### Loaded thumbnail from cache: %s", cache_key)
-        if payload:
-            logger.info("### Loaded thumbnail from cache: %s", cache_key)
-            return BytesIO(payload)
+
+        logger.info("# get - user [%s], cache [%s], thumb_size [%s]", str(user), str(cache), str(thumb_size))
+        for element in self.json.get("formData"):
+            logger.info(element)
+            if element.type == "CHART":
+                logger.info(self.get_url(chartId=element.chartId))
+
+        # payload: Optional[bytes] = None
+        # cache_key = self.cache_key(self.window_size, thumb_size)
+        # if cache:
+            # payload = cache.get(cache_key)
+        # if not payload:
+            # payload = self.compute_and_cache(
+                # user=user, thumb_size=thumb_size, cache=cache
+            # )
+        # else:
+            # logger.info("### Loaded thumbnail from cache: %s", cache_key)
+        # if payload:
+            # logger.info("### Loaded thumbnail from cache: %s", cache_key)
+            # return BytesIO(payload)
         return None
 
     def get_from_cache(
@@ -360,7 +390,7 @@ class BaseScreenshot2:
         return new_img.read()
 
     def print(self):
-        logger.info("commit 77")
+        logger.info("commit 81")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
 
 class ChartScreenshot(BaseScreenshot):
@@ -383,7 +413,7 @@ class ChartScreenshot(BaseScreenshot):
         self.window_size = window_size or (1600, 1200)
         self.thumb_size = thumb_size or (800, 600)
 
-class DashboardChartScreenshot(BaseScreenshot2):
+class DashboardChartScreenshot(BaseChartScreenshot):
     thumbnail_type: str = "chart"
     element: str = "chart-container"
 

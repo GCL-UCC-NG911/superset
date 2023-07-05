@@ -250,6 +250,9 @@ class HeaderActionsDropdown extends React.PureComponent {
 
     allFilters.forEach(element => {
       console.log(changeFilters[element.filterId]);
+      if (changeFilters[element.filterId]?.filterState?.value.length > 0) {
+        element.value = changeFilters[element.filterId]?.filterState?.value;
+      }
     });
 
     console.log(allFilters);
@@ -257,7 +260,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 79');
+    console.log('commit 81');
     console.log(props);
     console.log(props.dashboardInfo.metadata.native_filter_configuration);
     console.log(props.dataMask);
