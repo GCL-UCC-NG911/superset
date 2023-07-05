@@ -281,7 +281,7 @@ class BaseChartScreenshot:
         logger.info("# get - user [%s], cache [%s], thumb_size [%s]", str(user), str(cache), str(thumb_size))
         for element in self.json.get("formData"):
             logger.info(element)
-            if element.type == "CHART":
+            if element.get("type") == "CHART":
                 logger.info(self.get_url(chartId=element.chartId))
 
         # payload: Optional[bytes] = None
