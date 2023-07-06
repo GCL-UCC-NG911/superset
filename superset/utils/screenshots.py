@@ -423,7 +423,7 @@ class BaseChartScreenshot:
         return new_img.read()
 
     def print(self):
-        logger.info("commit 81")
+        logger.info("commit 83")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
 
 class ChartScreenshot(BaseScreenshot):
