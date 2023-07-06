@@ -26,7 +26,7 @@ from flask_appbuilder.security.sqla.models import User
 
 from superset import security_manager
 # from superset.thumbnails.digest import get_chart_digest
-from superset.charts.dao import ChartDAO
+# from superset.charts.dao import ChartDAO
 
 from superset.utils.hashing import md5_sha_from_dict
 from superset.utils.urls import modify_url_query
@@ -282,7 +282,7 @@ class BaseChartScreenshot:
         :param cache: The cache to use
         :param thumb_size: Override thumbnail site
         """
-        user = security_manager.find_user("admin")
+        # user = security_manager.find_user("admin")
         logger.info("# get - user [%s], cache [%s], thumb_size [%s]", str(user), str(cache), str(thumb_size))
         for element in self.json.get("formData"):
             logger.info(element)
@@ -292,10 +292,10 @@ class BaseChartScreenshot:
                 # chart = Slice(**kwargs)
                 # user: Optional[User] = None
                 # if has_current_user:
-                user = User(id=1, username="1")
-                chart = ChartDAO.find_by_id(element.get("chartId"), skip_base_filter=True)
-                logger.info(user)
-                logger.info(chart)
+                # user = User(id=1, username="1")
+                # chart = ChartDAO.find_by_id(element.get("chartId"), skip_base_filter=True)
+                # logger.info(user)
+                # logger.info(chart)
                 logger.info("# end get")
                 # chartDigest = get_chart_digest(chart=chart)
 
