@@ -23,11 +23,9 @@ from typing import Any, Optional, TYPE_CHECKING, Union
 
 from flask import current_app
 from flask_appbuilder.security.sqla.models import User
-from celery.exceptions import SoftTimeLimitExceeded
 
-from superset import app, security_manager
-from superset.models.slice import Slice
-from superset.thumbnails.digest import get_chart_digest
+from superset import security_manager
+# from superset.thumbnails.digest import get_chart_digest
 from superset.charts.dao import ChartDAO
 
 from superset.utils.hashing import md5_sha_from_dict
