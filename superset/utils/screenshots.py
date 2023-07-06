@@ -22,6 +22,13 @@ from io import BytesIO
 from typing import Any, Optional, TYPE_CHECKING, Union
 
 from flask import current_app
+from flask_appbuilder.security.sqla.models import User
+from celery.exceptions import SoftTimeLimitExceeded
+
+from superset import app, security_manager
+from superset.models.slice import Slice
+from superset.thumbnails.digest import get_chart_digest
+from superset.charts.dao import ChartDAO
 
 from superset.utils.hashing import md5_sha_from_dict
 from superset.utils.urls import modify_url_query
@@ -277,12 +284,38 @@ class BaseChartScreenshot:
         :param cache: The cache to use
         :param thumb_size: Override thumbnail site
         """
-
+        user = security_manager.find_user("admin")
         logger.info("# get - user [%s], cache [%s], thumb_size [%s]", str(user), str(cache), str(thumb_size))
         for element in self.json.get("formData"):
             logger.info(element)
             if element.get("type") == "CHART":
-                logger.info(self.get_url(chartId=element.get("chartId")))
+                url = self.get_url(chartId=element.get("chartId"))
+                logger.info(url)
+                # chart = Slice(**kwargs)
+                # user: Optional[User] = None
+                # if has_current_user:
+                user = User(id=1, username="1")
+                chart = ChartDAO.find_by_id(element.get("chartId"), skip_base_filter=True)
+                logger.info(user)
+                logger.info(chart)
+                logger.info("# end get")
+                # chartDigest = get_chart_digest(chart=chart)
+
+                # screenshot = ChartScreenshot(
+                    # url,
+                    # self._report_schedule.chart.digest,
+                    # window_size=app.config["WEBDRIVER_WINDOW"]["slice"],
+                    # thumb_size=app.config["WEBDRIVER_WINDOW"]["slice"],
+                # )
+                # try:
+                    # image = screenshot.get_screenshot(user=user)
+                # except SoftTimeLimitExceeded as ex:
+                    # logger.warning("A timeout occurred while taking a screenshot.")
+                # except Exception as ex:
+                    # logger.warning("A exception occurred while taking a screenshot. %s", str(ex))
+                # if not image:
+                    # logger.warning("Snapshot empty.")
+                
 
         # payload: Optional[bytes] = None
         # cache_key = self.cache_key(self.window_size, thumb_size)
