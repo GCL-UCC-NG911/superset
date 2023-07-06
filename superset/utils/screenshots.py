@@ -292,9 +292,9 @@ class BaseChartScreenshot:
                 # chart = Slice(**kwargs)
                 # user: Optional[User] = None
                 # if has_current_user:
-                # user = User(id=1, username="1")
+                user = User(id=1, username="1")
                 # chart = ChartDAO.find_by_id(element.get("chartId"), skip_base_filter=True)
-                # logger.info(user)
+                logger.info(user)
                 # logger.info(chart)
                 logger.info("# end get")
                 # chartDigest = get_chart_digest(chart=chart)
