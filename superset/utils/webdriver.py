@@ -169,8 +169,10 @@ class WebDriverProxy:
     def get_screenshot(
         self, url: str, element_name: str, user: User
     ) -> Optional[bytes]:
+        logger.info("get_screenshot")
         driver = self.auth(user)
         driver.set_window_size(*self._window)
+        logger.info(url)
         driver.get(url)
         img: Optional[bytes] = None
         selenium_headstart = current_app.config["SCREENSHOT_SELENIUM_HEADSTART"]
