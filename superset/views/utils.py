@@ -165,14 +165,18 @@ def get_form_data(  # pylint: disable=too-many-locals
         request_form_data = request.form.get("form_data")
         request_args_data = request.args.get("form_data")
         if request_json_data:
+            logger.info(request_json_data)
             form_data.update(request_json_data)
         if request_form_data:
+            logger.info(request_form_data)
             parsed_form_data = loads_request_json(request_form_data)
             # some chart data api requests are form_data
             queries = parsed_form_data.get("queries")
             if isinstance(queries, list):
+                logger.info(queries[0])
                 form_data.update(queries[0])
             else:
+                logger.info(parsed_form_data)
                 form_data.update(parsed_form_data)
         # request params can overwrite the body
         if request_args_data:
