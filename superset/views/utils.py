@@ -176,6 +176,8 @@ def get_form_data(  # pylint: disable=too-many-locals
                 form_data.update(parsed_form_data)
         # request params can overwrite the body
         if request_args_data:
+            logger.info(request_args_data)
+            logger.info(loads_request_json(request_args_data))
             form_data.update(loads_request_json(request_args_data))
 
     # Fallback to using the Flask globals (used for cache warmup and async queries)
