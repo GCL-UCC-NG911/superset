@@ -25,7 +25,7 @@ from flask import current_app
 from flask_appbuilder.security.sqla.models import User
 
 from superset import security_manager
-# from superset.thumbnails.digest import get_chart_digest
+from superset.thumbnails.digest import get_chart_digest
 
 # from superset.models.slice import Slice
 from superset.utils.hashing import md5_sha_from_dict
@@ -309,13 +309,13 @@ class BaseChartScreenshot:
                 # chart = Slice(**kwargs)
                 # user: Optional[User] = None
                 # if has_current_user:
-                user = security_manager.find_user("admin")
+                # user = security_manager.find_user("admin")
                 # pylint: disable=import-outside-toplevel,too-many-locals
                 # Late import to avoid circular import issues
                 from superset.charts.dao import ChartDAO
 
                 chart = ChartDAO.find_by_id(element.get("chartId"), skip_base_filter=True)
-                logger.info(user)
+                # logger.info(user)
                 # chart = cast(Slice, Slice.get(element.get("chartId")))
                 url = get_url_path("Superset.slice", slice_id=element.get("chartId"))
                 logger.info(url)
@@ -323,8 +323,8 @@ class BaseChartScreenshot:
                 # query_context = self._create_query_context_from_form(json_body)
                 # command = ChartDataCommand(query_context)
                 # command.validate()
-                # chartDigest = get_chart_digest(chart=chart)
-
+                chartDigest = get_chart_digest(chart=chart)
+                logger.info(chartDigest)
                 # screenshot = ChartScreenshot(
                     # url,
                     # self._report_schedule.chart.digest,
@@ -456,7 +456,7 @@ class BaseChartScreenshot:
         return new_img.read()
 
     def print(self):
-        logger.info("commit 87")
+        logger.info("commit 91")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
 
 class ChartScreenshot(BaseScreenshot):
