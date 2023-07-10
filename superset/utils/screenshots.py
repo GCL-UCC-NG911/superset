@@ -26,7 +26,7 @@ from flask_appbuilder.security.sqla.models import User
 
 from superset import security_manager
 # from superset.thumbnails.digest import get_chart_digest
-# from superset.charts.dao import ChartDAO
+from superset.charts.dao import ChartDAO
 
 # from superset.models.slice import Slice
 from superset.utils.hashing import md5_sha_from_dict
@@ -301,7 +301,7 @@ class BaseChartScreenshot:
         :param thumb_size: Override thumbnail site
         """
         # user = security_manager.find_user("admin")
-        logger.info("# get - user [%s], cache [%s], thumb_size [%s]", str(user), str(cache), str(thumb_size))
+        logger.info("# get - user [%s], cache [%s], thumb_size [%s]", str(self.user), str(cache), str(thumb_size))
         for element in self.json.get("formData"):
             logger.info(element)
             if element.get("type") == "CHART":
@@ -327,6 +327,14 @@ class BaseChartScreenshot:
                     # self._report_schedule.chart.digest,
                     # window_size=app.config["WEBDRIVER_WINDOW"]["slice"],
                     # thumb_size=app.config["WEBDRIVER_WINDOW"]["slice"],
+                # )
+                # screenshot = ChartScreenshot(url, chart.digest)
+                # screenshot.compute_and_cache(
+                    # user=self.user,
+                    # cache=thumbnail_cache,
+                    # force=self.force,
+                    # window_size=self.window_size,
+                    # thumb_size=self.thumb_size,
                 # )
                 # try:
                     # image = screenshot.get_screenshot(user=user)
