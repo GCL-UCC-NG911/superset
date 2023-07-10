@@ -26,7 +26,6 @@ from flask_appbuilder.security.sqla.models import User
 
 from superset import security_manager
 # from superset.thumbnails.digest import get_chart_digest
-from superset.charts.dao import ChartDAO
 
 # from superset.models.slice import Slice
 from superset.utils.hashing import md5_sha_from_dict
@@ -311,7 +310,11 @@ class BaseChartScreenshot:
                 # user: Optional[User] = None
                 # if has_current_user:
                 user = security_manager.find_user("admin")
-                # chart = ChartDAO.find_by_id(element.get("chartId"), skip_base_filter=True)
+                # pylint: disable=import-outside-toplevel,too-many-locals
+                # Late import to avoid circular import issues
+                from superset.charts.dao import ChartDAO
+
+                chart = ChartDAO.find_by_id(element.get("chartId"), skip_base_filter=True)
                 logger.info(user)
                 # chart = cast(Slice, Slice.get(element.get("chartId")))
                 url = get_url_path("Superset.slice", slice_id=element.get("chartId"))
