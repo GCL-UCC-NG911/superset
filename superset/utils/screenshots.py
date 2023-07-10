@@ -229,11 +229,11 @@ class BaseChartScreenshot:
 
         self.screenshot: Optional[bytes] = None
 
-    def driver(self, window_size: Optional[WindowSize] = None) -> WebDriverProxy:
+    def driver2(self, window_size: Optional[WindowSize] = None) -> WebDriverProxy:
         window_size = window_size or self.window_size
         return WebDriverProxy(self.driver_type, window_size)
 
-    def cache_key(
+    def cache_key2(
         self,
         window_size: Optional[Union[bool, WindowSize]] = None,
         thumb_size: Optional[Union[bool, WindowSize]] = None,
@@ -249,14 +249,14 @@ class BaseChartScreenshot:
         }
         return md5_sha_from_dict(args)
     
-    def get_screenshot(
+    def get_screenshot2(
         self, user: User, window_size: Optional[WindowSize] = None
     ) -> Optional[bytes]:
         driver = self.driver(window_size)
         self.screenshot = driver.get_screenshot(self.url, self.element, user)
         return self.screenshot
 
-    def get_url(
+    def get_url2(
         self,
         chartId: int,
         user_friendly: bool = False,
@@ -286,7 +286,7 @@ class BaseChartScreenshot:
         # except ValidationError as error:
             # raise error
 
-    def get(
+    def get2(
         self,
         user: User = None,
         cache: Cache = None,
@@ -304,7 +304,7 @@ class BaseChartScreenshot:
         for element in self.json.get("formData"):
             logger.info(element)
             if element.get("type") == "CHART":
-                url = self.get_url(chartId=element.get("chartId"))
+                url = self.get_url2(chartId=element.get("chartId"))
                 logger.info(url)
                 # chart = Slice(**kwargs)
                 # user: Optional[User] = None
@@ -366,7 +366,7 @@ class BaseChartScreenshot:
             # return BytesIO(payload)
         return None
 
-    def get_from_cache(
+    def get_from_cache2(
         self,
         cache: Cache,
         window_size: Optional[WindowSize] = None,
@@ -376,7 +376,7 @@ class BaseChartScreenshot:
         return self.get_from_cache_key(cache, cache_key)
 
     @staticmethod
-    def get_from_cache_key(cache: Cache, cache_key: str) -> Optional[BytesIO]:
+    def get_from_cache_key2(cache: Cache, cache_key: str) -> Optional[BytesIO]:
         logger.info("Attempting to get from cache: %s", cache_key)
         payload = cache.get(cache_key)
         if payload:
@@ -384,7 +384,7 @@ class BaseChartScreenshot:
         logger.info("Failed at getting from cache: %s", cache_key)
         return None
 
-    def compute_and_cache(  # pylint: disable=too-many-arguments
+    def compute_and_cache2(  # pylint: disable=too-many-arguments
         self,
         user: User = None,
         window_size: Optional[WindowSize] = None,
@@ -432,7 +432,7 @@ class BaseChartScreenshot:
         return payload
 
     @classmethod
-    def resize_image(
+    def resize_image2(
         cls,
         img_bytes: bytes,
         output: str = "png",
@@ -456,8 +456,8 @@ class BaseChartScreenshot:
         new_img.seek(0)
         return new_img.read()
 
-    def print(self):
-        logger.info("commit 93")
+    def print2(self):
+        logger.info("commit 94")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
 
 class ChartScreenshot(BaseScreenshot):
