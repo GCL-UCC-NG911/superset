@@ -19,7 +19,7 @@ from __future__ import annotations
 import json
 import logging
 from io import BytesIO
-from typing import Any, Optional, TYPE_CHECKING, Union
+from typing import Any, cast, Optional, TYPE_CHECKING, Union
 
 from flask import current_app
 from flask_appbuilder.security.sqla.models import User
@@ -28,6 +28,7 @@ from superset import security_manager
 # from superset.thumbnails.digest import get_chart_digest
 # from superset.charts.dao import ChartDAO
 
+from superset.models.slice import Slice
 from superset.utils.hashing import md5_sha_from_dict
 from superset.utils.urls import modify_url_query
 from superset.utils.webdriver import (
@@ -37,6 +38,12 @@ from superset.utils.webdriver import (
     WindowSize,
 )
 from superset.utils.urls import get_url_path
+
+# from superset.charts.data.commands.get_data_command import ChartDataCommand
+# from superset.charts.schemas import ChartDataQueryContextSchema
+
+# if TYPE_CHECKING:
+    # from superset.common.query_context import QueryContext
 
 logger = logging.getLogger(__name__)
 
@@ -269,6 +276,17 @@ class BaseChartScreenshot:
             **kwargs,
         )
 
+    # pylint: disable=no-self-use
+    # def _create_query_context_from_form(
+    #     self, form_data: Dict[str, Any]
+    # ) -> QueryContext:
+        # try:
+            # return ChartDataQueryContextSchema().load(form_data)
+        # except KeyError as ex:
+            # raise ValidationError("Request is incorrect") from ex
+        # except ValidationError as error:
+            # raise error
+
     def get(
         self,
         user: User = None,
@@ -292,11 +310,16 @@ class BaseChartScreenshot:
                 # chart = Slice(**kwargs)
                 # user: Optional[User] = None
                 # if has_current_user:
-                user = User(id=1, username="1")
+                user = security_manager.find_user("admin")
                 # chart = ChartDAO.find_by_id(element.get("chartId"), skip_base_filter=True)
                 logger.info(user)
+                chart = cast(Slice, Slice.get(element.get("chartId")))
+                url = get_url_path("Superset.slice", slice_id=chart.id)
+                logger.info(url)
                 # logger.info(chart)
-                logger.info("# end get")
+                # query_context = self._create_query_context_from_form(json_body)
+                # command = ChartDataCommand(query_context)
+                # command.validate()
                 # chartDigest = get_chart_digest(chart=chart)
 
                 # screenshot = ChartScreenshot(
@@ -313,6 +336,7 @@ class BaseChartScreenshot:
                     # logger.warning("A exception occurred while taking a screenshot. %s", str(ex))
                 # if not image:
                     # logger.warning("Snapshot empty.")
+        logger.info("# end get")
                 
 
         # payload: Optional[bytes] = None
@@ -421,7 +445,7 @@ class BaseChartScreenshot:
         return new_img.read()
 
     def print(self):
-        logger.info("commit 83")
+        logger.info("commit 87")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
 
 class ChartScreenshot(BaseScreenshot):
