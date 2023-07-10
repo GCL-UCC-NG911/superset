@@ -174,23 +174,23 @@ class WebDriverProxy:
         driver.get(url)
         img: Optional[bytes] = None
         selenium_headstart = current_app.config["SCREENSHOT_SELENIUM_HEADSTART"]
-        logger.debug("Sleeping for %i seconds", selenium_headstart)
+        logger.info("Sleeping for %i seconds", selenium_headstart)
         sleep(selenium_headstart)
 
         try:
-            logger.debug("Wait for the presence of %s", element_name)
+            logger.info("Wait for the presence of %s", element_name)
             element = WebDriverWait(driver, self._screenshot_locate_wait).until(
                 EC.presence_of_element_located((By.CLASS_NAME, element_name))
             )
 
-            logger.debug("Wait for chart containers to draw")
+            logger.info("Wait for chart containers to draw")
             WebDriverWait(driver, self._screenshot_locate_wait).until(
                 EC.visibility_of_all_elements_located(
                     (By.CLASS_NAME, "slice_container")
                 )
             )
 
-            logger.debug("Wait for loading element of charts to be gone")
+            logger.info("Wait for loading element of charts to be gone")
             WebDriverWait(driver, self._screenshot_load_wait).until_not(
                 EC.presence_of_all_elements_located((By.CLASS_NAME, "loading"))
             )
@@ -198,7 +198,7 @@ class WebDriverProxy:
             selenium_animation_wait = current_app.config[
                 "SCREENSHOT_SELENIUM_ANIMATION_WAIT"
             ]
-            logger.debug("Wait %i seconds for chart animation", selenium_animation_wait)
+            logger.info("Wait %i seconds for chart animation", selenium_animation_wait)
             sleep(selenium_animation_wait)
             logger.info(
                 "Taking a PNG screenshot of url %s as user %s",
