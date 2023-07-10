@@ -317,20 +317,21 @@ class BaseChartScreenshot:
                 chart = ChartDAO.find_by_id(element.get("chartId"), skip_base_filter=True)
                 # logger.info(user)
                 # chart = cast(Slice, Slice.get(element.get("chartId")))
-                url = get_url_path("Superset.slice", slice_id=element.get("chartId"))
-                logger.info(url)
+                # url = get_url_path("Superset.slice", slice_id=element.get("chartId"))
+                # logger.info(url)
                 # logger.info(chart)
                 # query_context = self._create_query_context_from_form(json_body)
                 # command = ChartDataCommand(query_context)
                 # command.validate()
                 chartDigest = get_chart_digest(chart=chart)
                 logger.info(chartDigest)
-                # screenshot = ChartScreenshot(
-                    # url,
-                    # self._report_schedule.chart.digest,
-                    # window_size=app.config["WEBDRIVER_WINDOW"]["slice"],
-                    # thumb_size=app.config["WEBDRIVER_WINDOW"]["slice"],
-                # )
+                screenshot = ChartScreenshot(
+                    url,
+                    chartDigest,
+                    self.window_size,
+                    self.thumb_size,
+                )
+                image = screenshot.get_screenshot(user=user)
                 # screenshot = ChartScreenshot(url, chart.digest)
                 # screenshot.compute_and_cache(
                     # user=self.user,
@@ -456,7 +457,7 @@ class BaseChartScreenshot:
         return new_img.read()
 
     def print(self):
-        logger.info("commit 91")
+        logger.info("commit 92")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
 
 class ChartScreenshot(BaseScreenshot):
