@@ -154,6 +154,8 @@ export default class SupersetClientClass {
     payload: Record<string, any>,
     target = '_blank',
   ) {
+    console.log('postJsonForm');
+    console.log(url);
     if (url) {
       await this.ensureAuth();
       const hiddenForm = document.createElement('form');
@@ -164,7 +166,7 @@ export default class SupersetClientClass {
         ...payload,
         csrf_token: this.csrfToken!,
       };
-
+      console.log(this.guestToken);
       if (this.guestToken) {
         payloadWithToken.guest_token = this.guestToken;
       }
@@ -177,9 +179,9 @@ export default class SupersetClientClass {
         hiddenForm.appendChild(data);
       });
 
-      console.log(hiddenForm);
-
+      // console.log(hiddenForm);
       document.body.appendChild(hiddenForm);
+      console.log("submit");
       hiddenForm.submit();
       document.body.removeChild(hiddenForm);
     }
