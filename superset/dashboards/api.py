@@ -972,6 +972,14 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                 application/json:
                   schema:
                     $ref: "#/components/schemas/DashboardDataResponseSchema"
+                image/png:
+                  schema: 
+                    type: string
+                    format: binary
+                application/pdf:
+                  schema: 
+                    type: string
+                    format: binary
             202:
               description: Async job details
               content:
@@ -1006,8 +1014,13 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         # fetch the dashboard screenshot using the current user and cache if set
 
         DashboardChartScreenshot(current_user, request.json, pk).print2()
-        DashboardChartScreenshot(current_user, request.json, pk).get2()
+        data = DashboardChartScreenshot(current_user, request.json, pk).get2()
         # DashboardChartScreenshot(current_user, request.json, pk).get()
+
+        if data:
+            return Response(
+                FileWrapper(data), mimetype="image/png", direct_passthrough=True
+            )
 
         if json_body.get("formData"):
           # for element in json_body.formData: # loop 

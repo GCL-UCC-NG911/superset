@@ -350,6 +350,8 @@ class BaseChartScreenshot:
                     # logger.warning("A exception occurred while taking a screenshot. %s", str(ex))
                 # if not image:
                     # logger.warning("Snapshot empty.")
+                if image:
+                    return image
         logger.info("# end get")
                 
 
@@ -459,7 +461,7 @@ class BaseChartScreenshot:
         return new_img.read()
 
     def print2(self):
-        logger.info("commit 104")
+        logger.info("commit 105")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
 
 class ChartScreenshot(BaseScreenshot):
