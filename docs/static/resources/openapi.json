@@ -14030,7 +14030,7 @@
       }
     },
     "/api/v1/dashboard/{pk}/download": {
-      "post": {
+      "get": {
         "description": "Takes a query context constructed in the client and returns payload data response for the given query.",
         "parameters": [
           {
@@ -14061,6 +14061,18 @@
                 "schema": {
                   "$ref": "#/components/schemas/DashboardDataResponseSchema"
                 }
+              }
+            },
+            "image/png": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            },
+            "application/pdf": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
               }
             },
             "description": "Query result"
