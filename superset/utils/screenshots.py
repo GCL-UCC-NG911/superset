@@ -465,9 +465,9 @@ class BaseChartScreenshot:
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
         logger.info(self.json)
         logger.info(self.json.url)
-        logger.info(self.json.body)
         logger.info(self.json.headers)
         logger.info(self.json.json)
+        logger.info(self.json.is_json)
 
 class ChartScreenshot(BaseScreenshot):
     thumbnail_type: str = "chart"
