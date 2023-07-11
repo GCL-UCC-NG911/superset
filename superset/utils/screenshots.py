@@ -461,8 +461,9 @@ class BaseChartScreenshot:
         return new_img.read()
 
     def print2(self):
-        logger.info("commit 108")
+        logger.info("commit 115")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
+        logger.info(self.json)
 
 class ChartScreenshot(BaseScreenshot):
     thumbnail_type: str = "chart"
