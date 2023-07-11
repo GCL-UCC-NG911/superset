@@ -177,9 +177,9 @@ class HeaderActionsDropdown extends React.PureComponent {
     // SupersetClient.postForm(url, { form_data: safeStringify(payload) });
 
     // const querySettings = {
-      // url,
-      // headers: { 'Content-Type': 'application/json' },
-      // body: JSON.stringify(payload),
+    // url,
+    // headers: { 'Content-Type': 'application/json' },
+    // body: JSON.stringify(payload),
     // };
 
     try {
