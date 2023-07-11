@@ -181,7 +181,7 @@ export default class SupersetClientClass {
 
       // console.log(hiddenForm);
       document.body.appendChild(hiddenForm);
-      console.log("submit");
+      console.log('submit');
       hiddenForm.submit();
       document.body.removeChild(hiddenForm);
     }
