@@ -182,7 +182,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       body: JSON.stringify(payload),
     };
 
-    SupersetClient.post(querySettings);
+    SupersetClient.get(querySettings);
 
     console.log(
       '### exportTables end - resultFormat, resultType, force, ownState, formData',
@@ -266,7 +266,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 81');
+    console.log('commit 106');
     console.log(props);
     console.log(props.dashboardInfo.metadata.native_filter_configuration);
     console.log(props.dataMask);
