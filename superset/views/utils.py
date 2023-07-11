@@ -151,7 +151,7 @@ def get_form_data(  # pylint: disable=too-many-locals
     initial_form_data: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Dict[str, Any], Optional[Slice]]:
     form_data: Dict[str, Any] = initial_form_data or {}
-
+    logger.info("get_form_data")
     if has_request_context():  # type: ignore
         # chart data API requests are JSON
         request_json_data = (
@@ -164,11 +164,11 @@ def get_form_data(  # pylint: disable=too-many-locals
 
         request_form_data = request.form.get("form_data")
         request_args_data = request.args.get("form_data")
+        logger.info(request_json_data)
+        logger.info(request_form_data)
         if request_json_data:
-            logger.info(request_json_data)
             form_data.update(request_json_data)
         if request_form_data:
-            logger.info(request_form_data)
             parsed_form_data = loads_request_json(request_form_data)
             # some chart data api requests are form_data
             queries = parsed_form_data.get("queries")
@@ -182,6 +182,7 @@ def get_form_data(  # pylint: disable=too-many-locals
         if request_args_data:
             logger.info(request_args_data)
             logger.info(loads_request_json(request_args_data))
+            # 339 vs {"slice_id":339}
             form_data.update(loads_request_json(request_args_data))
 
     # Fallback to using the Flask globals (used for cache warmup and async queries)

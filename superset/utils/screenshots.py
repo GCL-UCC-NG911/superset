@@ -265,7 +265,7 @@ class BaseChartScreenshot:
         """
             Get the url for chart report
         """
-        force = "true" if self.json.get("force") else "false"
+        force = "true" # if self.json.get("force") else "false"
 
         return get_url_path(
             "ExploreView.root",
@@ -414,7 +414,7 @@ class BaseChartScreenshot:
 
         # Assuming all sorts of things can go wrong with Selenium
         try:
-            payload = self.get_screenshot(user=user, window_size=window_size)
+            payload = self.get_screenshot2(user=user, window_size=window_size)
         except Exception as ex:  # pylint: disable=broad-except
             logger.warning("Failed at generating thumbnail %s", ex, exc_info=True)
 
@@ -457,7 +457,7 @@ class BaseChartScreenshot:
         return new_img.read()
 
     def print2(self):
-        logger.info("commit 98")
+        logger.info("commit 99")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
 
 class ChartScreenshot(BaseScreenshot):
