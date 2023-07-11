@@ -176,16 +176,16 @@ class HeaderActionsDropdown extends React.PureComponent {
     console.log(payload);
     // SupersetClient.postForm(url, { form_data: safeStringify(payload) });
 
-    const querySettings = {
-      url,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    };
+    // const querySettings = {
+      // url,
+      // headers: { 'Content-Type': 'application/json' },
+      // body: JSON.stringify(payload),
+    // };
 
     try {
-      SupersetClient.postJsonForm(url, JSON.stringify(payload))
+      SupersetClient.postJsonForm(url, JSON.stringify(payload));
     } catch (error) {
-      logging.error(t('Unable to download charts of dashboard'));
+      // logging.error(t('Unable to download charts of dashboard'));
       console.error('Unable to download charts of dashboard');
     }
 
