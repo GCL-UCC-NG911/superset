@@ -331,7 +331,7 @@ class BaseChartScreenshot:
                     self.window_size,
                     self.thumb_size,
                 )
-                image = screenshot.get_screenshot(user=user)
+                image = screenshot.get_screenshot(user=self.user)
                 # screenshot = ChartScreenshot(url, chart.digest)
                 # screenshot.compute_and_cache(
                     # user=self.user,
@@ -457,7 +457,7 @@ class BaseChartScreenshot:
         return new_img.read()
 
     def print2(self):
-        logger.info("commit 99")
+        logger.info("commit 101")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
 
 class ChartScreenshot(BaseScreenshot):

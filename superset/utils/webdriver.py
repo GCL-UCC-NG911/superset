@@ -171,8 +171,10 @@ class WebDriverProxy:
     ) -> Optional[bytes]:
         logger.info("get_screenshot")
         driver = self.auth(user)
+        logger.info("user")
         logger.info(user)
         driver.set_window_size(*self._window)
+        logger.info("url")
         logger.info(url)
         driver.get(url)
         img: Optional[bytes] = None
