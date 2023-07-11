@@ -115,8 +115,6 @@ const MENU_KEYS = {
 
 const SCREENSHOT_NODE_SELECTOR = '.dashboard';
 
-
-
 /* NGLS - BEGIN */
 const buildV1DashboardDataPayload = ({
   formData,
@@ -153,7 +151,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     this.setShowReportSubMenu = this.setShowReportSubMenu.bind(this);
   }
 
-  downloadPDFTables (
+  downloadPDFTables(
     dashboardId,
     formData,
     resultFormat = 'json',
@@ -177,13 +175,13 @@ class HeaderActionsDropdown extends React.PureComponent {
     });
     console.log(payload);
     // SupersetClient.postForm(url, { form_data: safeStringify(payload) });
-  
+
     // const querySettings = {
     // url,
     // headers: { 'Content-Type': 'application/json' },
     // body: JSON.stringify(payload),
     // };
-  
+
     try {
       SupersetClient.postJsonForm(url, JSON.stringify(payload));
     } catch (error) {
@@ -191,7 +189,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       console.error('Unable to download charts of dashboard');
       console.error(error);
     }
-  
+
     console.log(
       '### exportTables end - resultFormat, resultType, force, ownState, formData',
     );
@@ -315,7 +313,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     });
     console.log('### dashboardInfo');
     console.log(dashboardInfo);
-    downloadPDFTables(
+    this.downloadPDFTables(
       props?.dashboardId,
       dashboardInfo,
       'pdf',
