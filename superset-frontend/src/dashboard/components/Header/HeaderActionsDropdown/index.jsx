@@ -182,7 +182,12 @@ class HeaderActionsDropdown extends React.PureComponent {
       body: JSON.stringify(payload),
     };
 
-    SupersetClient.get(querySettings);
+    try {
+      SupersetClient.postJsonForm(url, JSON.stringify(payload))
+    } catch (error) {
+      logging.error(t('Unable to download charts of dashboard'));
+      console.error('Unable to download charts of dashboard');
+    }
 
     console.log(
       '### exportTables end - resultFormat, resultType, force, ownState, formData',
@@ -266,7 +271,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 106');
+    console.log('commit 108');
     console.log(props);
     console.log(props.dashboardInfo.metadata.native_filter_configuration);
     console.log(props.dataMask);

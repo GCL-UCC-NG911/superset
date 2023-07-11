@@ -936,7 +936,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
             FileWrapper(screenshot), mimetype="image/png", direct_passthrough=True
         )
 
-    @expose("/<int:pk>/download", methods=["GET"])
+    @expose("/<int:pk>/download", methods=["POST"])
     @protect()
     @safe
     @event_logger.log_this_with_context(
@@ -947,7 +947,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
     def download(self, pk: int) -> WerkzeugResponse: # pylint: disable=arguments-differ
         """Get Dashboard information and returns payload data.
         ---
-        get:
+        post:
           description: >-
             Takes a query context constructed in the client and returns payload data
             response for the given query.
