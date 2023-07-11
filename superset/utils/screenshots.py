@@ -306,6 +306,8 @@ class BaseChartScreenshot:
             if element.get("type") == "CHART":
                 url = self.get_url2(chartId=element.get("chartId"))
                 logger.info(url)
+                url = 'https://ngls-nginx:8444/explore/?form_data=%7B%22slice_id%22%3A%20339%7D&force=false&standalone=true'
+                logger.info(url)
                 # chart = Slice(**kwargs)
                 # user: Optional[User] = None
                 # if has_current_user:
@@ -457,7 +459,7 @@ class BaseChartScreenshot:
         return new_img.read()
 
     def print2(self):
-        logger.info("commit 103")
+        logger.info("commit 104")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
 
 class ChartScreenshot(BaseScreenshot):
