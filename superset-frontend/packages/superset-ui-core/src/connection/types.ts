@@ -153,6 +153,7 @@ export interface SupersetClientInterface
     | 'get'
     | 'post'
     | 'postForm'
+    | 'postJsonForm'
     | 'put'
     | 'request'
     | 'init'
