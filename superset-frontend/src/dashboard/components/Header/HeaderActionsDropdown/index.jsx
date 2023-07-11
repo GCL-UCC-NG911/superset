@@ -130,6 +130,50 @@ const buildV1DashboardDataPayload = ({
     result_type: resultType,
   };
 };
+
+const downloadPDFTables = ({
+  dashboardId,
+  formData,
+  resultFormat = 'json',
+  resultType = 'full',
+  force = false,
+}) => {
+  const url = `/api/v1/dashboard/${dashboardId}/download`;
+  console.log(
+    '### exportTables start - resultFormat, resultType, force, ownState, formData',
+  );
+  console.log(resultFormat);
+  console.log(resultType);
+  console.log(force);
+  console.log(formData);
+  console.log(url);
+  const payload = buildV1DashboardDataPayload({
+    formData,
+    force,
+    resultFormat,
+    resultType,
+  });
+  console.log(payload);
+  // SupersetClient.postForm(url, { form_data: safeStringify(payload) });
+
+  // const querySettings = {
+  // url,
+  // headers: { 'Content-Type': 'application/json' },
+  // body: JSON.stringify(payload),
+  // };
+
+  try {
+    SupersetClient.postJsonForm(url, JSON.stringify(payload));
+  } catch (error) {
+    // logging.error(t('Unable to download charts of dashboard'));
+    console.error('Unable to download charts of dashboard');
+    console.error(error);
+  }
+
+  console.log(
+    '### exportTables end - resultFormat, resultType, force, ownState, formData',
+  );
+}
 /* NGLS - END */
 
 class HeaderActionsDropdown extends React.PureComponent {
@@ -151,49 +195,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     this.setShowReportSubMenu = this.setShowReportSubMenu.bind(this);
   }
 
-  downloadPDFTables(
-    dashboardId,
-    formData,
-    resultFormat = 'json',
-    resultType = 'full',
-    force = false,
-  ) {
-    const url = `/api/v1/dashboard/${dashboardId}/download`;
-    console.log(
-      '### exportTables start - resultFormat, resultType, force, ownState, formData',
-    );
-    console.log(resultFormat);
-    console.log(resultType);
-    console.log(force);
-    console.log(formData);
-    console.log(url);
-    const payload = buildV1DashboardDataPayload({
-      formData,
-      force,
-      resultFormat,
-      resultType,
-    });
-    console.log(payload);
-    // SupersetClient.postForm(url, { form_data: safeStringify(payload) });
-
-    // const querySettings = {
-    // url,
-    // headers: { 'Content-Type': 'application/json' },
-    // body: JSON.stringify(payload),
-    // };
-
-    try {
-      SupersetClient.postJsonForm(url, JSON.stringify(payload));
-    } catch (error) {
-      // logging.error(t('Unable to download charts of dashboard'));
-      console.error('Unable to download charts of dashboard');
-      console.error(error);
-    }
-
-    console.log(
-      '### exportTables end - resultFormat, resultType, force, ownState, formData',
-    );
-  }
+  
 
   getAllTables(props, element) {
     if (props === null || element === null || element === '') {
@@ -272,7 +274,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 113');
+    console.log('commit 114');
     console.log(props);
     console.log(props.dashboardInfo.metadata.native_filter_configuration);
     console.log(props.dataMask);
@@ -313,7 +315,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     });
     console.log('### dashboardInfo');
     console.log(dashboardInfo);
-    this.downloadPDFTables(
+    downloadPDFTables(
       props?.dashboardId,
       dashboardInfo,
       'pdf',
