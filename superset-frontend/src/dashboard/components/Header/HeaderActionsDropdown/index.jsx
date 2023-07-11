@@ -187,6 +187,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     } catch (error) {
       // logging.error(t('Unable to download charts of dashboard'));
       console.error('Unable to download charts of dashboard');
+      console.error(error);
     }
 
     console.log(
@@ -271,7 +272,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 
   downloadAllAsPdf(props) {
-    console.log('commit 108');
+    console.log('commit 113');
     console.log(props);
     console.log(props.dashboardInfo.metadata.native_filter_configuration);
     console.log(props.dataMask);

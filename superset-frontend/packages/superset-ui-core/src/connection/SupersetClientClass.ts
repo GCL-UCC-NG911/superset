@@ -121,6 +121,8 @@ export default class SupersetClientClass {
 
   async postForm(url: string, payload: Record<string, any>, target = '_blank') {
     if (url) {
+      console.log('postForm');
+      console.log(url);
       await this.ensureAuth();
       const hiddenForm = document.createElement('form');
       hiddenForm.action = url;
