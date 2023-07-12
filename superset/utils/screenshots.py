@@ -465,14 +465,13 @@ class BaseChartScreenshot:
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
         logger.info(self.json)
         logger.info(self.json.url)
-        logger.info(self.json.get('url'))
         logger.info(self.json.headers)
         logger.info(self.json.is_json)
         logger.info(self.json.data)
-        logger.info(self.json.get('form_data'))
-        logger.info(self.json.get('csrf_token'))
-        logger.info(self.json.get('payload'))
-        logger.info(self.json.get('formData'))
+        logger.info(self.json.form_data)
+        logger.info(self.json.csrf_token)
+        logger.info(self.json.payload)
+        logger.info(self.json.formData)
 
 class ChartScreenshot(BaseScreenshot):
     thumbnail_type: str = "chart"
