@@ -301,6 +301,7 @@ class BaseChartScreenshot:
         """
         # user = security_manager.find_user("admin")
         logger.info("# get - user [%s], cache [%s], thumb_size [%s]", str(self.user), str(cache), str(thumb_size))
+        images = []
         for element in self.json.get("formData"):
             logger.info(element)
             if element.get("type") == "CHART":
@@ -337,20 +338,15 @@ class BaseChartScreenshot:
                 )
                 image = screenshot.get_screenshot(user=user)
 
+                if self.result_format == "image":
+                    images.append(image)
+
                 # Convert to image pdf
-                if self.result_format == "pdf": 
-                    images = []
+                if self.result_format == "pdf":
                     img_to_pdf = Image.open(BytesIO(image))
                     if img_to_pdf.mode == "RGBA":
                         img_to_pdf = img_to_pdf.convert("RGB")
                     images.append(img_to_pdf)
-
-                    new_pdf = BytesIO()
-                    images[0].save(new_pdf, "PDF", save_all=True, append_images=images[1:])
-                    new_pdf.seek(0)
-                    return new_pdf
-
-
 
                 # screenshot = ChartScreenshot(url, chart.digest)
                 # screenshot.compute_and_cache(
@@ -371,6 +367,15 @@ class BaseChartScreenshot:
                 if image:
                     logger.info("return image")
                     return BytesIO(image)
+        if images:
+            logger.info("return images")
+            if self.result_format == "pdf": 
+                new_pdf = BytesIO()
+                images[0].save(new_pdf, "PDF", save_all=True, append_images=images[1:])
+                new_pdf.seek(0)
+                return new_pdf
+
+            return images
         logger.info("# end get")
                 
 
