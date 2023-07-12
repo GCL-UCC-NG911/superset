@@ -348,7 +348,7 @@ class BaseChartScreenshot:
                     new_pdf = BytesIO()
                     images[0].save(new_pdf, "PDF", save_all=True, append_images=images[1:])
                     new_pdf.seek(0)
-                    return new_pdf.read()
+                    return new_pdf
 
 
 
