@@ -468,7 +468,8 @@ class BaseChartScreenshot:
         logger.info(self.json.headers)
         logger.info(self.json.is_json) # false
         logger.info(self.json.data) # b''
-        logger.info(self.json.payload)
+        logger.info(self.json.form)
+        # logger.info(self.json.payload)
         logger.info(self.json.formData)
         logger.info(self.json.input)
 
