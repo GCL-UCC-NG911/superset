@@ -2297,18 +2297,13 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
     def add_user_password_history(
         timestamp,
         user_id,
-        old_password="",
-        hashed_password ="",
+        old_password,
         self
     ):
         user = self.user_password_history()
         user.old_password = old_password
         user.timestamp = timestamp
         user.user_id = user_id
-        if hashed_password:
-            user.old_password = hashed_password
-        else:
-            user.old_password = generate_password_hash(old_password)
         try:
             self.get_session.add(user)
             self.get_session.commit()
