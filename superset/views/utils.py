@@ -181,9 +181,15 @@ def get_form_data(  # pylint: disable=too-many-locals
         # request params can overwrite the body
         if request_args_data:
             logger.info(request_args_data)
+            logger.info("before loads request json from request args data")
             logger.info(loads_request_json(request_args_data))
             # 339 vs {"slice_id":339}
-            form_data.update(loads_request_json(request_args_data))
+            request_args = loads_request_json(request_args_data)
+            if isinstance(request_args, int):
+                request_args = {"slice_id":request_args}
+            logger.info("after loads request json from request args data")
+            logger.info(loads_request_json(request_args_data))
+            form_data.update(request_args)
 
     # Fallback to using the Flask globals (used for cache warmup and async queries)
     if not form_data and hasattr(g, "form_data"):
