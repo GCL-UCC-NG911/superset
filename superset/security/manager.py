@@ -86,7 +86,6 @@ from superset.utils.core import (
 )
 from superset.utils.filters import get_dataset_access_filters
 from superset.utils.urls import get_url_host
-from superset.models.user_password_history import UserPasswordHistory
 
 if TYPE_CHECKING:
     from superset.common.query_context import QueryContext
@@ -2291,24 +2290,3 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
         return current_app.config["AUTH_ROLE_ADMIN"] in [
             role.name for role in self.get_user_roles()
         ]
-        
-    user_password_history = UserPasswordHistory
-    
-    def add_user_password_history(
-        timestamp,
-        user_id,
-        old_password,
-        self
-    ):
-        user = self.user_password_history()
-        user.old_password = old_password
-        user.timestamp = timestamp
-        user.user_id = user_id
-        try:
-            self.get_session.add(user)
-            self.get_session.commit()
-            return user
-        except Exception as e:
-            log.error("Error to added new old password", e)
-            self.appbuilder.get_session.rollback()
-            return None
