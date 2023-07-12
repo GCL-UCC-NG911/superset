@@ -1019,8 +1019,8 @@ class DashboardRestApi(BaseSupersetModelRestApi):
 
         # DashboardChartScreenshot(current_user, json_body, pk).print2()
         format = "image"
-        if self.json.form['result_format']:
-            format = self.json.form['result_format']
+        if request.form['result_format']:
+            format = request.form['result_format']
         data = DashboardChartScreenshot(current_user, json_body, format, pk).get2()
         # DashboardChartScreenshot(current_user, request.json, pk).get()
 
@@ -1028,23 +1028,6 @@ class DashboardRestApi(BaseSupersetModelRestApi):
             return Response(
                 FileWrapper(data), mimetype="image/png", direct_passthrough=True
             )
-
-        if json_body.get("formData"):
-          # for element in json_body.formData: # loop 
-            # if element.type == "CHART":
-              # chartId
-              # filters
-              # getUrl
-              # chartUrl = 'api/v1/${chartId}/chart'
-              # screenshot = DashboardChartScreenshot(
-                  # chartUrl
-              # ).get_from_cache(cache=thumbnail_cache)
-        
-          # self.incr_stats("from_cache", self.dashboarddownload.__name__)
-          # return Response(
-              # FileWrapper(screenshot), mimetype="image/png", direct_passthrough=True
-          # )
-          return self.response(200, message="OK Async")
 
         if json_body is None:
             return self.response_400(message=_("Request is not JSON"))
