@@ -1014,9 +1014,9 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         # DashboardChartScreenshot(current_user, request.json.get("force"), pk).print()
         # fetch the dashboard screenshot using the current user and cache if set
 
-        format = "image"
-        if request.form['result_format']:
-            format = request.form['result_format']
+        format = "pdf"
+        # if request.form['result_format']:
+            # format = request.form['result_format']
         DashboardChartScreenshot(current_user, json_body, format, pk).print2()
         data = DashboardChartScreenshot(current_user, json_body, format, pk).get2()
         # DashboardChartScreenshot(current_user, request.json, pk).get()
