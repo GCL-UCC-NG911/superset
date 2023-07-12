@@ -463,11 +463,11 @@ class BaseChartScreenshot:
     def print2(self):
         logger.info("commit 115")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
-        logger.info(self.json)
+        # logger.info(self.json)
         logger.info(self.json.url)
         logger.info(self.json.headers)
-        logger.info(self.json.is_json) # false
-        logger.info(self.json.data) # b''
+        # logger.info(self.json.is_json) # false
+        # logger.info(self.json.data) # b''
         # ImmutableMultiDict(
         # [
         # (
@@ -490,6 +490,7 @@ class BaseChartScreenshot:
         # )
         logger.info(self.json.form)
         logger.info(self.json.form[0])
+        logger.info(self.json.form[1])
 
 class ChartScreenshot(BaseScreenshot):
     thumbnail_type: str = "chart"
