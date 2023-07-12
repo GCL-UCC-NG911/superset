@@ -1015,16 +1015,21 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         # fetch the dashboard screenshot using the current user and cache if set
 
         format = "image"
-        # if request.form['result_format']:
-            # format = request.form['result_format']
+        if request.form['result_format']:
+            format = request.form['result_format']
         DashboardChartScreenshot(current_user, json_body, format, pk).print2()
         data = DashboardChartScreenshot(current_user, json_body, format, pk).get2()
         # DashboardChartScreenshot(current_user, request.json, pk).get()
 
         if data:
+            if format == "pdf":
+              return Response(
+                  FileWrapper(data), mimetype="application/pdf", direct_passthrough=True
+              )
+
             return Response(
                 FileWrapper(data), mimetype="image/png", direct_passthrough=True
-            )
+            ) 
 
         if json_body is None:
             return self.response_400(message=_("Request is not JSON"))
