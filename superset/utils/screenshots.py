@@ -489,7 +489,7 @@ class BaseChartScreenshot:
         # ]
         # )
         logger.info(self.json.form)
-        logger.info(self.json.form.form_data)
+        logger.info(self.json.form[0])
 
 class ChartScreenshot(BaseScreenshot):
     thumbnail_type: str = "chart"
