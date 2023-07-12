@@ -490,7 +490,10 @@ class BaseChartScreenshot:
         # )
         logger.info(self.json.form)
         logger.info(self.json.form['form_data'])
-        logger.info(self.json.form['csrf_token'])
+        logger.info(self.json.form['form_data'].is_json)
+        jsonObject = self.json.form['form_data'].get("formData")
+        logger.info(jsonObject)
+        #logger.info(self.json.form['csrf_token'])
 
 class ChartScreenshot(BaseScreenshot):
     thumbnail_type: str = "chart"
