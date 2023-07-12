@@ -31,23 +31,27 @@ import sqlalchemy as sa
 from sqlalchemy import engine_from_config
 from sqlalchemy.engine import reflection
 
-def column_verification(table, column):
+def table_verification(table):
     config = op.get_context().config
     engine = engine_from_config(
-        config.get_section(config.config_ini_section), prefix='sqlalchemy.')
+        config.get_section(config.config_ini_section), prefix="sqlalchemy."
+    )
     inspector = reflection.Inspector.from_engine(engine)
-    has_column = False
-    for col in inspector.get_columns(table):
-        if column not in col['name']:
-            continue
-        has_column = True
-    return has_column
+    tables = inspector.get_table_names()
+    if table in tables:
+        return True
 
 def upgrade():
-    with op.batch_alter_table("ab_user") as batch_op:
-        if not column_verification("ab_user", "password_history"):
-            batch_op.add_column(sa.Column("password_history", sa.String(256), nullable=True))
+    if not op.create_table(
+        "password_history",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("old_password", sa.String(256), nullable=True),
+        sa.Column("timestamp", sa.DateTime(), nullable=True),
+        sa.Column(
+            "user_id", sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True
+        ),
+        sa.PrimaryKeyConstraint("id"),
+    )
 
 def downgrade():
-    with op.batch_alter_table("ab_user") as batch_op:
-        batch_op.drop_column("password_history")
+    pass
