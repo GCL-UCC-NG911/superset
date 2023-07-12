@@ -164,7 +164,7 @@ export default class SupersetClientClass {
       hiddenForm.action = url;
       hiddenForm.method = 'POST';
       hiddenForm.target = target;
-      
+
       const payloadWithToken: Record<string, any> = {
         ...payload,
         csrf_token: this.csrfToken!,
