@@ -466,11 +466,12 @@ class BaseChartScreenshot:
         logger.info(self.json)
         logger.info(self.json.url)
         logger.info(self.json.headers)
-        logger.info(self.json.is_json)
-        logger.info(self.json.data)
-        logger.info(self.json.csrf_token)
+        logger.info(self.json.is_json) # false
+        logger.info(self.json.data) # b''
+        logger.info(self.json.data.form_data)
         logger.info(self.json.payload)
         logger.info(self.json.formData)
+        logger.info(self.json.input)
 
 class ChartScreenshot(BaseScreenshot):
     thumbnail_type: str = "chart"
