@@ -993,19 +993,16 @@ class DashboardRestApi(BaseSupersetModelRestApi):
               $ref: '#/components/responses/500'
         """
         json_body = None
-        if request.is_json:
-            json_body = request.json
+        # if request.is_json:
+            # json_body = request.json
         # elif request.form.get("formData"):
             # try:
                 # json_body = json.loads(request.form["formData"])
             # except (TypeError, json.JSONDecodeError):
                 # pass
-        elif request.form['form_data']:
-          try:
-            json_body = json.loads(request.form['form_data'])
-          except (TypeError, json.JSONDecodeError):
-              pass
-          
+        if request.form['form_data']:
+          json_body = json.loads(request.form['form_data'])
+
         # If force, request a screenshot from the workers
         current_user = get_current_user()
         # ERRADOS:
