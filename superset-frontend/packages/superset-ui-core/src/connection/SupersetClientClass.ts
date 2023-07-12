@@ -164,7 +164,7 @@ export default class SupersetClientClass {
       hiddenForm.action = url;
       hiddenForm.method = 'POST';
       hiddenForm.target = target;
-      hiddenForm.type = 'application/json';
+      
       const payloadWithToken: Record<string, any> = {
         ...payload,
         csrf_token: this.csrfToken!,
@@ -176,7 +176,7 @@ export default class SupersetClientClass {
 
       Object.entries(payloadWithToken).forEach(([key, value]) => {
         const data = document.createElement('input');
-        data.type = 'application/json';
+        data.type = 'hidden';
         data.name = key;
         data.value = value;
         hiddenForm.appendChild(data);
