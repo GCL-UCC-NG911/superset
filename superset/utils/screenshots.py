@@ -216,7 +216,7 @@ class BaseChartScreenshot:
     # current_user, json_body
     driver_type = current_app.config["WEBDRIVER_TYPE"]
     thumbnail_type: str = ""
-    element: str = ""
+    element: str = "standalone"
     window_size: WindowSize = (800, 600)
     thumb_size: WindowSize = (400, 300)
 
@@ -291,7 +291,7 @@ class BaseChartScreenshot:
         user: User = None,
         cache: Cache = None,
         thumb_size: Optional[WindowSize] = None,
-    ) -> Optional[bytes]:
+    ) -> Optional[BytesIO]:
         """
             Get thumbnail screenshot has BytesIO from cache or fetch
 
@@ -307,7 +307,7 @@ class BaseChartScreenshot:
                 url = self.get_url2(chartId=element.get("chartId"))
                 logger.info(url)
                 # url = 'https://ngls-nginx:8444/explore/?form_data=%7B%22slice_id%22%3A%20339%7D&force=false&standalone=true'
-                url = 'https://ngls-nginx:8444/explore/?form_data=%7B%22slice_id%22%3A%20398%7D&force=false&standalone=true'
+                # url = 'https://ngls-nginx:8444/explore/?form_data=%7B%22slice_id%22%3A%20398%7D&force=false&standalone=true'
                 # logger.info(url)
                 # chart = Slice(**kwargs)
                 # user: Optional[User] = None
@@ -326,6 +326,7 @@ class BaseChartScreenshot:
                 # query_context = self._create_query_context_from_form(json_body)
                 # command = ChartDataCommand(query_context)
                 # command.validate()
+                logger.info("chartDigest")
                 chartDigest = get_chart_digest(chart=chart)
                 logger.info(chartDigest)
                 screenshot = ChartScreenshot(
@@ -365,7 +366,8 @@ class BaseChartScreenshot:
                 # if not image:
                     # logger.warning("Snapshot empty.")
                 if image:
-                    return image
+                    logger.info("return image")
+                    return BytesIO(image)
         logger.info("# end get")
                 
 

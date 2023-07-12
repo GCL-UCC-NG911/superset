@@ -212,7 +212,7 @@ class WebDriverProxy:
                 url,
                 user.username,
             )
-
+            logger.info("after Taking a PNG screenshot")
             if current_app.config["SCREENSHOT_REPLACE_UNEXPECTED_ERRORS"]:
                 unexpected_errors = find_unexpected_errors(driver)
                 if unexpected_errors:
@@ -222,9 +222,9 @@ class WebDriverProxy:
                         url,
                         unexpected_errors,
                     )
-
+            logger.info("after check errors")
             img = element.screenshot_as_png
-
+            logger.info("after check errors")
         except TimeoutException:
             logger.warning("Selenium timed out requesting url %s", url, exc_info=True)
         except StaleElementReferenceException:
