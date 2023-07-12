@@ -86,7 +86,7 @@ from superset.utils.core import (
 )
 from superset.utils.filters import get_dataset_access_filters
 from superset.utils.urls import get_url_host
-from superset.models import UserPasswordHistory
+from superset.models.user_password_history import UserPasswordHistory
 
 if TYPE_CHECKING:
     from superset.common.query_context import QueryContext
