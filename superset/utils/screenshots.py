@@ -222,8 +222,7 @@ class BaseChartScreenshot:
 
     def __init__(self, user: str, json: any, pk: int,):
         self.user: str = user
-        self.data = json
-        self.json = json.loads(self.json.form['form_data'])
+        self.json = json
         self.pk = pk
         self.digest: str = ""
         self.result_format = "image"
@@ -465,8 +464,8 @@ class BaseChartScreenshot:
         logger.info("commit 115")
         logger.info("##### User: [%s], json: [%s], pk: [%s], digest: [%s]", str(self.user), str(self.json), str(self.pk), str(self.digest))
         # logger.info(self.json)
-        logger.info(self.json.url)
-        logger.info(self.json.headers)
+        # logger.info(self.json.url)
+        # logger.info(self.json.headers)
         # logger.info(self.json.is_json) # false
         # logger.info(self.json.data) # b''
         # ImmutableMultiDict(
@@ -489,15 +488,15 @@ class BaseChartScreenshot:
         # )
         # ]
         # )
-        logger.info(self.json.form)
-        logger.info(self.json.form['form_data'])
-        jsonObject = json.loads(self.json.form['form_data'])
-        logger.info(jsonObject)
+        # logger.info(self.json.form)
+        # logger.info(self.json.form['form_data'])
+        # jsonObject = json.loads(self.json.form['form_data'])
+        # logger.info(jsonObject)
         # [
         # {'dashboardId': 142, 'dashboardTitle': '[ untitled dashboard ]', 'type': 'DASHBOARD'},
         # {'chartId': 339, 'sliceName': 'Abandoned calls - Table new', 'uuid': 'e9e8d759-aed0-455a-8b92-65c61843e477', 'height': 50, 'width': 12, 'type': 'CHART'}
         # ]
-        logger.info(jsonObject.get('formData'))
+        # logger.info(jsonObject.get('formData'))
         #logger.info(self.json.form['csrf_token'])
 
 class ChartScreenshot(BaseScreenshot):

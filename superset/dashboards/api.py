@@ -995,12 +995,17 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         json_body = None
         if request.is_json:
             json_body = request.json
-        elif request.form.get("formData"):
-            try:
-                json_body = json.loads(request.form["formData"])
-            except (TypeError, json.JSONDecodeError):
-                pass
-
+        # elif request.form.get("formData"):
+            # try:
+                # json_body = json.loads(request.form["formData"])
+            # except (TypeError, json.JSONDecodeError):
+                # pass
+        elif request.form['form_data']:
+          try:
+            json_body = json.loads(request.form['form_data'])
+          except (TypeError, json.JSONDecodeError):
+              pass
+          
         # If force, request a screenshot from the workers
         current_user = get_current_user()
         # ERRADOS:
@@ -1012,8 +1017,8 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         # DashboardChartScreenshot(current_user, request.json.get("force"), pk).print()
         # fetch the dashboard screenshot using the current user and cache if set
 
-        DashboardChartScreenshot(current_user, request, pk).print2()
-        data = DashboardChartScreenshot(current_user, request.json, pk).get2()
+        DashboardChartScreenshot(current_user, json_body, pk).print2()
+        data = DashboardChartScreenshot(current_user, json_body, pk).get2()
         # DashboardChartScreenshot(current_user, request.json, pk).get()
 
         if data:
