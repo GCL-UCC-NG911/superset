@@ -468,10 +468,28 @@ class BaseChartScreenshot:
         logger.info(self.json.headers)
         logger.info(self.json.is_json) # false
         logger.info(self.json.data) # b''
+        # ImmutableMultiDict(
+        # [
+        # (
+        # 'form_data', 
+        # '{
+        # "formData":
+        # [
+        # {"dashboardId":142,"dashboardTitle":"[ untitled dashboard ]","type":"DASHBOARD"},
+        # {"chartId":339,"sliceName":"Abandoned calls - Table new","uuid":"e9e8d759-aed0-455a-8b92-65c61843e477","height":50,"width":12,"type":"CHART"}
+        # ],
+        # "force":false,
+        # "result_format":"pdf",
+        # "result_type":"full"
+        # }'
+        # ), 
+        # (
+        # 'csrf_token', 'ImI0MTg3Mzg3NDFkNGViOWFkOWUwNTgzODFkODQ5ZDA5YmYzMzBjMDAi.ZK6EJA.4_c43UrOdw393PsR5scyd3qt5zo'
+        # )
+        # ]
+        # )
         logger.info(self.json.form)
-        # logger.info(self.json.payload)
-        logger.info(self.json.formData)
-        logger.info(self.json.input)
+        logger.info(self.json.form.form_data)
 
 class ChartScreenshot(BaseScreenshot):
     thumbnail_type: str = "chart"
