@@ -490,9 +490,9 @@ class BaseChartScreenshot:
         # )
         logger.info(self.json.form)
         logger.info(self.json.form['form_data'])
-        logger.info(self.json.form['form_data'].is_json)
-        jsonObject = self.json.form['form_data'].get("formData")
+        jsonObject = json.loads(self.json.form['form_data'])
         logger.info(jsonObject)
+        logger.info(jsonObject.get('formData'))
         #logger.info(self.json.form['csrf_token'])
 
 class ChartScreenshot(BaseScreenshot):
