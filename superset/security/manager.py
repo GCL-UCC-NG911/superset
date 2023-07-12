@@ -2295,7 +2295,11 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
     user_password_history = UserPasswordHistory
     
     def add_user_password_history(
-        self, old_password="", hashed_password ="", timestamp, user_id
+        old_password="",
+        hashed_password ="",
+        timestamp,
+        user_id,
+        self
     ):
         user = self.user_password_history()
         user.old_password = old_password
