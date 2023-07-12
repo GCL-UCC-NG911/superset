@@ -220,12 +220,12 @@ class BaseChartScreenshot:
     window_size: WindowSize = (800, 600)
     thumb_size: WindowSize = (400, 300)
 
-    def __init__(self, user: str, json: any, pk: int,):
+    def __init__(self, user: str, json: any, format: str, pk: int,):
         self.user: str = user
         self.json = json
         self.pk = pk
         self.digest: str = ""
-        self.result_format = "image"
+        self.result_format = format
 
         self.screenshot: Optional[bytes] = None
 
@@ -338,14 +338,17 @@ class BaseChartScreenshot:
                 image = screenshot.get_screenshot(user=user)
 
                 # Convert to image pdf
-                # img_to_pdf = Image.open(BytesIO(snap))
-                # if img_to_pdf.mode == "RGBA":
-                   # img_to_pdf = img_to_pdf.convert("RGB")
-                # images.append(img_to_pdf)
-                # new_pdf = BytesIO()
-                # images[0].save(new_pdf, "PDF", save_all=True, append_images=images[1:])
-                # new_pdf.seek(0)
-                # return new_pdf.read()
+                if self.result_format == "pdf": 
+                    images = []
+                    img_to_pdf = Image.open(BytesIO(image))
+                    if img_to_pdf.mode == "RGBA":
+                        img_to_pdf = img_to_pdf.convert("RGB")
+                    images.append(img_to_pdf)
+
+                    new_pdf = BytesIO()
+                    images[0].save(new_pdf, "PDF", save_all=True, append_images=images[1:])
+                    new_pdf.seek(0)
+                    return new_pdf.read()
 
 
 
@@ -543,12 +546,13 @@ class DashboardChartScreenshot(BaseChartScreenshot):
         self,
         user: str,
         json: any,
+        format: str,
         pk: int,
         window_size: Optional[WindowSize] = None,
         thumb_size: Optional[WindowSize] = None,
     ):
         # Chart reports are in standalone="true" mode
-        super().__init__(user, json, pk)
+        super().__init__(user, json, format, pk)
         self.window_size = window_size or (800, 600)
         self.thumb_size = thumb_size or (800, 600)
 
