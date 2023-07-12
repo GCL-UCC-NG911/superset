@@ -468,7 +468,6 @@ class BaseChartScreenshot:
         logger.info(self.json.headers)
         logger.info(self.json.is_json)
         logger.info(self.json.data)
-        logger.info(self.json.form_data)
         logger.info(self.json.csrf_token)
         logger.info(self.json.payload)
         logger.info(self.json.formData)
