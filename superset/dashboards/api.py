@@ -1024,6 +1024,9 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         data = DashboardChartScreenshot(current_user, json_body, format, pk).get2()
         # DashboardChartScreenshot(current_user, request.json, pk).get()
 
+        if json_body.get("formData"):
+            return self.response(200, message="OK Async")
+
         if data:
             return Response(
                 FileWrapper(data), mimetype="image/png", direct_passthrough=True
