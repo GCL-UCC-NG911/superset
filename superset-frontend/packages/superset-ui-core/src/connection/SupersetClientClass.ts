@@ -163,6 +163,7 @@ export default class SupersetClientClass {
       const hiddenForm = document.createElement('form');
       hiddenForm.action = url;
       hiddenForm.method = 'POST';
+      hiddenForm.contentType = 'application/json';
       hiddenForm.target = target;
 
       const payloadWithToken: Record<string, any> = {
