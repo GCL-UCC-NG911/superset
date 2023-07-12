@@ -291,7 +291,7 @@ class BaseChartScreenshot:
         user: User = None,
         cache: Cache = None,
         thumb_size: Optional[WindowSize] = None,
-    ) -> Optional[BytesIO]:
+    ) -> Optional[bytes]:
         """
             Get thumbnail screenshot has BytesIO from cache or fetch
 

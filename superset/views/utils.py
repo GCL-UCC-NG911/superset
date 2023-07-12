@@ -164,8 +164,8 @@ def get_form_data(  # pylint: disable=too-many-locals
 
         request_form_data = request.form.get("form_data")
         request_args_data = request.args.get("form_data")
-        logger.info(request_json_data)
-        logger.info(request_form_data)
+        logger.info(request_json_data) # none
+        logger.info(request_form_data) # none
         if request_json_data:
             form_data.update(request_json_data)
         if request_form_data:
