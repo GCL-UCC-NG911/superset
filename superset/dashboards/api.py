@@ -1013,13 +1013,13 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         # fetch the dashboard screenshot using the current user and cache if set
 
         DashboardChartScreenshot(current_user, request, pk).print2()
-        # data = DashboardChartScreenshot(current_user, request.json, pk).get2()
+        data = DashboardChartScreenshot(current_user, request.json, pk).get2()
         # DashboardChartScreenshot(current_user, request.json, pk).get()
 
-        # if data:
-            # return Response(
-                # FileWrapper(data), mimetype="image/png", direct_passthrough=True
-            # )
+        if data:
+            return Response(
+                FileWrapper(data), mimetype="image/png", direct_passthrough=True
+            )
 
         if json_body.get("formData"):
           # for element in json_body.formData: # loop 
