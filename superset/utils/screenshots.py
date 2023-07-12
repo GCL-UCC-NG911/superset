@@ -306,8 +306,9 @@ class BaseChartScreenshot:
             if element.get("type") == "CHART":
                 url = self.get_url2(chartId=element.get("chartId"))
                 logger.info(url)
-                url = 'https://ngls-nginx:8444/explore/?form_data=%7B%22slice_id%22%3A%20339%7D&force=false&standalone=true'
-                logger.info(url)
+                # url = 'https://ngls-nginx:8444/explore/?form_data=%7B%22slice_id%22%3A%20339%7D&force=false&standalone=true'
+                url = 'https://ngls-nginx:8444/explore/?form_data=%7B%22slice_id%22%3A%20398%7D&force=false&standalone=true'
+                # logger.info(url)
                 # chart = Slice(**kwargs)
                 # user: Optional[User] = None
                 # if has_current_user:
@@ -334,6 +335,19 @@ class BaseChartScreenshot:
                     self.thumb_size,
                 )
                 image = screenshot.get_screenshot(user=user)
+
+                # Convert to image pdf
+                # img_to_pdf = Image.open(BytesIO(snap))
+                # if img_to_pdf.mode == "RGBA":
+                   # img_to_pdf = img_to_pdf.convert("RGB")
+                # images.append(img_to_pdf)
+                # new_pdf = BytesIO()
+                # images[0].save(new_pdf, "PDF", save_all=True, append_images=images[1:])
+                # new_pdf.seek(0)
+                # return new_pdf.read()
+
+
+
                 # screenshot = ChartScreenshot(url, chart.digest)
                 # screenshot.compute_and_cache(
                     # user=self.user,
