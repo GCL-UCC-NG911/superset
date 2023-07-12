@@ -43,7 +43,6 @@ import {
   LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE,
   /* NGLS - BEGIN */
   LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF,
-  LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF,
   /* NGLS - END */
 } from 'src/logger/LogUtils';
 
@@ -105,6 +104,8 @@ const MENU_KEYS = {
   DOWNLOAD_AS_IMAGE: 'download-as-image',
   /* NGLS - BEGIN */
   DOWNLOAD_AS_PDF: 'download-as-pdf',
+  DOWNLOAD_CHARTS_AS_IMAGE: 'download-charts-as-image',
+  DOWNLOAD_CHARTS_AS_PDF: 'download-charts-as-pdf',
   DOWNLOAD_CUSTOM_AS_PDF: 'download-custom-as-pdf',
   DOWNLOAD_SUBMENU: 'download-submenu',
   /* NGLS - END */
@@ -154,7 +155,7 @@ class HeaderActionsDropdown extends React.PureComponent {
   downloadPDFTables(
     dashboardId,
     formData,
-    resultFormat = 'json',
+    resultFormat = 'image',
     resultType = 'full',
     force = false,
   ) {
@@ -271,7 +272,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     return allFilters;
   }
 
-  downloadAllAsPdf(props) {
+  downloadAllCharts(props, type) {
     console.log('commit 118');
     console.log(props);
     console.log(props.dashboardInfo.metadata.native_filter_configuration);
@@ -316,7 +317,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     this.downloadPDFTables(
       props?.dashboardId,
       dashboardInfo,
-      'pdf',
+      type,
       'full',
       false,
     );
@@ -408,9 +409,14 @@ class HeaderActionsDropdown extends React.PureComponent {
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF);
         break;
       }
-      case MENU_KEYS.DOWNLOAD_CUSTOM_AS_PDF: {
-        this.downloadAllAsPdf(this.props);
-        this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF);
+      case MENU_KEYS.DOWNLOAD_CHARTS_AS_IMAGE: {
+        this.downloadAllCharts(this.props, 'image');
+        // this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF);
+        break;
+      }
+      case MENU_KEYS.DOWNLOAD_CHARTS_AS_PDF: {
+        this.downloadAllCharts(this.props, 'pdf');
+        // this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF);
         break;
       }
       /* NGLS - END */
@@ -553,19 +559,25 @@ class HeaderActionsDropdown extends React.PureComponent {
                 key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
                 onClick={this.handleMenuClick}
               >
-                {t('Download as image')}
+                {t('Screen as image')}
               </Menu.Item>
               <Menu.Item
                 key={MENU_KEYS.DOWNLOAD_AS_PDF}
                 onClick={this.handleMenuClick}
               >
-                {t('Download screen as PDF')}
+                {t('Screen as PDF')}
               </Menu.Item>
               <Menu.Item
-                key={MENU_KEYS.DOWNLOAD_CUSTOM_AS_PDF}
+                key={MENU_KEYS.DOWNLOAD_CHARTS_AS_IMAGE}
                 onClick={this.handleMenuClick}
               >
-                {t('Download data as PDF')}
+                {t('All charts as image')}
+              </Menu.Item>
+              <Menu.Item
+                key={MENU_KEYS.DOWNLOAD_CHARTS_AS_PDF}
+                onClick={this.handleMenuClick}
+              >
+                {t('All charts as PDF')}
               </Menu.Item>
             </Menu.SubMenu>
           )
