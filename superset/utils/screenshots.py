@@ -339,7 +339,10 @@ class BaseChartScreenshot:
                 snapshot = screenshot.get_screenshot(user=user)
 
                 if self.result_format == "image":
-                    images.append(snapshot)
+                    img = Image.open(BytesIO(snapshot))
+                    if img.mode == "RGBA":
+                        img = img.convert("RGB")
+                    images.append(img)
 
                 # Convert to image pdf
                 if self.result_format == "pdf":
@@ -369,7 +372,6 @@ class BaseChartScreenshot:
                     # return BytesIO(image)
         if images:
             logger.info("return images")
-            logger.info(images)
             if self.result_format == "pdf": 
                 new_pdf = BytesIO()
                 images[0].save(new_pdf, "PDF", save_all=True, append_images=images[1:])
