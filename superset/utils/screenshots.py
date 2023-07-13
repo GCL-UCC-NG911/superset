@@ -347,7 +347,10 @@ class BaseChartScreenshot:
                     img = Image.open(BytesIO(snapshot))
                     if img.mode == "RGBA":
                         img = img.convert("RGB")
-                    images.append([element.get("sliceName").replace(" ", "_"),img])
+                    new_img = BytesIO()
+                    img.save(new_img, 'PNG')
+                    img.close()
+                    images.append([element.get("sliceName").replace(" ", "_"),new_img])
 
                 # Convert to image pdf
                 if self.result_format == "pdf":
@@ -390,7 +393,7 @@ class BaseChartScreenshot:
             buf = BytesIO()
             with ZipFile(buf, "w") as bundle:
                 for image_name, bytes_stream in images:
-                    bundle.writestr(image_name+".png", BytesIO(bytes_stream).getvalue())
+                    bundle.writestr(image_name+".png", bytes_stream.getvalue())
             buf.seek(0)
             return buf
             # new_image = BytesIO()
