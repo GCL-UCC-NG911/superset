@@ -34,6 +34,7 @@ import FilterScopeModal from 'src/dashboard/components/filterscope/FilterScopeMo
 import downloadAsImage from 'src/utils/downloadAsImage';
 /* NGLS - BEGIN */
 import downloadAsPdf from 'src/utils/downloadAsPdf';
+// import Alert from 'src/components/Alert';
 /* NGLS - END */
 import getDashboardUrl from 'src/dashboard/util/getDashboardUrl';
 import { getActiveFilters } from 'src/dashboard/util/activeDashboardFilters';
@@ -106,6 +107,7 @@ const MENU_KEYS = {
   DOWNLOAD_AS_PDF: 'download-as-pdf',
   DOWNLOAD_CHARTS_AS_IMAGE: 'download-charts-as-image',
   DOWNLOAD_CHARTS_AS_PDF: 'download-charts-as-pdf',
+  DOWNLOAD_CHARTS_DATA_AS_PDF: 'download-charts-data-as-pdf',
   DOWNLOAD_CUSTOM_AS_PDF: 'download-custom-as-pdf',
   DOWNLOAD_SUBMENU: 'download-submenu',
   /* NGLS - END */
@@ -424,6 +426,11 @@ class HeaderActionsDropdown extends React.PureComponent {
         // this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF);
         break;
       }
+      case MENU_KEYS.DOWNLOAD_CHARTS_DATA_AS_PDF: {
+        this.downloadAllCharts(this.props, 'data_pdf');
+        // this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF);
+        break;
+      }
       /* NGLS - END */
       case MENU_KEYS.TOGGLE_FULLSCREEN: {
         const url = getDashboardUrl({
@@ -583,6 +590,12 @@ class HeaderActionsDropdown extends React.PureComponent {
                 onClick={this.handleMenuClick}
               >
                 {t('All charts as PDF')}
+              </Menu.Item>
+              <Menu.Item
+                key={MENU_KEYS.DOWNLOAD_CHARTS_DATA_AS_PDF}
+                onClick={this.handleMenuClick}
+              >
+                {t('All charts data as PDF')}
               </Menu.Item>
             </Menu.SubMenu>
           )

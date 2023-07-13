@@ -40,3 +40,23 @@ def df_to_pdf(df: pd.DataFrame, options: Dict = None, title: str = None) -> Any:
     # convert html to pdf
     output = pdfkit.from_string(css + title_header + html, False, options=options)
     return output
+
+def charts_to_pdf(auth_cookies: Dict[str, str], dashboard: Dict, charts: list, filters: list, options: Dict = None) -> Any:
+    title = dashboard.get("dashboardTitle")
+    dashboar_title = f"<h2>{title}</h2>"
+
+    # loop filters
+    # html_filters
+    # filter_name= filter_value
+
+    # loop charts
+    # html_charts
+    # update_query_context
+    # get_chart_dataframe
+    # convert pandas dataframe to html
+
+    # concat all informations and convert html to pdf
+
+    # convert html to pdf
+    output = pdfkit.from_string(css + dashboar_title, False, options=options)
+    return output

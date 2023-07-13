@@ -19,6 +19,8 @@ from __future__ import annotations
 import json
 import datetime
 from zipfile import ZipFile
+from superset.extensions import machine_auth_provider_factory
+from superset.utils import pdf
 import logging
 from io import BytesIO
 from typing import Any, cast, Optional, TYPE_CHECKING, Union
@@ -26,7 +28,7 @@ from typing import Any, cast, Optional, TYPE_CHECKING, Union
 from flask import current_app
 from flask_appbuilder.security.sqla.models import User
 
-from superset import security_manager
+from superset import app, security_manager
 from superset.thumbnails.digest import get_chart_digest
 
 # from superset.models.slice import Slice
@@ -38,7 +40,7 @@ from superset.utils.webdriver import (
     WebDriverProxy,
     WindowSize,
 )
-from superset.utils.urls import get_url_path
+from superset.utils.urls import get_url_path, modify_url_query
 
 # from superset.charts.data.commands.get_data_command import ChartDataCommand
 # from superset.charts.schemas import ChartDataQueryContextSchema
@@ -330,6 +332,8 @@ class BaseChartScreenshot:
 
                 chart = ChartDAO.find_by_id(element.get("chartId"), skip_base_filter=True)
                 logger.info(vars(chart))
+                # 'viz_type': 'filter_box'
+                logger.info(chart.viz_type)
                 # logger.info(user)
                 # chart = cast(Slice, Slice.get(element.get("chartId")))
                 # url = get_url_path("Superset.slice", slice_id=element.get("chartId"))
@@ -422,6 +426,71 @@ class BaseChartScreenshot:
         # if payload:
             # logger.info("### Loaded thumbnail from cache: %s", cache_key)
             # return BytesIO(payload)
+        return None
+
+    def get3(
+        self,
+        user: User = None,
+        cache: Cache = None,
+        thumb_size: Optional[WindowSize] = None,
+    ) -> Optional[BytesIO]:
+        """
+            Get thumbnail screenshot has BytesIO from cache or fetch
+
+        :param user: None to use current user or User Model to login and fetch
+        :param cache: The cache to use
+        :param thumb_size: Override thumbnail site
+        """
+        # user = security_manager.find_user("admin")
+        logger.info("# get3 - user [%s], cache [%s], thumb_size [%s]", str(self.user), str(cache), str(thumb_size))
+
+        user = security_manager.find_user(self.user)
+        auth_cookies = machine_auth_provider_factory.instance.get_auth_cookies(user)
+
+        if self._report_schedule.chart.query_context is None:
+            logger.warning("No query context found, taking a screenshot to generate it")
+            self._update_query_context()
+
+        config = app.config
+        logger.info("Getting chart from %s as user %s", url, user.username)
+        # dataframe = get_chart_dataframe(url, auth_cookies)
+        
+        
+        dashboard = None
+        filters = []
+        charts = []
+        # Late import to avoid circular import issues
+        from superset.charts.dao import ChartDAO
+
+        # creeating the lists/objects
+        for element in self.json.get("formData"):
+            logger.info(element)
+            if element.get("type") == "DASHBOARD":
+                dashboard = element
+
+            if element.get("type") == "FILTER":
+                filters.append(element)
+
+            if element.get("type") == "CHART":
+                chart = ChartDAO.find_by_id(element.get("chartId"), skip_base_filter=True)
+                if chart.viz_type == "filter_box":
+                    filters.append(element)
+                else:
+                    url = get_url_path(
+                        "ChartDataRestApi.get_data",
+                        pk = element.get("chartId"),
+                        format = "json",
+                        type = "post_processed",
+                        force = self.force,
+                        )
+                    new_chart = {
+                        element,
+                        url
+                    }
+                    charts.append(new_chart)
+
+        data = pdf.charts_to_pdf(auth_cookies, dashboard, charts, filters, config["PDF_EXPORT"])
+
         return None
 
     def get_from_cache2(

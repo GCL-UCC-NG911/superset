@@ -1021,7 +1021,10 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         # if request.form['result_format']:
             # format = request.form['result_format']
         DashboardChartScreenshot(current_user, json_body, format, pk).print2()
-        data = DashboardChartScreenshot(current_user, json_body, format, pk).get2()
+        if format == "data_pdf":
+            data = DashboardChartScreenshot(current_user, json_body, format, pk).get3()
+        else:
+            data = DashboardChartScreenshot(current_user, json_body, format, pk).get2()
         # DashboardChartScreenshot(current_user, request.json, pk).get()
 
         # timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
@@ -1050,7 +1053,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         # return response
 
         if data:
-            if format == "pdf":
+            if "pdf" in format:
               return Response(
                   FileWrapper(data), mimetype="application/pdf", direct_passthrough=True
               )
