@@ -281,7 +281,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       props?.dashboardInfo?.metadata?.native_filter_configuration,
       props?.dataMask,
     );
-    console.log(allFilters)
+    console.log(allFilters);
     // console.log(props?.dashboardId);
     // console.log(props?.dashboardTitle);
     // console.log(props?.dashboardInfo);
@@ -311,6 +311,9 @@ class HeaderActionsDropdown extends React.PureComponent {
     console.log('### allTables');
     console.log(allTables);
     allTables.forEach(element => {
+      dashboardInfo.push(element);
+    });
+    allFilters.forEach(element => {
       dashboardInfo.push(element);
     });
     console.log('### dashboardInfo');
