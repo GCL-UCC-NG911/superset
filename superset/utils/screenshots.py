@@ -376,7 +376,10 @@ class BaseChartScreenshot:
                 new_pdf.seek(0)
                 return new_pdf
 
-            return images
+            new_image = BytesIO()
+            images[0].save(new_image, "PNG", save_all=True, append_images=images[1:])
+            new_image.seek(0)
+            return new_image
         logger.info("# end get")
                 
 
