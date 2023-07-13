@@ -86,13 +86,12 @@ from superset.utils.core import (
 )
 from superset.utils.filters import get_dataset_access_filters
 from superset.utils.urls import get_url_host
-from superset.models.core import UserPasswordHistory
 
 if TYPE_CHECKING:
     from superset.common.query_context import QueryContext
     from superset.connectors.base.models import BaseDatasource
     from superset.connectors.sqla.models import SqlaTable
-    from superset.models.core import Database
+    from superset.models.core import Database, UserPasswordHistory
     from superset.models.dashboard import Dashboard
     from superset.models.sql_lab import Query
     from superset.sql_parse import Table
