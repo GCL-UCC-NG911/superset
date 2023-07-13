@@ -492,7 +492,7 @@ class BaseChartScreenshot:
         logger.info(filters)
         data = pdf.charts_to_pdf(auth_cookies, dashboard, charts, filters, config["PDF_EXPORT"])
         if data:
-            return data
+            return BytesIO(data)
         
         return None
 
