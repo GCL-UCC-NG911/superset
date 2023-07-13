@@ -482,10 +482,8 @@ class BaseChartScreenshot:
                         type = "post_processed",
                         force = self.json.get("force"),
                         )
-                    new_chart = {
-                        element,
-                        url
-                    }
+                    new_chart = element
+                    new_chart['url'] = url
                     charts.append(new_chart)
 
         logger.info(auth_cookies)
