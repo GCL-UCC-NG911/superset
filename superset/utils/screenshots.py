@@ -452,7 +452,6 @@ class BaseChartScreenshot:
             # self._update_query_context()
 
         config = app.config
-        logger.info("Getting chart from %s as user %s", url, user.username)
         # dataframe = get_chart_dataframe(url, auth_cookies)
         
         
