@@ -390,7 +390,7 @@ class BaseChartScreenshot:
             buf = BytesIO()
             with ZipFile(buf, "w") as bundle:
                 for image_name, bytes_stream in images:
-                    bundle.writestr(image_name+".png", bytes_stream)
+                    bundle.writestr(image_name+".png", BytesIO(bytes_stream).getvalue())
             buf.seek(0)
             return buf
             # new_image = BytesIO()
