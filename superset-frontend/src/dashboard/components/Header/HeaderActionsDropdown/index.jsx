@@ -275,12 +275,13 @@ class HeaderActionsDropdown extends React.PureComponent {
   downloadAllCharts(props, type) {
     console.log('commit 118');
     console.log(props);
-    console.log(props.dashboardInfo.metadata.native_filter_configuration);
-    console.log(props.dataMask);
-    this.getAllFilters(
-      props.dashboardInfo.metadata.native_filter_configuration,
-      props.dataMask,
+    // console.log(props.dashboardInfo.metadata.native_filter_configuration);
+    // console.log(props.dataMask);
+    const allFilters = this.getAllFilters(
+      props?.dashboardInfo?.metadata?.native_filter_configuration,
+      props?.dataMask,
     );
+    console.log(allFilters)
     // console.log(props?.dashboardId);
     // console.log(props?.dashboardTitle);
     // console.log(props?.dashboardInfo);

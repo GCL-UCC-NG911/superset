@@ -336,17 +336,18 @@ class BaseChartScreenshot:
                     self.window_size,
                     self.thumb_size,
                 )
-                image = screenshot.get_screenshot(user=user)
+                snapshots = screenshot.get_screenshot(user=user)
 
                 if self.result_format == "image":
-                    images.append(image)
+                    images.append(snapshots)
 
                 # Convert to image pdf
                 if self.result_format == "pdf":
-                    img_to_pdf = Image.open(BytesIO(image))
-                    if img_to_pdf.mode == "RGBA":
-                        img_to_pdf = img_to_pdf.convert("RGB")
-                    images.append(img_to_pdf)
+                    for snap in snapshots:
+                        img_to_pdf = Image.open(BytesIO(snap))
+                        if img_to_pdf.mode == "RGBA":
+                            img_to_pdf = img_to_pdf.convert("RGB")
+                        images.append(img_to_pdf)
 
                 # screenshot = ChartScreenshot(url, chart.digest)
                 # screenshot.compute_and_cache(
@@ -364,9 +365,9 @@ class BaseChartScreenshot:
                     # logger.warning("A exception occurred while taking a screenshot. %s", str(ex))
                 # if not image:
                     # logger.warning("Snapshot empty.")
-                if image:
-                    logger.info("return image")
-                    return BytesIO(image)
+                # if image:
+                    # logger.info("return image")
+                    # return BytesIO(image)
         if images:
             logger.info("return images")
             if self.result_format == "pdf": 
