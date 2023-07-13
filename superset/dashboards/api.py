@@ -1054,9 +1054,18 @@ class DashboardRestApi(BaseSupersetModelRestApi):
               return Response(
                   FileWrapper(data), mimetype="application/pdf", direct_passthrough=True
               )
-
-            return Response(
-                FileWrapper(data), mimetype="image/png", direct_passthrough=True
+            
+            for element in json_body.get("formData"):
+              if element.get("type") == "DASHBOARD":
+                zipName = element.get("dashboardTitle").replace(" ", "_")
+                timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+                root = f"{zipName}_{timestamp}"
+                filename = f"{root}.zip"
+            return send_file(
+                data,
+                mimetype="application/zip",
+                as_attachment=True,
+                attachment_filename=filename,
             ) 
 
         if json_body is None:
