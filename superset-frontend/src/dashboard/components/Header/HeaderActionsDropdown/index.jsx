@@ -252,6 +252,7 @@ class HeaderActionsDropdown extends React.PureComponent {
         extraFormData: element.defaultDataMask.extraFormData,
         value: element.defaultDataMask.filterState.value,
         filterType: element.filterType,
+        type: 'FILTER',
       });
     });
 

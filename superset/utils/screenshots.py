@@ -336,18 +336,17 @@ class BaseChartScreenshot:
                     self.window_size,
                     self.thumb_size,
                 )
-                snapshots = screenshot.get_screenshot(user=user)
+                snapshot = screenshot.get_screenshot(user=user)
 
                 if self.result_format == "image":
-                    images.append(snapshots)
+                    images.append(snapshot)
 
                 # Convert to image pdf
                 if self.result_format == "pdf":
-                    for snap in snapshots:
-                        img_to_pdf = Image.open(BytesIO(snap))
-                        if img_to_pdf.mode == "RGBA":
-                            img_to_pdf = img_to_pdf.convert("RGB")
-                        images.append(img_to_pdf)
+                    img_to_pdf = Image.open(BytesIO(snapshot))
+                    if img_to_pdf.mode == "RGBA":
+                        img_to_pdf = img_to_pdf.convert("RGB")
+                    images.append(img_to_pdf)
 
                 # screenshot = ChartScreenshot(url, chart.digest)
                 # screenshot.compute_and_cache(
@@ -370,6 +369,7 @@ class BaseChartScreenshot:
                     # return BytesIO(image)
         if images:
             logger.info("return images")
+            logger.info(images)
             if self.result_format == "pdf": 
                 new_pdf = BytesIO()
                 images[0].save(new_pdf, "PDF", save_all=True, append_images=images[1:])

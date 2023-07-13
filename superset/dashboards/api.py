@@ -971,6 +971,9 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                 application/json:
                   schema:
                     $ref: "#/components/schemas/DashboardDataResponseSchema"
+                text/plain:
+                  schema:
+                    type: string
                 image/png:
                   schema: 
                     type: string
@@ -1020,6 +1023,31 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         DashboardChartScreenshot(current_user, json_body, format, pk).print2()
         data = DashboardChartScreenshot(current_user, json_body, format, pk).get2()
         # DashboardChartScreenshot(current_user, request.json, pk).get()
+
+        # timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+        # root = f"dashboard_export_{timestamp}"
+        # filename = f"{root}.zip"
+
+        # buf = BytesIO()
+        # with ZipFile(buf, "w") as bundle:
+            # try:
+                # for file_name, file_content in ExportDashboardsCommand(
+                    # requested_ids
+                # ).run():
+                    # with bundle.open(f"{root}/{file_name}", "w") as fp:
+                        # fp.write(file_content.encode())
+            # except DashboardNotFoundError:
+                # return self.response_404()
+        # buf.seek(0)
+
+        # response = send_file(
+            # buf,
+            # mimetype="application/zip",
+            # as_attachment=True,
+            # attachment_filename=filename,
+        # )
+
+        # return response
 
         if data:
             if format == "pdf":
