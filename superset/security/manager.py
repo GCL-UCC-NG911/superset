@@ -91,7 +91,7 @@ if TYPE_CHECKING:
     from superset.common.query_context import QueryContext
     from superset.connectors.base.models import BaseDatasource
     from superset.connectors.sqla.models import SqlaTable
-    from superset.models.core import Database, UserPasswordHistory
+    from superset.models.core import Database
     from superset.models.dashboard import Dashboard
     from superset.models.sql_lab import Query
     from superset.sql_parse import Table
@@ -2290,8 +2290,6 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
         return current_app.config["AUTH_ROLE_ADMIN"] in [
             role.name for role in self.get_user_roles()
         ]
-        
-    user_password_history = UserPasswordHistory
     
     def add_user_password_history(
         timestamp,
@@ -2299,6 +2297,8 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
         old_password,
         self
     ):
+        from superset.models.core import UserPasswordHistory
+        user_password_history = UserPasswordHistory
         user = self.user_password_history()
         user.old_password = old_password
         user.timestamp = timestamp
