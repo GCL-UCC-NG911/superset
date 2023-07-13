@@ -304,6 +304,11 @@ class BaseChartScreenshot:
         # user = security_manager.find_user("admin")
         logger.info("# get - user [%s], cache [%s], thumb_size [%s]", str(self.user), str(cache), str(thumb_size))
         images = []
+        filters = []
+        for element in self.json.get("formData"):
+            if element.get("type") == "FILTER":
+                filters.append(element)
+
         for element in self.json.get("formData"):
             logger.info(element)
 
@@ -324,6 +329,7 @@ class BaseChartScreenshot:
                 from superset.charts.dao import ChartDAO
 
                 chart = ChartDAO.find_by_id(element.get("chartId"), skip_base_filter=True)
+                logger.info(vars(chart))
                 # logger.info(user)
                 # chart = cast(Slice, Slice.get(element.get("chartId")))
                 # url = get_url_path("Superset.slice", slice_id=element.get("chartId"))
