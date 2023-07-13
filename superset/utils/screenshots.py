@@ -480,7 +480,7 @@ class BaseChartScreenshot:
                         pk = element.get("chartId"),
                         format = "json",
                         type = "post_processed",
-                        force = self.force,
+                        force = self.json.get("force"),
                         )
                     new_chart = {
                         element,
