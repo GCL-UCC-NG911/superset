@@ -17,6 +17,8 @@
 from __future__ import annotations
 
 import json
+import datetime
+from zipfile import ZipFile
 import logging
 from io import BytesIO
 from typing import Any, cast, Optional, TYPE_CHECKING, Union
@@ -304,6 +306,9 @@ class BaseChartScreenshot:
         images = []
         for element in self.json.get("formData"):
             logger.info(element)
+
+            if element.get("type") == "DASHBOARD":
+                zipName = element.get("dashboardTitle").replace(" ", "_")
             if element.get("type") == "CHART":
                 url = self.get_url2(chartId=element.get("chartId"))
                 logger.info(url)
@@ -342,7 +347,7 @@ class BaseChartScreenshot:
                     img = Image.open(BytesIO(snapshot))
                     if img.mode == "RGBA":
                         img = img.convert("RGB")
-                    images.append(img)
+                    images.append([element.get("sliceName").replace(" ", "_"),img])
 
                 # Convert to image pdf
                 if self.result_format == "pdf":
@@ -378,10 +383,20 @@ class BaseChartScreenshot:
                 new_pdf.seek(0)
                 return new_pdf
 
-            new_image = BytesIO()
-            images[0].save(new_image, "PNG", save_all=True, append_images=images[1:])
-            new_image.seek(0)
-            return new_image
+            # timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+            # root = f"{zipName}_{timestamp}"
+            # filename = f"{root}.zip"
+
+            buf = BytesIO()
+            with ZipFile(buf, "w") as bundle:
+                for image_name, bytes_stream in images:
+                    bundle.writestr(image_name+".png", bytes_stream.getvalue())
+            buf.seek(0)
+            return buf
+            # new_image = BytesIO()
+            # images[0].save(new_image, "PNG", save_all=True, append_images=images[1:])
+            # new_image.seek(0)
+            # return new_image
         logger.info("# end get")
                 
 
