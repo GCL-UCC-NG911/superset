@@ -447,9 +447,9 @@ class BaseChartScreenshot:
         user = security_manager.find_user(self.user)
         auth_cookies = machine_auth_provider_factory.instance.get_auth_cookies(user)
 
-        if self._report_schedule.chart.query_context is None:
-            logger.warning("No query context found, taking a screenshot to generate it")
-            self._update_query_context()
+        # if self._report_schedule.chart.query_context is None:
+            # logger.warning("No query context found, taking a screenshot to generate it")
+            # self._update_query_context()
 
         config = app.config
         logger.info("Getting chart from %s as user %s", url, user.username)
@@ -489,8 +489,14 @@ class BaseChartScreenshot:
                     }
                     charts.append(new_chart)
 
+        logger.info(auth_cookies)
+        logger.info(dashboard)
+        logger.info(charts)
+        logger.info(filters)
         data = pdf.charts_to_pdf(auth_cookies, dashboard, charts, filters, config["PDF_EXPORT"])
-
+        if data:
+            return data
+        
         return None
 
     def get_from_cache2(
