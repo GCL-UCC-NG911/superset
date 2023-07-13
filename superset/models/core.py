@@ -942,11 +942,3 @@ class FavStar(Model):  # pylint: disable=too-few-public-methods
     class_name = Column(String(50))
     obj_id = Column(Integer)
     dttm = Column(DateTime, default=datetime.utcnow)
-
-class UserPasswordHistory(Model):
-    __tablename__ = "password_history"
-
-    id = Column(Integer, primary_key=True)
-    old_password = Column(String(256), nullable=True)
-    timestamp = Column(DateTime)
-    user_id = Column(Integer, ForeignKey("ab_user.id"))
