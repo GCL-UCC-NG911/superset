@@ -20,6 +20,7 @@ import json
 import datetime
 from zipfile import ZipFile
 from superset.extensions import machine_auth_provider_factory
+from superset.utils.csv import get_chart_dataframe
 from superset.utils import pdf
 import logging
 from io import BytesIO
@@ -482,15 +483,18 @@ class BaseChartScreenshot:
                         type = "post_processed",
                         force = self.json.get("force"),
                         )
+                    dataframe = get_chart_dataframe(url, auth_cookies)
+
                     new_chart = element
                     new_chart['url'] = url
+                    new_chart['dataframe'] = dataframe
                     charts.append(new_chart)
 
         logger.info(auth_cookies)
         logger.info(dashboard)
         logger.info(charts)
         logger.info(filters)
-        data = pdf.charts_to_pdf(auth_cookies, dashboard, charts, filters, config["PDF_EXPORT"])
+        data = pdf.charts_to_pdf(dashboard, charts, filters, config["PDF_EXPORT"])
         if data:
             return BytesIO(data)
         

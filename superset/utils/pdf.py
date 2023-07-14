@@ -41,7 +41,7 @@ def df_to_pdf(df: pd.DataFrame, options: Dict = None, title: str = None) -> Any:
     output = pdfkit.from_string(css + title_header + html, False, options=options)
     return output
 
-def charts_to_pdf(auth_cookies: Dict[str, str], dashboard: Dict, charts: list, filters: list, options: Dict = None) -> Any:
+def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = None) -> Any:
     title = dashboard.get("dashboardTitle")
     dashboar_title = f"<h2>{title}</h2>" if title else ""
 
@@ -49,7 +49,7 @@ def charts_to_pdf(auth_cookies: Dict[str, str], dashboard: Dict, charts: list, f
     filters_html = ""
     for element in filters:
         filter_name = element.get("name")
-        filter_value = element.get("extraFormData").get("value")
+        filter_value = element.get("value") if element.get("value") else "No filter"
         if filters_html == "":
             filters_html = f"<h1>{filter_name}: {filter_value}<h1>"
         else:
@@ -58,12 +58,12 @@ def charts_to_pdf(auth_cookies: Dict[str, str], dashboard: Dict, charts: list, f
     # loop charts
     charts_html = ""
     for element in charts:
-        chart_name = element.get("name")
-        # html = df.to_html(index=False, justify="left")
+        chart_name = element.get("sliceName")
+        chart_df = element.get("dataframe").to_html(index=False, justify="left")
         if charts_html == "":
-            filters_html = f"<h1>{chart_name}<h1>"
+            filters_html = f"<h1>{chart_name}<h1><br>" + chart_df
         else:
-            charts_html = charts_html + f"<br><h1>{chart_name}<h1>"
+            charts_html = charts_html + f"<br><h1>{chart_name}<h1><br>" + chart_df
 
     # html_charts
     # update_query_context
