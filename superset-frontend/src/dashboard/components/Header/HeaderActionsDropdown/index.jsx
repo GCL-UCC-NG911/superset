@@ -243,7 +243,7 @@ class HeaderActionsDropdown extends React.PureComponent {
 
   getAllFilters(defaultFilters, changeFilters = null) {
     if (!defaultFilters) {
-      console.log("defaultFilters is empty");
+      console.log('defaultFilters is empty');
       return [];
     }
 
