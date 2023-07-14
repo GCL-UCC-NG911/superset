@@ -14,11 +14,11 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-"""add_old_password_column_to_ab_user
+"""add_password_history_table
 
-Revision ID: 73fe282f4760
+Revision ID: 840b6756031b
 Revises: f3c2d8ec8595
-Create Date: 2023-06-29 12:28:19.454441
+Create Date: 2023-07-14 03:03:11.900092
 
 """
 
