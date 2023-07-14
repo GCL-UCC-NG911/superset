@@ -163,16 +163,18 @@ def get_form_data(  # pylint: disable=too-many-locals
             if request.is_json and "queries" in request.json
             else None
         )
-        logger.info("start has_request_context")
-        logger.info(form_data)
-        logger.info("end has_request_context")
+
 
         add_sqllab_custom_filters(form_data)
 
         request_form_data = request.form.get("form_data")
         request_args_data = request.args.get("form_data")
+        logger.info("start has_request_context")
+        logger.info(form_data)
         logger.info(request_json_data) # none
         logger.info(request_form_data) # none
+        logger.info(request_args_data) # none
+        logger.info("end has_request_context")
         if request_json_data:
             form_data.update(request_json_data)
         if request_form_data:

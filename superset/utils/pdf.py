@@ -29,7 +29,7 @@ css = """
     th, td {
         padding: 2px 6px;
     }
-    p {
+    h2 {
         white-space: pre;
     }
 </style>
@@ -57,14 +57,14 @@ def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = 
             if dashboar_title != "":
                 filters_html = "<br><br><h2>Filters:</h2>"
         else:
-            filters_html = filters_html + f"<p>    &bull; {filter_name}= {filter_value}</p>"
+            filters_html = filters_html + f"<h2>    &bull; {filter_name}: {filter_value}</h2>"
 
     # loop charts
     charts_html = "<br><br><h2>Table(s):</h2>"
     for element in charts:
         chart_name = element.get("sliceName")
         chart_df = element.get("dataframe").to_html(index=False, justify="left")
-        charts_html = charts_html + f"<br><h2>{chart_name}</h2>" + chart_df
+        charts_html = charts_html + f"<br><h2>  &bull;  {chart_name}</h2>" + chart_df
 
     # html_charts
     # update_query_context

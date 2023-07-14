@@ -349,8 +349,8 @@ class BaseChartScreenshot:
                 screenshot = ChartScreenshot(
                     url,
                     chartDigest,
-                    self.window_size,
-                    self.thumb_size,
+                    (1600, 1200),
+                    (1600, 1200),
                 )
                 snapshot = screenshot.get_screenshot(user=user)
 
