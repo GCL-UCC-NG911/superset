@@ -29,6 +29,7 @@ css = """
     th, td {
         padding: 2px 6px;
     }
+    
 </style>
 """
 
@@ -46,17 +47,17 @@ def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = 
     dashboar_title = f"<h1>{title}</h1>" if title else ""
 
     # loop filters
-    filters_html = ""
+    filters_html = "" if dashboar_title == "" else "<br><br><br>"
     for element in filters:
         filter_name = element.get("name")
         filter_value = element.get("value") if element.get("value") else "No filter"
         if filters_html == "":
-            filters_html = f"<h2>{filter_name}: </h2><h3>{filter_value}</h3>"
+            filters_html = f"<h2>{filter_name}: <span style='font-size: 11px'>{filter_value}</span></h2>"
         else:
-            filters_html = filters_html + f"<h2>{filter_name}: </h2><h3>{filter_value}</h3>"
+            filters_html = filters_html + f"<h2>{filter_name}: <span style='font-size: 11px'>{filter_value}</span></h2>"
 
     # loop charts
-    charts_html = ""
+    charts_html = "" if filters_html == "" else "<br><br><br><br>"
     for element in charts:
         chart_name = element.get("sliceName")
         chart_df = element.get("dataframe").to_html(index=False, justify="left")
