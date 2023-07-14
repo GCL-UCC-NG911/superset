@@ -151,7 +151,11 @@ def get_form_data(  # pylint: disable=too-many-locals
     initial_form_data: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Dict[str, Any], Optional[Slice]]:
     form_data: Dict[str, Any] = initial_form_data or {}
-    logger.info("get_form_data")
+    logger.info("start get_form_data")
+    logger.info(slice_id)
+    logger.info(use_slice_data)
+    logger.info(initial_form_data)
+    logger.info("end get_form_data")
     if has_request_context():  # type: ignore
         # chart data API requests are JSON
         request_json_data = (

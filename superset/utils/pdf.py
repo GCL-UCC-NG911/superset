@@ -43,7 +43,7 @@ def df_to_pdf(df: pd.DataFrame, options: Dict = None, title: str = None) -> Any:
 
 def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = None) -> Any:
     title = dashboard.get("dashboardTitle")
-    dashboar_title = f"<h2>{title}</h2>" if title else ""
+    dashboar_title = f"<h1>{title}</h1>" if title else ""
 
     # loop filters
     filters_html = ""
@@ -51,9 +51,9 @@ def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = 
         filter_name = element.get("name")
         filter_value = element.get("value") if element.get("value") else "No filter"
         if filters_html == "":
-            filters_html = f"<h1>{filter_name}: {filter_value}<h1>"
+            filters_html = f"<h2>{filter_name}: </h2><h3>{filter_value}</h3>"
         else:
-            filters_html = filters_html + f"<br><h1>{filter_name}: {filter_value}<h1>"
+            filters_html = filters_html + f"<h2>{filter_name}: </h2><h3>{filter_value}</h3>"
 
     # loop charts
     charts_html = ""
@@ -61,9 +61,9 @@ def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = 
         chart_name = element.get("sliceName")
         chart_df = element.get("dataframe").to_html(index=False, justify="left")
         if charts_html == "":
-            filters_html = f"<h1>{chart_name}<h1><br>" + chart_df
+            charts_html = f"<h2>{chart_name}</h2><br>" + chart_df
         else:
-            charts_html = charts_html + f"<br><h1>{chart_name}<h1><br>" + chart_df
+            charts_html = charts_html + f"<br><h2>{chart_name}</h2><br>" + chart_df
 
     # html_charts
     # update_query_context
