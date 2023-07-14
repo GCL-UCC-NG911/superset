@@ -29,7 +29,9 @@ css = """
     th, td {
         padding: 2px 6px;
     }
-    
+    p {
+        white-space: pre;
+    }
 </style>
 """
 
@@ -47,24 +49,22 @@ def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = 
     dashboar_title = f"<h1>{title}</h1>" if title else ""
 
     # loop filters
-    filters_html = "" if dashboar_title == "" else "<br><br><br>"
+    filters_html = ""
     for element in filters:
         filter_name = element.get("name")
         filter_value = element.get("value") if element.get("value") else "No filter"
         if filters_html == "":
-            filters_html = f"<h2>{filter_name}: <span style='font-size: 11px'>{filter_value}</span></h2>"
+            if dashboar_title != "":
+                filters_html = "<br><br><h2>Filters:</h2>"
         else:
-            filters_html = filters_html + f"<h2>{filter_name}: <span style='font-size: 11px'>{filter_value}</span></h2>"
+            filters_html = filters_html + f"<p>    &bull; {filter_name}= {filter_value}</p>"
 
     # loop charts
-    charts_html = "" if filters_html == "" else "<br><br><br><br>"
+    charts_html = "<br><br><h2>Table(s):</h2>"
     for element in charts:
         chart_name = element.get("sliceName")
         chart_df = element.get("dataframe").to_html(index=False, justify="left")
-        if charts_html == "":
-            charts_html = f"<h2>{chart_name}</h2><br>" + chart_df
-        else:
-            charts_html = charts_html + f"<br><h2>{chart_name}</h2><br>" + chart_df
+        charts_html = charts_html + f"<br><h2>{chart_name}</h2>" + chart_df
 
     # html_charts
     # update_query_context

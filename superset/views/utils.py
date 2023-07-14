@@ -163,6 +163,9 @@ def get_form_data(  # pylint: disable=too-many-locals
             if request.is_json and "queries" in request.json
             else None
         )
+        logger.info("start has_request_context")
+        logger.info(form_data)
+        logger.info("end has_request_context")
 
         add_sqllab_custom_filters(form_data)
 
@@ -236,6 +239,10 @@ def get_form_data(  # pylint: disable=too-many-locals
             form_data = slice_form_data
 
     update_time_range(form_data)
+    logger.info("start get_form_data 2")
+    logger.info(form_data)
+    logger.info(slc)
+    logger.info("end get_form_data 2")
     return form_data, slc
 
 
