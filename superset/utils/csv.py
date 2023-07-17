@@ -104,6 +104,7 @@ def get_chart_dataframe(
     # pylint: disable=unnecessary-lambda
     content = get_chart_csv_data(chart_url, auth_cookies)
     if content is None:
+        logger.info("### Content is None")
         return None
 
     result = simplejson.loads(content.decode("utf-8"))

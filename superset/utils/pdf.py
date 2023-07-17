@@ -52,6 +52,9 @@ def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = 
     filters_html = ""
     for element in filters:
         filter_name = element.get("name")
+        # Return the corret message
+        # To date/time: No filter
+        # Others: No date
         filter_value = element.get("value") if element.get("value") else "No filter"
         if filters_html == "":
             if dashboar_title != "":
@@ -63,6 +66,7 @@ def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = 
     charts_html = "<br><br><h2>Table(s):</h2>"
     for element in charts:
         chart_name = element.get("sliceName")
+        # If empty retun "No data"
         chart_df = element.get("dataframe").to_html(index=False, justify="left")
         charts_html = charts_html + f"<br><h2>  &bull;  {chart_name}</h2>" + chart_df
 

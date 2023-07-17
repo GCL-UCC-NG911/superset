@@ -297,6 +297,9 @@ class BaseReportState:
         user = security_manager.find_user(username)
         auth_cookies = machine_auth_provider_factory.instance.get_auth_cookies(user)
 
+        logger.info("self._report_schedule.chart.query_context")
+        logger.info(self._report_schedule.chart.query_context)
+
         if self._report_schedule.chart.query_context is None:
             logger.warning("No query context found, taking a screenshot to generate it")
             self._update_query_context()

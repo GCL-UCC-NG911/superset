@@ -389,6 +389,8 @@ class HeaderActionsDropdown extends React.PureComponent {
           '.ant-dropdown:not(.ant-dropdown-hidden)',
         );
         menu.style.visibility = 'hidden';
+        // span a pop up
+        // alert("This process take a long time please waiting....");
         downloadAsImage(
           SCREENSHOT_NODE_SELECTOR,
           this.props.dashboardTitle,
