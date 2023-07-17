@@ -235,7 +235,10 @@ class ChartDataRestApi(ChartRestApi):
             return self.response_400(message=_("Request is not JSON"))
 
         try:
+            logger.info("### POST data")
+            logger.info(json_body)
             query_context = self._create_query_context_from_form(json_body)
+            logger.info(query_context)
             command = ChartDataCommand(query_context)
             command.validate()
         except DatasourceNotFound as error:
@@ -325,7 +328,9 @@ class ChartDataRestApi(ChartRestApi):
         # First, look for the chart query results in the cache.
         result = None
         try:
+            logger.info("_run_async")
             result = command.run(force_cached=True)
+            logger.info(result)
             if result is not None:
                 return self._send_chart_response(result)
         except ChartDataCacheLoadError:
@@ -353,6 +358,8 @@ class ChartDataRestApi(ChartRestApi):
         result_type = result["query_context"].result_type
         result_format = result["query_context"].result_format
 
+        logger.info("_send_chart_response")
+        logger.info(form_data)
         if form_data:
             title = form_data.get("chart_name", "Untitled")
             filename = generate_filename(title) if title else None
@@ -408,11 +415,13 @@ class ChartDataRestApi(ChartRestApi):
             )
 
         if result_format == ChartDataResultFormat.JSON:
+            logger.info("### JSON 17")
             response_data = simplejson.dumps(
                 {"result": result["queries"]},
                 default=json_int_dttm_ser,
                 ignore_nan=True,
             )
+            logger.info(response_data)
             resp = make_response(response_data, 200)
             resp.headers["Content-Type"] = "application/json; charset=utf-8"
             return resp

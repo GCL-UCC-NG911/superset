@@ -462,7 +462,7 @@ class BaseChartScreenshot:
         # Late import to avoid circular import issues
         from superset.charts.dao import ChartDAO
 
-        # creeating the lists/objects
+        # creating the lists/objects
         for element in self.json.get("formData"):
             logger.info(element)
             if element.get("type") == "DASHBOARD":
@@ -486,9 +486,13 @@ class BaseChartScreenshot:
                     dataframe = get_chart_dataframe(url, auth_cookies)
 
                     new_chart = element
-                    new_chart['url'] = url
+                    # new_chart['url'] = url
                     new_chart['dataframe'] = dataframe
                     charts.append(new_chart)
+
+        # make query with filters
+        for element in charts:
+            element['dataframe']
 
         logger.info(auth_cookies)
         logger.info(dashboard)
