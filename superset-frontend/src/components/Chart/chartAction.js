@@ -196,7 +196,8 @@ const v1ChartDataRequest = async (
     body: JSON.stringify(payload),
     parseMethod: 'json-bigint',
   };
-
+  console.log("### DU 2");
+  console.log(querySettings);
   return SupersetClient.post(querySettings);
 };
 
@@ -300,6 +301,8 @@ export function runAnnotationQuery({
       fd.annotation_layers[annotationIndex].overrides = sliceFormData;
     }
 
+    console.log("### DU 1");
+
     return SupersetClient.post({
       url,
       signal,
@@ -401,6 +404,7 @@ export function exploreJSON(
 
     const chartDataRequestCaught = chartDataRequest
       .then(({ response, json }) => {
+        console.log("### du 3 ");
         if (isFeatureEnabled(FeatureFlag.GLOBAL_ASYNC_QUERIES)) {
           // deal with getChartDataRequest transforming the response data
           const result = 'result' in json ? json.result : json;

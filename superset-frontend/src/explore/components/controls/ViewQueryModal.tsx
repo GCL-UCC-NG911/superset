@@ -51,6 +51,7 @@ const ViewQueryModal: React.FC<Props> = props => {
       resultType,
     })
       .then(({ json }) => {
+        console.log("### DU 5");
         setResult(ensureIsArray(json.result));
         setIsLoading(false);
         setError(null);

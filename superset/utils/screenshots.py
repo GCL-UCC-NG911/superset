@@ -491,8 +491,9 @@ class BaseChartScreenshot:
                     charts.append(new_chart)
 
         # make query with filters
-        for element in charts:
-            element['dataframe']
+        # for element in charts: 
+            # dataframe = get_chart_dataframe(url, auth_cookies)
+            # element['dataframe'] = dataframe
 
         logger.info(auth_cookies)
         logger.info(dashboard)
