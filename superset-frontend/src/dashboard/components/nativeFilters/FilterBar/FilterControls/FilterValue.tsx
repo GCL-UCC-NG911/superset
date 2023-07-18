@@ -162,6 +162,7 @@ const FilterValue: React.FC<FilterControlProps> = ({
         return;
       }
       setIsRefreshing(true);
+      console.log('### du 14 ');
       getChartDataRequest({
         formData: newFormData,
         force: false,

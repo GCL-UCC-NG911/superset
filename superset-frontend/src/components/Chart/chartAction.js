@@ -230,7 +230,8 @@ export async function getChartDataRequest({
       credentials: 'include',
     };
   }
-
+  console.log('### DU 9');
+  console.log(shouldUseLegacyApi(formData));
   if (shouldUseLegacyApi(formData)) {
     return legacyChartDataRequest(
       formData,
@@ -384,6 +385,7 @@ export function exploreJSON(
   dashboardId,
   ownState,
 ) {
+  console.log('### du 10 ');
   return async dispatch => {
     const logStart = Logger.getTimestamp();
     const controller = new AbortController();
@@ -575,6 +577,7 @@ export function postChartFormData(
 }
 
 export function redirectSQLLab(formData) {
+  console.log('### du 11 ');
   return dispatch => {
     getChartDataRequest({ formData, resultFormat: 'json', resultType: 'query' })
       .then(({ json }) => {

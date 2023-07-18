@@ -69,6 +69,7 @@ export const useResultsPane = ({
     }
     if (isRequest && !cache.has(queryFormData)) {
       setIsLoading(true);
+      console.log('### du 16 ');
       getChartDataRequest({
         formData: queryFormData,
         force: queryForce,
