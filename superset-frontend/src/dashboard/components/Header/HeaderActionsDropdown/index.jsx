@@ -393,7 +393,7 @@ class HeaderActionsDropdown extends React.PureComponent {
         menu.style.visibility = 'hidden';
         // span a pop up
         // alert("This process take a long time please waiting....");
-        addWarningToast(t('Image download takes a long time, please wait.'))
+        addWarningToast(t('Image download takes a long time, please wait.'));
         downloadAsImage(
           SCREENSHOT_NODE_SELECTOR,
           this.props.dashboardTitle,
