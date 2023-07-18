@@ -296,6 +296,7 @@ class Header extends React.PureComponent {
       const chartList = Object.keys(this.props.charts);
       console.log('### Du 2 19');
       console.log(this.props);
+      console.log(this.props.charts);
       console.log(chartList);
       console.log(this.props.dashboardInfo.id);
       return this.props.onDownload(

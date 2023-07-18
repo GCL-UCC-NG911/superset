@@ -516,7 +516,10 @@ export function downloadAllCharts(
 ) {
   console.log('downloadCharts');
   return (dispatch, getState) => {
+    console.log('### du 20');
+    console.log(interval);
     if (!interval) {
+      console.log('!interval');
       chartList.forEach(chartKey =>
         dispatch(refreshChart(chartKey, force, dashboardId)),
       );
@@ -526,6 +529,7 @@ export function downloadAllCharts(
     const { metadata: meta } = getState().dashboardInfo;
     const refreshTime = Math.max(interval, meta.stagger_time || 5000); // default 5 seconds
     if (typeof meta.stagger_refresh !== 'boolean') {
+      console.log('### du 21');
       meta.stagger_refresh =
         meta.stagger_refresh === undefined
           ? true
@@ -534,6 +538,7 @@ export function downloadAllCharts(
     const delay = meta.stagger_refresh
       ? refreshTime / (chartList.length - 1)
       : 0;
+    console.log('### du 22');
     chartList.forEach((chartKey, i) => {
       setTimeout(
         () => dispatch(refreshChart(chartKey, force, dashboardId)),
@@ -589,16 +594,16 @@ const downloadCharts = (chartList, force, interval, dashboardId, dispatch) =>
     resolve();
   });
 
-export const ON_FILTERS_DOWNLOAD_REFRESH = 'ON_FILTERS_DOWNLOAD_REFRESH';
-export function onFiltersDownloadRefresh() {
-  return { type: ON_FILTERS_DOWNLOAD_REFRESH };
-}
+// export const ON_FILTERS_DOWNLOAD_REFRESH = 'ON_FILTERS_DOWNLOAD_REFRESH';
+// export function onFiltersDownloadRefresh() {
+  // return { type: ON_FILTERS_DOWNLOAD_REFRESH };
+// }
 
-export const ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS =
-  'ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS';
-export function onFiltersDownloadRefreshSuccess() {
-  return { type: ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS };
-}
+// export const ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS =
+  // 'ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS';
+// export function onFiltersDownloadRefreshSuccess() {
+  // return { type: ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS };
+// }
 
 export const ON_DOWNLOAD_SUCCESS = 'ON_DOWNLOAD_SUCCESS';
 export function onDownloadSuccess() {
@@ -617,7 +622,7 @@ export function onDownload(
     downloadCharts(chartList, force, interval, dashboardId, dispatch).then(
       () => {
         dispatch(onDownloadSuccess());
-        dispatch(onFiltersDownloadRefresh());
+        // dispatch(onFiltersDownloadRefresh());
       },
     );
   };

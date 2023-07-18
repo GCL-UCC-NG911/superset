@@ -600,6 +600,7 @@ export function redirectSQLLab(formData) {
 
 export function refreshChart(chartKey, force, dashboardId) {
   return (dispatch, getState) => {
+    console.log('### du 23');
     const chart = (getState().charts || {})[chartKey];
     const timeout =
       getState().dashboardInfo.common.conf.SUPERSET_WEBSERVER_TIMEOUT;
@@ -608,8 +609,10 @@ export function refreshChart(chartKey, force, dashboardId) {
       !chart.latestQueryFormData ||
       Object.keys(chart.latestQueryFormData).length === 0
     ) {
+      console.log('### du 24');
       return;
     }
+    console.log('### du 25');
     dispatch(
       postChartFormData(
         chart.latestQueryFormData,
@@ -620,6 +623,7 @@ export function refreshChart(chartKey, force, dashboardId) {
         getState().dataMask[chart.id]?.ownState,
       ),
     );
+    console.log('### du 26');
   };
 }
 
