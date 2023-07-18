@@ -102,15 +102,15 @@ test('should render', () => {
 /* NGLS - END */
 
 // test('should render the menu items', async () => {
-  // const mockedProps = createProps();
-  // setup(mockedProps);
-  // expect(screen.getAllByRole('menuitem')).toHaveLength(4);
-  // expect(screen.getByText('Refresh dashboard')).toBeInTheDocument();
-  // expect(screen.getByText('Set auto-refresh interval')).toBeInTheDocument();
-  /* NGLS - BEGIN */
-  // expect(screen.getByText('Download')).toBeInTheDocument();
-  /* NGLS - END */
-  // expect(screen.getByText('Enter fullscreen')).toBeInTheDocument();
+// const mockedProps = createProps();
+// setup(mockedProps);
+// expect(screen.getAllByRole('menuitem')).toHaveLength(4);
+// expect(screen.getByText('Refresh dashboard')).toBeInTheDocument();
+// expect(screen.getByText('Set auto-refresh interval')).toBeInTheDocument();
+/* NGLS - BEGIN */
+// expect(screen.getByText('Download')).toBeInTheDocument();
+/* NGLS - END */
+// expect(screen.getByText('Enter fullscreen')).toBeInTheDocument();
 // });
 
 /* NGLS - BEGIN */
