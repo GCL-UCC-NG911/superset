@@ -169,6 +169,7 @@ const FilterValue: React.FC<FilterControlProps> = ({
         ownState: filterOwnState,
       })
         .then(({ response, json }) => {
+          console.log('### Du 8');
           if (isFeatureEnabled(FeatureFlag.GLOBAL_ASYNC_QUERIES)) {
             // deal with getChartDataRequest transforming the response data
             const result = 'result' in json ? json.result[0] : json;

@@ -197,6 +197,14 @@ const v1ChartDataRequest = async (
     parseMethod: 'json-bigint',
   };
   console.log('### DU 2');
+  console.log(formData);
+  console.log(resultFormat);
+  console.log(resultType);
+  console.log(force);
+  console.log(setDataMask);
+  console.log(ownState);
+  console.log(qs);
+  console.log(allowDomainSharding);
   console.log(querySettings);
   return SupersetClient.post(querySettings);
 };
@@ -401,7 +409,7 @@ export function exploreJSON(
     });
 
     dispatch(chartUpdateStarted(controller, formData, key));
-
+    console.log('### du 7 ');
     const chartDataRequestCaught = chartDataRequest
       .then(({ response, json }) => {
         console.log('### du 3 ');
