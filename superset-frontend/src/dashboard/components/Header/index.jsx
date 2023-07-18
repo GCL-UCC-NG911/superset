@@ -192,6 +192,7 @@ class Header extends React.PureComponent {
     this.handleCtrlY = this.handleCtrlY.bind(this);
     this.toggleEditMode = this.toggleEditMode.bind(this);
     this.forceRefresh = this.forceRefresh.bind(this);
+    this.downloadAsPdf = this.downloadAsPdf.bind(this);
     this.startPeriodicRender = this.startPeriodicRender.bind(this);
     this.overwriteDashboard = this.overwriteDashboard.bind(this);
     this.showPropertiesModal = this.showPropertiesModal.bind(this);
@@ -269,6 +270,27 @@ class Header extends React.PureComponent {
   }
 
   forceRefresh() {
+    if (!this.props.isLoading) {
+      const chartList = Object.keys(this.props.charts);
+      this.props.logEvent(LOG_ACTIONS_FORCE_REFRESH_DASHBOARD, {
+        force: true,
+        interval: 0,
+        chartCount: chartList.length,
+      });
+      console.log('### Du 19');
+      console.log(chartList);
+      console.log(this.props.dashboardInfo.id);
+      return this.props.onRefresh(
+        chartList,
+        true,
+        0,
+        this.props.dashboardInfo.id,
+      );
+    }
+    return false;
+  }
+
+  downloadAsPdf() {
     if (!this.props.isLoading) {
       const chartList = Object.keys(this.props.charts);
       this.props.logEvent(LOG_ACTIONS_FORCE_REFRESH_DASHBOARD, {
@@ -663,6 +685,7 @@ class Header extends React.PureComponent {
               onSave={onSave}
               onChange={onChange}
               forceRefreshAllCharts={this.forceRefresh}
+              downloadAllChartsAsPdf={this.downloadAsPdf}
               startPeriodicRender={this.startPeriodicRender}
               refreshFrequency={refreshFrequency}
               shouldPersistRefreshFrequency={shouldPersistRefreshFrequency}

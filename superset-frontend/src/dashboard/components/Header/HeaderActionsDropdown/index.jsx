@@ -60,6 +60,7 @@ const propTypes = {
   onChange: PropTypes.func.isRequired,
   updateCss: PropTypes.func.isRequired,
   forceRefreshAllCharts: PropTypes.func.isRequired,
+  downlaodAllChartsAsPdf: PropTypes.func.isRequired,
   refreshFrequency: PropTypes.number,
   shouldPersistRefreshFrequency: PropTypes.bool.isRequired,
   setRefreshFrequency: PropTypes.func.isRequired,
@@ -420,13 +421,8 @@ class HeaderActionsDropdown extends React.PureComponent {
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF);
         break;
       }
-      case MENU_KEYS.DOWNLOAD_CHARTS_AS_IMAGE: {
-        this.downloadAllCharts(this.props, 'image');
-        // this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF);
-        break;
-      }
       case MENU_KEYS.DOWNLOAD_CHARTS_AS_PDF: {
-        this.downloadAllCharts(this.props, 'pdf');
+        this.props.downlaodAllChartsAsPdf();
         // this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF);
         break;
       }
