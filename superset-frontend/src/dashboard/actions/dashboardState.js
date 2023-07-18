@@ -508,7 +508,7 @@ export function fetchCharts(
   };
 }
 
-export function downloadCharts(
+export function downloadAllCharts(
   chartList = [],
   force = false,
   interval = 0,
@@ -585,7 +585,7 @@ export function onRefresh(
 const downloadCharts = (chartList, force, interval, dashboardId, dispatch) =>
   new Promise(resolve => {
     // dispatch(fetchCharts(chartList, force, interval, dashboardId));
-    dispatch(downloadCharts(chartList, force, interval, dashboardId));
+    dispatch(downloadAllCharts(chartList, force, interval, dashboardId));
     resolve();
   });
 
