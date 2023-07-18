@@ -547,6 +547,45 @@ export function onRefresh(
   };
 }
 
+const downloadCharts = (chartList, force, interval, dashboardId, dispatch) =>
+  new Promise(resolve => {
+    dispatch(fetchCharts(chartList, force, interval, dashboardId));
+    resolve();
+  });
+
+export const ON_FILTERS_DOWNLOAD_REFRESH = 'ON_FILTERS_DOWNLOAD_REFRESH';
+export function onFiltersDownloadRefresh() {
+  return { type: ON_FILTERS_DOWNLOAD_REFRESH };
+}
+
+export const ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS = 'ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS';
+export function onFiltersDownloadRefreshSuccess() {
+  return { type: ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS };
+}
+
+export const ON_DOWNLOAD_SUCCESS = 'ON_DOWNLOAD_SUCCESS';
+export function onDownloadSuccess() {
+  return { type: ON_DOWNLOAD_SUCCESS };
+}
+
+export const ON_DOWNLOAD = 'ON_DOWNLOAD';
+export function onDownload(
+  chartList = [],
+  force = false,
+  interval = 0,
+  dashboardId,
+) {
+  return dispatch => {
+    dispatch({ type: ON_DOWNLOAD });
+    downloadCharts(chartList, force, interval, dashboardId, dispatch).then(
+      () => {
+        dispatch(onDownloadSuccess());
+        dispatch(onFiltersDownloadRefresh());
+      },
+    );
+  };
+}
+
 export const SHOW_BUILDER_PANE = 'SHOW_BUILDER_PANE';
 export function showBuilderPane() {
   return { type: SHOW_BUILDER_PANE };

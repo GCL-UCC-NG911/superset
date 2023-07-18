@@ -90,6 +90,7 @@ export interface HeaderProps {
   onUndo: () => void;
   onRedo: () => void;
   onRefresh: () => void;
+  onDownload: () => void;
   undoLength: number;
   redoLength: number;
   setMaxUndoHistoryExceeded: () => void;

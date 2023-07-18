@@ -97,6 +97,7 @@ const propTypes = {
 
   // redux
   onRefresh: PropTypes.func.isRequired,
+  onDownload: PropTypes.func.isRequired,
   onUndo: PropTypes.func.isRequired,
   onRedo: PropTypes.func.isRequired,
   undoLength: PropTypes.number.isRequired,
@@ -293,15 +294,11 @@ class Header extends React.PureComponent {
   downloadAsPdf() {
     if (!this.props.isLoading) {
       const chartList = Object.keys(this.props.charts);
-      this.props.logEvent(LOG_ACTIONS_FORCE_REFRESH_DASHBOARD, {
-        force: true,
-        interval: 0,
-        chartCount: chartList.length,
-      });
       console.log('### Du 19');
+      console.log(this.props);
       console.log(chartList);
       console.log(this.props.dashboardInfo.id);
-      return this.props.onRefresh(
+      return this.props.onDownload(
         chartList,
         true,
         0,

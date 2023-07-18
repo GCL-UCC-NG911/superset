@@ -41,6 +41,7 @@ import {
   maxUndoHistoryToast,
   setRefreshFrequency,
   onRefresh,
+  onDownload,
 } from 'src/dashboard/actions/dashboardState';
 
 import {
@@ -128,6 +129,7 @@ function mapDispatchToProps(dispatch) {
       logEvent,
       setRefreshFrequency,
       onRefresh,
+      onDownload,
       dashboardInfoChanged,
       dashboardTitleChanged,
       updateDataMask,
