@@ -508,6 +508,41 @@ export function fetchCharts(
   };
 }
 
+export function downloadCharts(
+  chartList = [],
+  force = false,
+  interval = 0,
+  dashboardId,
+) {
+  console.log('downloadCharts');
+  return (dispatch, getState) => {
+    if (!interval) {
+      chartList.forEach(chartKey =>
+        dispatch(refreshChart(chartKey, force, dashboardId)),
+      );
+      return;
+    }
+
+    const { metadata: meta } = getState().dashboardInfo;
+    const refreshTime = Math.max(interval, meta.stagger_time || 5000); // default 5 seconds
+    if (typeof meta.stagger_refresh !== 'boolean') {
+      meta.stagger_refresh =
+        meta.stagger_refresh === undefined
+          ? true
+          : meta.stagger_refresh === 'true';
+    }
+    const delay = meta.stagger_refresh
+      ? refreshTime / (chartList.length - 1)
+      : 0;
+    chartList.forEach((chartKey, i) => {
+      setTimeout(
+        () => dispatch(refreshChart(chartKey, force, dashboardId)),
+        delay * i,
+      );
+    });
+  };
+}
+
 const refreshCharts = (chartList, force, interval, dashboardId, dispatch) =>
   new Promise(resolve => {
     dispatch(fetchCharts(chartList, force, interval, dashboardId));
@@ -549,7 +584,8 @@ export function onRefresh(
 
 const downloadCharts = (chartList, force, interval, dashboardId, dispatch) =>
   new Promise(resolve => {
-    dispatch(fetchCharts(chartList, force, interval, dashboardId));
+    // dispatch(fetchCharts(chartList, force, interval, dashboardId));
+    dispatch(downloadCharts(chartList, force, interval, dashboardId));
     resolve();
   });
 
