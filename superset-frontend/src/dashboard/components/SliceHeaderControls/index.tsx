@@ -55,6 +55,7 @@ import { ResultsPaneOnDashboard } from 'src/explore/components/DataTablesPane';
 import Modal from 'src/components/Modal';
 import { DrillDetailMenuItems } from 'src/components/Chart/DrillDetail';
 import { LOG_ACTIONS_CHART_DOWNLOAD_AS_IMAGE } from 'src/logger/LogUtils';
+import { addWarningToast } from 'src/components/MessageToasts/actions';
 
 const MENU_KEYS = {
   CROSS_FILTER_SCOPING: 'cross_filter_scoping',
@@ -328,6 +329,9 @@ class SliceHeaderControls extends React.PureComponent<
           '.ant-dropdown:not(.ant-dropdown-hidden)',
         ) as HTMLElement;
         menu.style.visibility = 'hidden';
+        addWarningToast(
+          t('Image download takes a long time, please wait.'),
+        )
         downloadAsImage(
           getScreenshotNodeSelector(this.props.slice.slice_id),
           this.props.slice.slice_name,

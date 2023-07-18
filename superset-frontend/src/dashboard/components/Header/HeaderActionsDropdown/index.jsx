@@ -46,6 +46,7 @@ import {
   LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF,
   /* NGLS - END */
 } from 'src/logger/LogUtils';
+import { addWarningToast } from 'src/components/MessageToasts/actions';
 
 const propTypes = {
   addSuccessToast: PropTypes.func.isRequired,
@@ -392,6 +393,9 @@ class HeaderActionsDropdown extends React.PureComponent {
         menu.style.visibility = 'hidden';
         // span a pop up
         // alert("This process take a long time please waiting....");
+        addWarningToast(
+          t('Image download takes a long time, please wait.'),
+        )
         downloadAsImage(
           SCREENSHOT_NODE_SELECTOR,
           this.props.dashboardTitle,

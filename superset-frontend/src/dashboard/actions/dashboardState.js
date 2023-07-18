@@ -559,7 +559,7 @@ export function onFiltersDownloadRefresh() {
 }
 
 export const ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS =
- 'ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS';
+  'ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS';
 export function onFiltersDownloadRefreshSuccess() {
   return { type: ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS };
 }

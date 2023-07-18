@@ -33,6 +33,7 @@ import { isFeatureEnabled, FeatureFlag } from 'src/featureFlags';
 import ViewQueryModal from '../controls/ViewQueryModal';
 import EmbedCodeContent from '../EmbedCodeContent';
 import DashboardsSubMenu from './DashboardsSubMenu';
+import { addWarningToast } from 'src/components/MessageToasts/actions';
 
 const MENU_KEYS = {
   EDIT_PROPERTIES: 'edit_properties',
@@ -245,6 +246,9 @@ export const useExploreAdditionalActionsMenu = (
           break;
         /* NGLS - END */
         case MENU_KEYS.DOWNLOAD_AS_IMAGE:
+          addWarningToast(
+            t('Image download takes a long time, please wait.'),
+          )
           downloadAsImage(
             '.panel-body .chart-container',
             // eslint-disable-next-line camelcase
