@@ -685,7 +685,7 @@ class Header extends React.PureComponent {
               onSave={onSave}
               onChange={onChange}
               forceRefreshAllCharts={this.forceRefresh}
-              downloadAllChartsAsPdf={this.downloadAsPdf}
+              downlaodAllChartsAsPdf={this.downloadAsPdf}
               startPeriodicRender={this.startPeriodicRender}
               refreshFrequency={refreshFrequency}
               shouldPersistRefreshFrequency={shouldPersistRefreshFrequency}

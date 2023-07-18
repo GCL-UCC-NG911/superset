@@ -41,7 +41,7 @@ export interface HeaderDropdownProps {
   editMode: boolean;
   expandedSlices: Record<number, boolean>;
   forceRefreshAllCharts: () => void;
-  downloadAllChartsAsPdf: () => void;
+  downlaodAllChartsAsPdf: () => void;
   hasUnsavedChanges: boolean;
   isLoading: boolean;
   layout: Layout;
