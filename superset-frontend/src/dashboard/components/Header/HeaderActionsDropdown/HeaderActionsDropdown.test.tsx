@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+/*
 import React from 'react';
 import { shallow } from 'enzyme';
 import sinon from 'sinon';
@@ -84,8 +85,8 @@ function setup(props: HeaderDropdownProps) {
     { useRedux: true },
   );
 }
-
-fetchMock.get('glob:*/csstemplateasyncmodelview/api/read', {});
+*/
+// fetchMock.get('glob:*/csstemplateasyncmodelview/api/read', {});
 /*
 test('should render', () => {
   const mockedProps = createProps();
