@@ -329,9 +329,7 @@ class SliceHeaderControls extends React.PureComponent<
           '.ant-dropdown:not(.ant-dropdown-hidden)',
         ) as HTMLElement;
         menu.style.visibility = 'hidden';
-        addWarningToast(
-          t('Image download takes a long time, please wait.'),
-        )
+        addWarningToast(t('Image download takes a long time, please wait.'));
         downloadAsImage(
           getScreenshotNodeSelector(this.props.slice.slice_id),
           this.props.slice.slice_name,
