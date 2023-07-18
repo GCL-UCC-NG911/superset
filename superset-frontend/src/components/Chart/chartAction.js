@@ -539,6 +539,7 @@ export function getSavedChart(
    *  GET  /explore_json?{"chart_id":1,"extra_filters":"..."}
    *
    */
+  console.log('### du 17');
   return exploreJSON(
     formData,
     force,
@@ -565,6 +566,7 @@ export function postChartFormData(
    * This will post the form data to the endpoint, returning a new chart.
    *
    */
+  console.log('### du 18');
   return exploreJSON(
     formData,
     force,
