@@ -596,13 +596,13 @@ const downloadCharts = (chartList, force, interval, dashboardId, dispatch) =>
 
 // export const ON_FILTERS_DOWNLOAD_REFRESH = 'ON_FILTERS_DOWNLOAD_REFRESH';
 // export function onFiltersDownloadRefresh() {
-  // return { type: ON_FILTERS_DOWNLOAD_REFRESH };
+// return { type: ON_FILTERS_DOWNLOAD_REFRESH };
 // }
 
 // export const ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS =
-  // 'ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS';
+// 'ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS';
 // export function onFiltersDownloadRefreshSuccess() {
-  // return { type: ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS };
+// return { type: ON_FILTERS_DOWNLOAD_REFRESH_SUCCESS };
 // }
 
 export const ON_DOWNLOAD_SUCCESS = 'ON_DOWNLOAD_SUCCESS';
