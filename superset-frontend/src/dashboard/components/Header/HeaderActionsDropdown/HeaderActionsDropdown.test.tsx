@@ -50,6 +50,7 @@ const createProps = () => ({
   editMode: false,
   expandedSlices: {},
   forceRefreshAllCharts: jest.fn(),
+  downlaodAllChartsAsPdf: jest.fn(),
   hasUnsavedChanges: false,
   isLoading: false,
   layout: {},
