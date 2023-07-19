@@ -46,7 +46,7 @@ import {
   LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF,
   /* NGLS - END */
 } from 'src/logger/LogUtils';
-import { addWarningToast } from 'src/components/MessageToasts/actions';
+// import { addWarningToast } from 'src/components/MessageToasts/actions';
 
 const propTypes = {
   addSuccessToast: PropTypes.func.isRequired,
@@ -107,8 +107,8 @@ const MENU_KEYS = {
   DOWNLOAD_AS_IMAGE: 'download-as-image',
   /* NGLS - BEGIN */
   DOWNLOAD_AS_PDF: 'download-as-pdf',
-   DOWNLOAD_CHARTS_DATA_AS_PDF: 'download-charts-data-as-pdf',
-  DOWNLOAD_CUSTOM_AS_PDF: 'download-custom-as-pdf',
+  DOWNLOAD_CHARTS_DATA_AS_PDF: 'download-charts-data-as-pdf',
+  // DOWNLOAD_CUSTOM_AS_PDF: 'download-custom-as-pdf',
   DOWNLOAD_SUBMENU: 'download-submenu',
   /* NGLS - END */
   TOGGLE_FULLSCREEN: 'toggle-fullscreen',
@@ -423,7 +423,6 @@ class HeaderActionsDropdown extends React.PureComponent {
       }
       case MENU_KEYS.DOWNLOAD_CHARTS_DATA_AS_PDF: {
         this.props.downlaodAllChartsAsPdf();
-        // this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF);
         break;
       }
       /* NGLS - END */
