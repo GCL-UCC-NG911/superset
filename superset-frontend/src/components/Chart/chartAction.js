@@ -661,7 +661,7 @@ function getAllTables(props, element) {
   }
   const alltables = [];
   for (let i = 0; i < childrenElement.children.length; i += 1) {
-    const table = this.getAllTables(props, childrenElement.children[i]);
+    const table = getAllTables(props, childrenElement.children[i]);
     // console.log(childrenElement.children[i]);
     // console.log(table);
     // console.log(table.length);
