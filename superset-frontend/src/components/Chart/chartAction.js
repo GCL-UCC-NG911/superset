@@ -736,7 +736,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       },
     ];
     console.log(getState()?.dashboardInfo?.position_data);
-    const allTables = getAllTables(
+    const allTables = this.getAllTables(
       getState()?.dashboardInfo?.position_data,
       'ROOT_ID',
     );
@@ -744,7 +744,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       dashboardInfo.push(element);
     });
 
-    const allFilters = getAllFilters(
+    const allFilters = this.getAllFilters(
       getState()?.dashboardInfo?.metadata?.native_filter_configuration,
       getState()?.dataMask,
     );
