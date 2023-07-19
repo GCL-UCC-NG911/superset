@@ -812,7 +812,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
     dispatch(
       postDashboardFormData(
         dashboardId,
-        { form_data: JSON.stringify(payload) },
+        dashboardInfo,
         'data_pdf',
         'full',
         false,
