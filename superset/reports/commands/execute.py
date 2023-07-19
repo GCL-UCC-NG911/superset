@@ -448,6 +448,10 @@ class BaseReportState:
                     data = self.get_pdf_image()
                 if not data:
                     error_text = "Unexpected missing PDF file"
+            elif self._report_schedule.report_format == ReportDataFormat.ALL_CHARTS_AS_PDF:
+                data = self.get_pdf_image()
+                if not data:
+                    error_text = "Unexpected missing PDF file"
             # NGLS - END #
             elif (
                 self._report_schedule.chart

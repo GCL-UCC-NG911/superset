@@ -107,9 +107,7 @@ const MENU_KEYS = {
   DOWNLOAD_AS_IMAGE: 'download-as-image',
   /* NGLS - BEGIN */
   DOWNLOAD_AS_PDF: 'download-as-pdf',
-  DOWNLOAD_CHARTS_AS_IMAGE: 'download-charts-as-image',
-  DOWNLOAD_CHARTS_AS_PDF: 'download-charts-as-pdf',
-  DOWNLOAD_CHARTS_DATA_AS_PDF: 'download-charts-data-as-pdf',
+   DOWNLOAD_CHARTS_DATA_AS_PDF: 'download-charts-data-as-pdf',
   DOWNLOAD_CUSTOM_AS_PDF: 'download-custom-as-pdf',
   DOWNLOAD_SUBMENU: 'download-submenu',
   /* NGLS - END */
@@ -393,7 +391,7 @@ class HeaderActionsDropdown extends React.PureComponent {
         menu.style.visibility = 'hidden';
         // span a pop up
         // alert("This process take a long time please waiting....");
-        addWarningToast(t('Image download takes a long time, please wait.'));
+        // addWarningToast(t('Image download takes a long time, please wait.'));
         downloadAsImage(
           SCREENSHOT_NODE_SELECTOR,
           this.props.dashboardTitle,
@@ -423,13 +421,8 @@ class HeaderActionsDropdown extends React.PureComponent {
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF);
         break;
       }
-      case MENU_KEYS.DOWNLOAD_CHARTS_AS_PDF: {
-        this.props.downlaodAllChartsAsPdf();
-        // this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF);
-        break;
-      }
       case MENU_KEYS.DOWNLOAD_CHARTS_DATA_AS_PDF: {
-        this.downloadAllCharts(this.props, 'data_pdf');
+        this.props.downlaodAllChartsAsPdf();
         // this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_CUSTOM_AS_PDF);
         break;
       }
@@ -580,18 +573,6 @@ class HeaderActionsDropdown extends React.PureComponent {
                 onClick={this.handleMenuClick}
               >
                 {t('Screen as PDF')}
-              </Menu.Item>
-              <Menu.Item
-                key={MENU_KEYS.DOWNLOAD_CHARTS_AS_IMAGE}
-                onClick={this.handleMenuClick}
-              >
-                {t('All charts as image')}
-              </Menu.Item>
-              <Menu.Item
-                key={MENU_KEYS.DOWNLOAD_CHARTS_AS_PDF}
-                onClick={this.handleMenuClick}
-              >
-                {t('All charts as PDF')}
               </Menu.Item>
               <Menu.Item
                 key={MENU_KEYS.DOWNLOAD_CHARTS_DATA_AS_PDF}

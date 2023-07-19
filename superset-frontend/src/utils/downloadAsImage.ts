@@ -55,7 +55,7 @@ export default function downloadAsImage(
         t('Image download failed, please refresh and try again.'),
       );
     }
-
+    addWarningToast(t('Image download takes a long time, please wait.'));
     // Mapbox controls are loaded from different origin, causing CORS error
     // See https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL#exceptions
     const filter = (node: Element) => {

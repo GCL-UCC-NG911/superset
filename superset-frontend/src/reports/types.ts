@@ -36,6 +36,7 @@ export enum NOTIFICATION_FORMATS {
   CSV = 'CSV',
   /* NGLS - BEGIN */
   PDF = 'PDF',
+  ALL_CHARTS_AS_PDF = 'ALL_CHARTS_AS_PDF',
   /* NGLS - END */
 }
 export interface ReportObject {

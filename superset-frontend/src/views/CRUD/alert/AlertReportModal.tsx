@@ -419,6 +419,7 @@ const TRANSLATIONS = {
   SEND_AS_PNG_TEXT: t('Send as PNG'),
   /* NGLS - BEGIN */
   SEND_AS_PDF_TEXT: t('Send as PDF'),
+  SEND_ALL_CHARTS_AS_PDF_TEXT: t('Send all charts as PDF'),
   /* NGLS - END */
   SEND_AS_CSV_TEXT: t('Send as CSV'),
   SEND_AS_TEXT: t('Send as text'),
@@ -1108,6 +1109,13 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
         <StyledRadioGroup onChange={onFormatChange} value={reportFormat}>
           <StyledRadio value="PNG">{TRANSLATIONS.SEND_AS_PNG_TEXT}</StyledRadio>
           <StyledRadio value="PDF">{TRANSLATIONS.SEND_AS_PDF_TEXT}</StyledRadio>
+          {!chartFormatOptionEnabled && (
+            <>
+              <StyledRadio value="ALL_CHARTS_AS_PDF">
+                {TRANSLATIONS.SEND_ALL_CHARTS_AS_PDF_TEXT}
+              </StyledRadio>
+            </>
+          )}
           {chartFormatOptionEnabled && (
             <>
               <StyledRadio value="CSV">
