@@ -550,6 +550,8 @@ export function postDashboardFormData(
     resultType,
     force,
   });
+  console.log(url);
+  console.log(payload);
   SupersetClient.postJsonForm(url, { form_data: JSON.stringify(payload) });
 }
 
@@ -768,7 +770,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
 
     const dashboardInfo = [
       {
-        dashboardId: dashboardId,
+        dashboardId: getState()?.dashboardInfo?.id,
         dashboardTitle: getState()?.dashboardInfo?.dashboard_title,
         type: 'DASHBOARD',
       },
