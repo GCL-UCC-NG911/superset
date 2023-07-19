@@ -520,6 +520,39 @@ export function exploreJSON(
   };
 }
 
+const buildV1DashboardDataPayload = ({
+  formData,
+  resultFormat = 'data_pdf',
+  resultType = 'full',
+  force = false,
+}) => {
+  console.log('### buildV1DashboardDataPayload');
+  return {
+    formData,
+    force,
+    result_format: resultFormat,
+    result_type: resultType,
+  };
+};
+
+export function postDashboardFormData(
+  dashboardId,
+  formData,
+  resultFormat = 'data_pdf',
+  resultType = 'full',
+  force = false,
+) {
+  console.log('### du 2 10 ');
+  const url = `/api/v1/dashboard/${dashboardId}/download`;
+  const payload = buildV1DashboardDataPayload({
+    formData,
+    resultFormat,
+    resultType,
+    force,
+  });
+  SupersetClient.postJsonForm(url, { form_data: JSON.stringify(payload) });
+}
+
 export const GET_SAVED_CHART = 'GET_SAVED_CHART';
 export function getSavedChart(
   formData,
@@ -735,7 +768,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
 
     const dashboardInfo = [
       {
-        dashboardId: getState()?.dashboardInfo?.id,
+        dashboardId: dashboardId,
         dashboardTitle: getState()?.dashboardInfo?.dashboard_title,
         type: 'DASHBOARD',
       },
@@ -746,6 +779,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       'ROOT_ID',
     );
     allTables.forEach(element => {
+      console.log(element.chartId);
       console.log(allCharts.find(element.chartId, 'chartId'));
       dashboardInfo.push(element);
     });
@@ -772,6 +806,16 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       ),
     );
     */
+
+    dispatch(
+      postDashboardFormData(
+        dashboardId,
+        { form_data: JSON.stringify(payload) },
+        'data_pdf',
+        'full',
+        false,
+      ),
+    );
 
     console.log('### du 26');
   };
