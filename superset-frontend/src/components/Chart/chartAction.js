@@ -722,7 +722,8 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       console.log(chart?.id);
       console.log(chart?.latestQueryFormData);
       console.log(getState().dataMask[chart?.id]?.ownState);
-      if (chart?.id) {
+      if (!chart?.id) {
+        console.log(chart?.id);
         allCharts.push({
           chartId: chart?.id,
           latestQueryFormData: chart?.latestQueryFormData,
@@ -745,6 +746,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       'ROOT_ID',
     );
     allTables.forEach(element => {
+      console.log(allCharts.find(element.chartId,'chartId'));
       dashboardInfo.push(element);
     });
 
