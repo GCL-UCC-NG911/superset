@@ -24,6 +24,7 @@ export enum NOTIFICATION_FORMATS {
   PNG = 'PNG',
   CSV = 'CSV',
   PDF = 'PDF',
+  ALL_CHARTS_AS_PDF = 'ALL_CHARTS_AS_PDF',
 }
 /* NGLS - END */
 

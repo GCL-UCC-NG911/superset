@@ -1111,7 +1111,7 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
           <StyledRadio value="PDF">{TRANSLATIONS.SEND_AS_PDF_TEXT}</StyledRadio>
           {!chartFormatOptionEnabled && (
             <>
-              <StyledRadio value="ALL_CHARTS_AS_PDF">
+              <StyledRadio value="ALL_CHARTS_DATA_AS_PDF">
                 {TRANSLATIONS.SEND_ALL_CHARTS_AS_PDF_TEXT}
               </StyledRadio>
             </>
