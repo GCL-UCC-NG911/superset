@@ -757,7 +757,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       console.log(chart?.id);
       console.log(chart?.latestQueryFormData);
       console.log(getState().dataMask[chart?.id]?.ownState);
-      if (chart?.id != undefined) {
+      if (chart?.id !== undefined) {
         console.log(chart?.id);
         allCharts.push({
           chartId: chart?.id,
@@ -782,21 +782,21 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
     );
     allTables.forEach(element => {
       console.log(element.chartId);
-      if (element.type == 'CHART') {
+      if (element.type === 'CHART') {
         const chart = allCharts.find(obj => obj.chartId === element.chartId);
         console.log(chart);
         const chartObj = {
-          chartId: childrenElement.meta.chartId,
-          sliceName: childrenElement.meta.sliceName,
-          uuid: childrenElement.meta.uuid,
-          height: childrenElement.meta.height,
-          width: childrenElement.meta.width,
+          chartId: element.chartId,
+          sliceName: element.sliceName,
+          uuid: element.uuid,
+          height: element.height,
+          width: element.width,
           latestQueryFormData: chart?.latestQueryFormData,
           ownState: chart?.ownState,
           type: 'CHART',
-        }
+        };
         dashboardInfo.push(chartObj);
-      } else if (element.type == 'MARKDOWN') {
+      } else if (element.type === 'MARKDOWN') {
         dashboardInfo.push(element);
       }
     });
