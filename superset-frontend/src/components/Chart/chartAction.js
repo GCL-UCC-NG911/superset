@@ -717,7 +717,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       const chart = (getState().charts || {})[chartKey];
       console.log(chart?.id);
       console.log(chart?.latestQueryFormData);
-      console.log(getState().dataMask[chart?.id]?.ownState,);
+      console.log(getState().dataMask[chart?.id]?.ownState);
       if (
         !chart.latestQueryFormData ||
         Object.keys(chart.latestQueryFormData).length === 0
@@ -729,13 +729,16 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
 
     const dashboardInfo = [
       {
-        dashboardId: props?.dashboardId,
-        dashboardTitle: props?.dashboardTitle,
+        dashboardId: getState()?.dashboardInfo?.id,
+        dashboardTitle: getState()?.dashboardInfo?.dashboard_title,
         type: 'DASHBOARD',
-      }
+      },
     ];
 
-    const allTables = getAllTables(getState()?.dashboardInfo?.dashboardLayout?.present, 'ROOT_ID');
+    const allTables = getAllTables(
+      getState()?.dashboardInfo?.dashboardLayout?.present,
+      'ROOT_ID',
+    );
     allTables.forEach(element => {
       dashboardInfo.push(element);
     });
