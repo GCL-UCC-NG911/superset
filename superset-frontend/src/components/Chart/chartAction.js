@@ -746,7 +746,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       'ROOT_ID',
     );
     allTables.forEach(element => {
-      console.log(allCharts.find(element.chartId,'chartId'));
+      console.log(allCharts.find(element.chartId, 'chartId'));
       dashboardInfo.push(element);
     });
 
