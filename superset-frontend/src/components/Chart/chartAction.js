@@ -627,6 +627,85 @@ export function refreshChart(chartKey, force, dashboardId) {
   };
 }
 
+function getAllTables(props, element) {
+  if (props === null || element === null || element === '') {
+    return [];
+  }
+
+  const childrenElement = props[element];
+  if (childrenElement?.type === 'CHART') {
+    // console.log('type === CHART');
+    return [
+      {
+        chartId: childrenElement.meta.chartId,
+        sliceName: childrenElement.meta.sliceName,
+        uuid: childrenElement.meta.uuid,
+        height: childrenElement.meta.height,
+        width: childrenElement.meta.width,
+        type: 'CHART',
+      },
+    ];
+  }
+  if (childrenElement?.type === 'MARKDOWN') {
+    // console.log('type === MARKDOWN');
+    return [
+      {
+        code: childrenElement.meta.code,
+        height: childrenElement.meta.height,
+        width: childrenElement.meta.width,
+        type: 'MARKDOWN',
+      },
+    ];
+  }
+  const alltables = [];
+  for (let i = 0; i < childrenElement.children.length; i += 1) {
+    const table = this.getAllTables(props, childrenElement.children[i]);
+    // console.log(childrenElement.children[i]);
+    // console.log(table);
+    // console.log(table.length);
+    table.forEach(element => {
+      alltables.push(element);
+    });
+  }
+  return alltables;
+}
+
+function getAllFilters(defaultFilters, changeFilters = null) {
+  if (!defaultFilters) {
+    console.log('defaultFilters is empty');
+    return [];
+  }
+
+  console.log(defaultFilters);
+  const allFilters = [];
+  defaultFilters.forEach(element => {
+    allFilters.push({
+      filterId: element.id,
+      name: element.name,
+      extraFormData: element.defaultDataMask.extraFormData,
+      value: element.defaultDataMask.filterState.value,
+      filterType: element.filterType,
+      type: 'FILTER',
+    });
+  });
+
+  console.log(changeFilters);
+  if (!changeFilters) {
+    return allFilters;
+  }
+
+  for (let i = 0; i < allFilters.length; i += 1) {
+    console.log(allFilters[i].filterId);
+    console.log(changeFilters[allFilters[i].filterId]);
+    if (changeFilters[allFilters[i].filterId]?.filterState?.value) {
+      allFilters[i].value =
+        changeFilters[allFilters[i].filterId]?.filterState?.value;
+    }
+  }
+
+  return allFilters;
+}
+
 export function downloadAllChartsAs(chartList, force, dashboardId) {
   return (dispatch, getState) => {
     console.log('### du 2 23');
@@ -636,6 +715,9 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
     console.log(dashboardId);
     chartList.forEach(chartKey => {
       const chart = (getState().charts || {})[chartKey];
+      console.log(chart?.id);
+      console.log(chart?.latestQueryFormData);
+      console.log(getState().dataMask[chart?.id]?.ownState,);
       if (
         !chart.latestQueryFormData ||
         Object.keys(chart.latestQueryFormData).length === 0
@@ -645,6 +727,28 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       }
     });
 
+    const dashboardInfo = [
+      {
+        dashboardId: props?.dashboardId,
+        dashboardTitle: props?.dashboardTitle,
+        type: 'DASHBOARD',
+      }
+    ];
+
+    const allTables = getAllTables(getState()?.dashboardInfo?.dashboardLayout?.present, 'ROOT_ID');
+    allTables.forEach(element => {
+      dashboardInfo.push(element);
+    });
+
+    const allFilters = getAllFilters(
+      getState()?.dashboardInfo?.metadata?.native_filter_configuration,
+      getState()?.dataMask,
+    );
+    allFilters.forEach(element => {
+      dashboardInfo.push(element);
+    });
+
+    console.log(dashboardInfo);
     console.log('### du 2 25');
     /*
     dispatch(
