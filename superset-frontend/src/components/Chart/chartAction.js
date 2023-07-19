@@ -627,10 +627,13 @@ export function refreshChart(chartKey, force, dashboardId) {
   };
 }
 
-export function downloadAllChartsAs(chartList, force, dashboardId, ) {
+export function downloadAllChartsAs(chartList, force, dashboardId) {
   return (dispatch, getState) => {
     console.log('### du 2 23');
     console.log(getState());
+    console.log(chartList);
+    console.log(force);
+    console.log(dashboardId);
     chartList.forEach(chartKey => {
       const chart = (getState().charts || {})[chartKey];
       if (
@@ -640,7 +643,6 @@ export function downloadAllChartsAs(chartList, force, dashboardId, ) {
         console.log('### du 24');
         // return;
       }
-
     });
 
     console.log('### du 2 25');

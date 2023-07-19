@@ -516,18 +516,10 @@ export function downloadAllCharts(
   dashboardId,
 ) {
   console.log('downloadCharts');
-  return (dispatch) => {
+  return dispatch => {
     console.log('### du 20');
     console.log(interval);
     dispatch(downloadAllChartsAs(chartList, force, dashboardId));
-    return;
-    // if (!interval) {
-      // console.log('!interval');
-      // chartList.forEach(chartKey =>
-        // dispatch(downloadAllChartsAs(chartKey, force, dashboardId)),
-      // );
-      //return;
-    // }
   };
 }
 
