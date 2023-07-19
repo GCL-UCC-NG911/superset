@@ -628,6 +628,8 @@ export function refreshChart(chartKey, force, dashboardId) {
 }
 
 function getAllTables(props, element) {
+  console.log('getAllTables');
+  console.log(element);
   if (props === null || element === null || element === '') {
     return [];
   }
@@ -720,11 +722,13 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       console.log(chart?.id);
       console.log(chart?.latestQueryFormData);
       console.log(getState().dataMask[chart?.id]?.ownState);
-      allCharts.push({
-        chartId: chart?.id,
-        latestQueryFormData: chart?.latestQueryFormData,
-        ownState: getState().dataMask[chart?.id]?.ownState,
-      });
+      if(chart?.id) {
+        allCharts.push({
+          chartId: chart?.id,
+          latestQueryFormData: chart?.latestQueryFormData,
+          ownState: getState().dataMask[chart?.id]?.ownState,
+        });
+      }
     });
     console.log(allCharts);
 
@@ -736,7 +740,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       },
     ];
     console.log(getState()?.dashboardInfo?.position_data);
-    const allTables = this.getAllTables(
+    const allTables = getAllTables(
       getState()?.dashboardInfo?.position_data,
       'ROOT_ID',
     );
@@ -744,7 +748,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       dashboardInfo.push(element);
     });
 
-    const allFilters = this.getAllFilters(
+    const allFilters = getAllFilters(
       getState()?.dashboardInfo?.metadata?.native_filter_configuration,
       getState()?.dataMask,
     );
