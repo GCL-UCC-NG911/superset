@@ -722,7 +722,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       console.log(chart?.id);
       console.log(chart?.latestQueryFormData);
       console.log(getState().dataMask[chart?.id]?.ownState);
-      if(chart?.id) {
+      if (chart?.id) {
         allCharts.push({
           chartId: chart?.id,
           latestQueryFormData: chart?.latestQueryFormData,
