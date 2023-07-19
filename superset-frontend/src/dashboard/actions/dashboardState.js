@@ -28,6 +28,7 @@ import {
   addChart,
   removeChart,
   refreshChart,
+  downloadAllChartsAs,
 } from 'src/components/Chart/chartAction';
 import { chart as initChart } from 'src/components/Chart/chartReducer';
 import { applyDefaultFormData } from 'src/explore/store';
@@ -515,36 +516,18 @@ export function downloadAllCharts(
   dashboardId,
 ) {
   console.log('downloadCharts');
-  return (dispatch, getState) => {
+  return (dispatch) => {
     console.log('### du 20');
     console.log(interval);
-    if (!interval) {
-      console.log('!interval');
-      chartList.forEach(chartKey =>
-        dispatch(refreshChart(chartKey, force, dashboardId)),
-      );
-      return;
-    }
-
-    const { metadata: meta } = getState().dashboardInfo;
-    const refreshTime = Math.max(interval, meta.stagger_time || 5000); // default 5 seconds
-    if (typeof meta.stagger_refresh !== 'boolean') {
-      console.log('### du 21');
-      meta.stagger_refresh =
-        meta.stagger_refresh === undefined
-          ? true
-          : meta.stagger_refresh === 'true';
-    }
-    const delay = meta.stagger_refresh
-      ? refreshTime / (chartList.length - 1)
-      : 0;
-    console.log('### du 22');
-    chartList.forEach((chartKey, i) => {
-      setTimeout(
-        () => dispatch(refreshChart(chartKey, force, dashboardId)),
-        delay * i,
-      );
-    });
+    dispatch(downloadAllChartsAs(chartList, force, dashboardId));
+    return;
+    // if (!interval) {
+      // console.log('!interval');
+      // chartList.forEach(chartKey =>
+        // dispatch(downloadAllChartsAs(chartKey, force, dashboardId)),
+      // );
+      //return;
+    // }
   };
 }
 

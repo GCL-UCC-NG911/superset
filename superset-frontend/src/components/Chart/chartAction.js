@@ -627,6 +627,40 @@ export function refreshChart(chartKey, force, dashboardId) {
   };
 }
 
+export function downloadAllChartsAs(chartList, force, dashboardId, ) {
+  return (dispatch, getState) => {
+    console.log('### du 2 23');
+    console.log(getState());
+    chartList.forEach(chartKey => {
+      const chart = (getState().charts || {})[chartKey];
+      if (
+        !chart.latestQueryFormData ||
+        Object.keys(chart.latestQueryFormData).length === 0
+      ) {
+        console.log('### du 24');
+        // return;
+      }
+
+    });
+
+    console.log('### du 2 25');
+    /*
+    dispatch(
+      postChartFormData(
+        chart.latestQueryFormData,
+        force,
+        timeout,
+        chart.id,
+        dashboardId,
+        getState().dataMask[chart.id]?.ownState,
+      ),
+    );
+    */
+
+    console.log('### du 26');
+  };
+}
+
 export const getDatasourceSamples = async (
   datasourceType,
   datasourceId,
