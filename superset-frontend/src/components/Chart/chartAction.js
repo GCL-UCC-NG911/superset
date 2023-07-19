@@ -782,7 +782,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
     );
     allTables.forEach(element => {
       console.log(element.chartId);
-      console.log(allCharts.find(element.chartId, 'chartId'));
+      console.log(allCharts.find(obj => obj.chartId === element.chartId));
       dashboardInfo.push(element);
     });
 
