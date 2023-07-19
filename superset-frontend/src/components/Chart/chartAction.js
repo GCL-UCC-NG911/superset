@@ -679,6 +679,7 @@ function getAllFilters(defaultFilters, changeFilters = null) {
   console.log(defaultFilters);
   const allFilters = [];
   defaultFilters.forEach(element => {
+    console.log(element);
     allFilters.push({
       filterId: element.id,
       name: element.name,
@@ -713,19 +714,19 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
     console.log(chartList);
     console.log(force);
     console.log(dashboardId);
+    const allCharts = [];
     chartList.forEach(chartKey => {
       const chart = (getState().charts || {})[chartKey];
       console.log(chart?.id);
       console.log(chart?.latestQueryFormData);
       console.log(getState().dataMask[chart?.id]?.ownState);
-      if (
-        !chart.latestQueryFormData ||
-        Object.keys(chart.latestQueryFormData).length === 0
-      ) {
-        console.log('### du 24');
-        // return;
-      }
+      allCharts.push({
+        chartId: chart?.id,
+        latestQueryFormData: chart?.latestQueryFormData,
+        ownState: getState().dataMask[chart?.id]?.ownState,
+      });
     });
+    console.log(allCharts);
 
     const dashboardInfo = [
       {
@@ -734,9 +735,9 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
         type: 'DASHBOARD',
       },
     ];
-
+    console.log(getState()?.dashboardInfo?.position_data);
     const allTables = getAllTables(
-      getState()?.dashboardInfo?.dashboardLayout?.present,
+      getState()?.dashboardInfo?.position_data,
       'ROOT_ID',
     );
     allTables.forEach(element => {
