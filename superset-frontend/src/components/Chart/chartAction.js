@@ -790,7 +790,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
 
         const payload = buildV1ChartDataPayload({
           formData: chart.latestQueryFormData,
-          result_format: 'json',
+          result_format: 'csv',
           result_type: 'full',
           force: false,
           setDataMask: {},

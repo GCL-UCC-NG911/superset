@@ -1387,7 +1387,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         result: Dict[Any, Any],
         form_data: Optional[Dict[str, Any]] = None,
         datasource: Optional[BaseDatasource] = None,
-    ) -> Response:
+    ) -> Optional[Any]:
         result_type = result["query_context"].result_type
         result_format = result["query_context"].result_format
 
@@ -1408,22 +1408,16 @@ class DashboardRestApi(BaseSupersetModelRestApi):
             logger.info("### _send_chart_response 2")
             # Verify user has permission to export file
             if not security_manager.can_access("can_csv", "Superset"):
-                return self.response_403()
+                return None
 
             if not result["queries"]:
-                return self.response_400(_("Empty query result"))
+                return None
 
             if len(result["queries"]) == 1:
                 logger.info("### _send_chart_response 3")
                 # return single query results
                 data = result["queries"][0]["data"]
                 logger.info(data)
-                if result_format == ChartDataResultFormat.CSV:
-                    logger.info("### _send_chart_response 4")
-                    return CsvResponse(
-                        data,
-                        headers=generate_download_headers("csv", filename=filename),
-                    )
                 # NGLS - BEGIN #
                 if result_format == ChartDataResultFormat.PDF:
                     logger.info("### _send_chart_response 5")
@@ -1431,30 +1425,9 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                         data,
                         headers=generate_download_headers("pdf", filename=filename),
                     )
+                return data
                 # NGLS - END #
-                logger.info("### _send_chart_response 6")
-                return XlsxResponse(
-                    data, headers=generate_download_headers("xlsx", filename=filename)
-                )
 
-            # return multi-query results bundled as a zip file
-            def _process_data(query_data: Any) -> Any:
-                logger.info("### _send_chart_response 7")
-                if result_format == ChartDataResultFormat.CSV:
-                    encoding = current_app.config["CSV_EXPORT"].get("encoding", "utf-8")
-                    return query_data.encode(encoding)
-                return query_data
-
-            files = {
-                f"query_{idx + 1}.{result_format}": _process_data(query["data"])
-                for idx, query in enumerate(result["queries"])
-            }
-            logger.info("### _send_chart_response 8")
-            return Response(
-                create_zip(files),
-                headers=generate_download_headers("zip"),
-                mimetype="application/zip",
-            )
         logger.info("### _send_chart_response 9")
         if result_format == ChartDataResultFormat.JSON:
             logger.info("### _send_chart_response 10")
@@ -1464,11 +1437,9 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                 ignore_nan=True,
             )
             logger.info(response_data)
-            resp = make_response(response_data, 200)
-            resp.headers["Content-Type"] = "application/json; charset=utf-8"
-            return resp
+            return response_data
 
-        return self.response_400(message=f"Unsupported result_format: {result_format}")
+        return None
 
     def _get_data_response(
         self,
@@ -1482,9 +1453,9 @@ class DashboardRestApi(BaseSupersetModelRestApi):
             result = command.run(force_cached=force_cached)
             logger.info(result)
         except ChartDataCacheLoadError as exc:
-            return self.response_422(message=exc.message)
+            logger.error(exc.message)
         except ChartDataQueryFailedError as exc:
-            return self.response_400(message=exc.message)
+            logger.error(exc.message)
         logger.info("### _get_data_response 1")
         return self._send_chart_response(result, form_data, datasource)
 
