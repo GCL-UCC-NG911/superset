@@ -198,13 +198,13 @@ const v1ChartDataRequest = async (
   };
   console.log('### DU 2');
   console.log(formData);
-  console.log(resultFormat);
-  console.log(resultType);
-  console.log(force);
+  // console.log(resultFormat);
+  // console.log(resultType);
+  // console.log(force);
   console.log(setDataMask);
-  console.log(ownState);
-  console.log(qs);
-  console.log(allowDomainSharding);
+  // console.log(ownState);
+  // console.log(qs);
+  // console.log(allowDomainSharding);
   console.log(querySettings);
   return SupersetClient.post(querySettings);
 };
@@ -242,6 +242,7 @@ export async function getChartDataRequest({
       querySettings,
     );
   }
+  console.log(formData);
   return v1ChartDataRequest(
     formData,
     resultFormat,
@@ -386,6 +387,7 @@ export function exploreJSON(
   ownState,
 ) {
   console.log('### du 10 ');
+  console.log(formData);
   return async dispatch => {
     const logStart = Logger.getTimestamp();
     const controller = new AbortController();
@@ -785,13 +787,24 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       if (element.type === 'CHART') {
         const chart = allCharts.find(obj => obj.chartId === element.chartId);
         console.log(chart);
+
+        const payload = buildV1ChartDataPayload({
+          formData: chart.latestQueryFormData,
+          result_format: 'json',
+          result_type: 'full',
+          force: false,
+          setDataMask: {},
+          ownState: {},
+        });
+
+        
         const chartObj = {
           chartId: element.chartId,
           sliceName: element.sliceName,
           uuid: element.uuid,
           height: element.height,
           width: element.width,
-          latestQueryFormData: chart?.latestQueryFormData,
+          form_data: payload,
           ownState: chart?.ownState,
           type: 'CHART',
         };

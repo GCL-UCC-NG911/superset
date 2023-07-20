@@ -22,8 +22,9 @@ from datetime import datetime
 from io import BytesIO
 from typing import Any, Callable, cast, Optional
 from zipfile import is_zipfile, ZipFile
+import simplejson
 
-from flask import make_response, redirect, request, Response, send_file, url_for
+from flask import current_app, make_response, redirect, request, Response, send_file, url_for
 from flask_appbuilder import permission_name
 from flask_appbuilder.api import expose, protect, rison, safe
 from flask_appbuilder.hooks import before_request
@@ -33,7 +34,8 @@ from marshmallow import ValidationError
 from werkzeug.wrappers import Response as WerkzeugResponse
 from werkzeug.wsgi import FileWrapper
 
-from superset import is_feature_enabled, thumbnail_cache
+from superset import is_feature_enabled, thumbnail_cache, security_manager
+from superset.utils.core import create_zip, get_user_id, json_int_dttm_ser
 from superset.charts.schemas import ChartEntityResponseSchema
 from superset.commands.importers.exceptions import NoValidFilesFoundError
 from superset.commands.importers.v1.utils import get_contents_from_bundle
@@ -113,6 +115,20 @@ from superset.charts.commands.exceptions import (
     ChartDataCacheLoadError,
     ChartDataQueryFailedError,
 )
+from superset.charts.data.query_context_cache_loader import QueryContextCacheLoader
+from superset.charts.schemas import ChartDataQueryContextSchema
+from superset.views.base import (
+    CsvResponse,
+    generate_download_headers,
+    generate_filename,
+    PdfResponse,
+    XlsxResponse,
+)
+from superset.common.chart_data import ChartDataResultFormat, ChartDataResultType
+from superset.charts.post_processing import apply_post_process
+
+if TYPE_CHECKING:
+    from superset.common.query_context import QueryContext
 
 logger = logging.getLogger(__name__)
 
@@ -1030,34 +1046,16 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         DashboardChartScreenshot(current_user, json_body, format, pk).print2()
         if format == "data_pdf":
             data = DashboardChartScreenshot(current_user, json_body, format, pk).get3()
-        else:
-            data = DashboardChartScreenshot(current_user, json_body, format, pk).get2()
-        # DashboardChartScreenshot(current_user, request.json, pk).get()
-
-        # timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-        # root = f"dashboard_export_{timestamp}"
-        # filename = f"{root}.zip"
-
-        # buf = BytesIO()
-        # with ZipFile(buf, "w") as bundle:
-            # try:
-                # for file_name, file_content in ExportDashboardsCommand(
-                    # requested_ids
-                # ).run():
-                    # with bundle.open(f"{root}/{file_name}", "w") as fp:
-                        # fp.write(file_content.encode())
-            # except DashboardNotFoundError:
-                # return self.response_404()
-        # buf.seek(0)
-
-        # response = send_file(
-            # buf,
-            # mimetype="application/zip",
-            # as_attachment=True,
-            # attachment_filename=filename,
-        # )
-
-        # return response
+        
+            for element in json_body.get("formData"):
+                if element.get("type") == "CHART":
+                    form_data = element.get("form_data")
+                    logger.info("### /download 1")
+                    logger.info(form_data)
+                    # query_context = self._create_query_context_from_form(json_body)
+                    # command = ChartDataCommand(query_context)
+                    # command.validate()
+                    # self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
 
         if data:
             if "pdf" in format:
@@ -1384,3 +1382,124 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         for embedded in dashboard.embedded:
             DashboardDAO.delete(embedded)
         return self.response(200, message="OK")
+    
+    def _send_chart_response(
+        self,
+        result: Dict[Any, Any],
+        form_data: Optional[Dict[str, Any]] = None,
+        datasource: Optional[BaseDatasource] = None,
+    ) -> Response:
+        result_type = result["query_context"].result_type
+        result_format = result["query_context"].result_format
+
+        logger.info("### _send_chart_response 0")
+        logger.info(form_data)
+        if form_data:
+            title = form_data.get("chart_name", "Untitled")
+            filename = generate_filename(title) if title else None
+
+        # Post-process the data so it matches the data presented in the chart.
+        # This is needed for sending reports based on text charts that do the
+        # post-processing of data, eg, the pivot table.
+        if result_type == ChartDataResultType.POST_PROCESSED:
+            result = apply_post_process(result, form_data, datasource)
+            logger.info("### _send_chart_response 1")
+            logger.info(result)
+        if result_format in ChartDataResultFormat.table_like():
+            logger.info("### _send_chart_response 2")
+            # Verify user has permission to export file
+            if not security_manager.can_access("can_csv", "Superset"):
+                return self.response_403()
+
+            if not result["queries"]:
+                return self.response_400(_("Empty query result"))
+
+            if len(result["queries"]) == 1:
+                logger.info("### _send_chart_response 3")
+                # return single query results
+                data = result["queries"][0]["data"]
+                logger.info(data)
+                if result_format == ChartDataResultFormat.CSV:
+                    logger.info("### _send_chart_response 4")
+                    return CsvResponse(
+                        data,
+                        headers=generate_download_headers("csv", filename=filename),
+                    )
+                # NGLS - BEGIN #
+                if result_format == ChartDataResultFormat.PDF:
+                    logger.info("### _send_chart_response 5")
+                    return PdfResponse(
+                        data,
+                        headers=generate_download_headers("pdf", filename=filename),
+                    )
+                # NGLS - END #
+                logger.info("### _send_chart_response 6")
+                return XlsxResponse(
+                    data, headers=generate_download_headers("xlsx", filename=filename)
+                )
+
+            # return multi-query results bundled as a zip file
+            def _process_data(query_data: Any) -> Any:
+                logger.info("### _send_chart_response 7")
+                if result_format == ChartDataResultFormat.CSV:
+                    encoding = current_app.config["CSV_EXPORT"].get("encoding", "utf-8")
+                    return query_data.encode(encoding)
+                return query_data
+
+            files = {
+                f"query_{idx + 1}.{result_format}": _process_data(query["data"])
+                for idx, query in enumerate(result["queries"])
+            }
+            logger.info("### _send_chart_response 8")
+            return Response(
+                create_zip(files),
+                headers=generate_download_headers("zip"),
+                mimetype="application/zip",
+            )
+        logger.info("### _send_chart_response 9")
+        if result_format == ChartDataResultFormat.JSON:
+            logger.info("### _send_chart_response 10")
+            response_data = simplejson.dumps(
+                {"result": result["queries"]},
+                default=json_int_dttm_ser,
+                ignore_nan=True,
+            )
+            logger.info(response_data)
+            resp = make_response(response_data, 200)
+            resp.headers["Content-Type"] = "application/json; charset=utf-8"
+            return resp
+
+        return self.response_400(message=f"Unsupported result_format: {result_format}")
+
+    def _get_data_response(
+        self,
+        command: ChartDataCommand,
+        force_cached: bool = False,
+        form_data: Optional[Dict[str, Any]] = None,
+        datasource: Optional[BaseDatasource] = None,
+    ) -> Response:
+        try:
+            logger.info("### _get_data_response 0")
+            result = command.run(force_cached=force_cached)
+            logger.info(result)
+        except ChartDataCacheLoadError as exc:
+            return self.response_422(message=exc.message)
+        except ChartDataQueryFailedError as exc:
+            return self.response_400(message=exc.message)
+        logger.info("### _get_data_response 1")
+        return self._send_chart_response(result, form_data, datasource)
+
+    # pylint: disable=invalid-name, no-self-use
+    def _load_query_context_form_from_cache(self, cache_key: str) -> Dict[str, Any]:
+        return QueryContextCacheLoader.load(cache_key)
+
+    # pylint: disable=no-self-use
+    def _create_query_context_from_form(
+        self, form_data: Dict[str, Any]
+    ) -> QueryContext:
+        try:
+            return ChartDataQueryContextSchema().load(form_data)
+        except KeyError as ex:
+            raise ValidationError("Request is incorrect") from ex
+        except ValidationError as error:
+            raise error
