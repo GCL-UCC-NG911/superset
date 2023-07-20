@@ -797,7 +797,6 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
           ownState: {},
         });
 
-        
         const chartObj = {
           chartId: element.chartId,
           sliceName: element.sliceName,
