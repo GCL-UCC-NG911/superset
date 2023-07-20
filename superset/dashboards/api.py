@@ -1049,10 +1049,12 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                     form_data = element.get("form_data")
                     logger.info("### /download 1")
                     logger.info(form_data)
-                    # query_context = self._create_query_context_from_form(json_body)
-                    # command = ChartDataCommand(query_context)
-                    # command.validate()
-                    # self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
+                    query_context = self._create_query_context_from_form(form_data)
+                    command = ChartDataCommand(query_context)
+                    command.validate()
+                    data = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
+                    logger.info("### /download 2")
+                    logger.info(data)
 
             data = DashboardChartScreenshot(current_user, json_body, format, pk).get3()
 
