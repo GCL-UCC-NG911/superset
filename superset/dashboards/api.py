@@ -1055,7 +1055,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                     dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
                     element['dataframe'] = dataframe
                     logger.info("### /download 2")
-                    logger.info(data)
+                    logger.info(element)
             # DashboardChartScreenshot(current_user, json_body, format, pk).print2()
             logger.info("### /download 3")
             data = DashboardChartScreenshot(current_user, json_body, format, pk).get3()
