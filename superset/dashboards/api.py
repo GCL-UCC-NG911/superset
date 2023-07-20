@@ -1049,6 +1049,8 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                     form_data = element.get("form_data")
                     logger.info("### /download 1")
                     logger.info(form_data)
+                    form_data['result_format'] = "pdf"
+                    logger.info(form_data)
                     query_context = self._create_query_context_from_form(form_data)
                     command = ChartDataCommand(query_context)
                     command.validate()
