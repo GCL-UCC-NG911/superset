@@ -483,6 +483,7 @@ class BaseChartScreenshot:
                         type = "post_processed",
                         force = self.json.get("force"),
                         )
+                    logger.info(url)
                     dataframe = get_chart_dataframe(url, auth_cookies)
 
                     new_chart = element

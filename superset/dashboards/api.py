@@ -1044,8 +1044,6 @@ class DashboardRestApi(BaseSupersetModelRestApi):
             # format = request.form['result_format']
         DashboardChartScreenshot(current_user, json_body, format, pk).print2()
         if format == "data_pdf":
-            data = DashboardChartScreenshot(current_user, json_body, format, pk).get3()
-        
             for element in json_body.get("formData"):
                 if element.get("type") == "CHART":
                     form_data = element.get("form_data")
@@ -1055,6 +1053,8 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                     # command = ChartDataCommand(query_context)
                     # command.validate()
                     # self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
+
+            data = DashboardChartScreenshot(current_user, json_body, format, pk).get3()
 
         if data:
             if "pdf" in format:
