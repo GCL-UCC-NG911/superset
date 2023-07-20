@@ -1052,14 +1052,18 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                     query_context = self._create_query_context_from_form(form_data)
                     command = ChartDataCommand(query_context)
                     command.validate()
-                    data = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
-                    element['data'] = data
+                    dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
+                    element['dataframe'] = dataframe
                     logger.info("### /download 2")
-                    # logger.info(data)
+                    logger.info(data)
             # DashboardChartScreenshot(current_user, json_body, format, pk).print2()
-            # data = DashboardChartScreenshot(current_user, json_body, format, pk).get3()
+            logger.info("### /download 3")
+            data = DashboardChartScreenshot(current_user, json_body, format, pk).get3()
+            logger.info("### /download 4")
+            logger.info(data)
 
         if data:
+            logger.info("### /download 5")
             if "pdf" in format:
               return Response(
                   FileWrapper(data), mimetype="application/pdf", direct_passthrough=True
