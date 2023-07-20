@@ -472,6 +472,8 @@ class QueryContextProcessor:
                 if self._query_context.form_data:
                     title = self._query_context.form_data.get("chart_name")
                 result = pdf.df_to_pdf(df, config["PDF_EXPORT"], title)
+            elif self._query_context.result_format == ChartDataResultFormat.PANDAS:
+                result = df
             # NGLS - END #
             return result or ""
 
