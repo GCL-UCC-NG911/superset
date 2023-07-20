@@ -1048,18 +1048,16 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                 if element.get("type") == "CHART":
                     form_data = element.get("form_data")
                     logger.info("### /download 1")
-                    logger.info(form_data)
                     form_data['result_format'] = "pdf"
-                    logger.info(form_data)
                     query_context = self._create_query_context_from_form(form_data)
                     command = ChartDataCommand(query_context)
                     command.validate()
                     data = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
                     element['data'] = data
                     logger.info("### /download 2")
-                    logger.info(data)
-            DashboardChartScreenshot(current_user, json_body, format, pk).print2()
-            data = DashboardChartScreenshot(current_user, json_body, format, pk).get3()
+                    # logger.info(data)
+            # DashboardChartScreenshot(current_user, json_body, format, pk).print2()
+            # data = DashboardChartScreenshot(current_user, json_body, format, pk).get3()
 
         if data:
             if "pdf" in format:
@@ -1437,7 +1435,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         force_cached: bool = False,
         form_data: Optional[Dict[str, Any]] = None,
         datasource: Optional[BaseDatasource] = None,
-    ) -> Response:
+    ) -> Any:
         try:
             logger.info("### _get_data_response 0")
             result = command.run(force_cached=force_cached)
