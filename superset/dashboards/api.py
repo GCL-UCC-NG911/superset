@@ -109,7 +109,7 @@ from superset.views.filters import (
     FilterRelatedOwners,
 )
 from superset.charts.data.commands.get_data_command import ChartDataCommand
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, Dict, Optional
 from superset.connectors.base.models import BaseDatasource
 from superset.charts.commands.exceptions import (
     ChartDataCacheLoadError,
@@ -127,8 +127,7 @@ from superset.views.base import (
 from superset.common.chart_data import ChartDataResultFormat, ChartDataResultType
 from superset.charts.post_processing import apply_post_process
 
-if TYPE_CHECKING:
-    from superset.common.query_context import QueryContext
+from superset.common.query_context import QueryContext
 
 logger = logging.getLogger(__name__)
 
