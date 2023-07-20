@@ -221,6 +221,7 @@ class ChartDataRestApi(ChartRestApi):
             500:
               $ref: '#/components/responses/500'
         """
+        logger.info("### \data 0")
         json_body = None
         if request.is_json:
             json_body = request.json
@@ -230,17 +231,21 @@ class ChartDataRestApi(ChartRestApi):
                 json_body = json.loads(request.form["form_data"])
             except (TypeError, json.JSONDecodeError):
                 pass
-
+        logger.info("### \data 1")
         if json_body is None:
             return self.response_400(message=_("Request is not JSON"))
 
         try:
+            logger.info("### \data 2")
             logger.info("### POST data")
             logger.info(json_body)
             query_context = self._create_query_context_from_form(json_body)
+            logger.info("### \data 3")
             logger.info(query_context)
             command = ChartDataCommand(query_context)
+            logger.info("### \data 4")
             command.validate()
+            logger.info("### \data 5")
         except DatasourceNotFound as error:
             return self.response_404()
         except QueryObjectValidationError as error:
@@ -258,9 +263,11 @@ class ChartDataRestApi(ChartRestApi):
             and query_context.result_format == ChartDataResultFormat.JSON
             and query_context.result_type == ChartDataResultType.FULL
         ):
+            logger.info("### \data 6")
             return self._run_async(json_body, command)
 
         form_data = json_body.get("form_data")
+        logger.info("### \data 7")
         return self._get_data_response(
             command, form_data=form_data, datasource=query_context.datasource
         )
