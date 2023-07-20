@@ -234,6 +234,9 @@ class ChartDataRestApi(ChartRestApi):
         if json_body is None:
             return self.response_400(message=_("Request is not JSON"))
 
+        if json_body:
+            return self.response_400(message=_("Request is not JSON"))
+
         try:
             logger.info("### POST data")
             logger.info(json_body)
@@ -328,9 +331,12 @@ class ChartDataRestApi(ChartRestApi):
         # First, look for the chart query results in the cache.
         result = None
         try:
-            logger.info("_run_async")
+            logger.info("### _run_async 0")
+            logger.info(form_data)
+            logger.info(command)
             result = command.run(force_cached=True)
             logger.info(result)
+            logger.info("### _run_async 1")
             if result is not None:
                 return self._send_chart_response(result)
         except ChartDataCacheLoadError:
@@ -347,6 +353,8 @@ class ChartDataRestApi(ChartRestApi):
             return self.response_401()
 
         result = async_command.run(form_data, get_user_id())
+        logger.info(result)
+        logger.info("### _run_async 3")
         return self.response(202, **result)
 
     def _send_chart_response(
@@ -358,7 +366,7 @@ class ChartDataRestApi(ChartRestApi):
         result_type = result["query_context"].result_type
         result_format = result["query_context"].result_format
 
-        logger.info("_send_chart_response")
+        logger.info("### _send_chart_response 0")
         logger.info(form_data)
         if form_data:
             title = form_data.get("chart_name", "Untitled")
@@ -369,8 +377,10 @@ class ChartDataRestApi(ChartRestApi):
         # post-processing of data, eg, the pivot table.
         if result_type == ChartDataResultType.POST_PROCESSED:
             result = apply_post_process(result, form_data, datasource)
-
+            logger.info("### _send_chart_response 1")
+            logger.info(result)
         if result_format in ChartDataResultFormat.table_like():
+            logger.info("### _send_chart_response 2")
             # Verify user has permission to export file
             if not security_manager.can_access("can_csv", "Superset"):
                 return self.response_403()
@@ -379,26 +389,32 @@ class ChartDataRestApi(ChartRestApi):
                 return self.response_400(_("Empty query result"))
 
             if len(result["queries"]) == 1:
+                logger.info("### _send_chart_response 3")
                 # return single query results
                 data = result["queries"][0]["data"]
+                logger.info(data)
                 if result_format == ChartDataResultFormat.CSV:
+                    logger.info("### _send_chart_response 4")
                     return CsvResponse(
                         data,
                         headers=generate_download_headers("csv", filename=filename),
                     )
                 # NGLS - BEGIN #
                 if result_format == ChartDataResultFormat.PDF:
+                    logger.info("### _send_chart_response 5")
                     return PdfResponse(
                         data,
                         headers=generate_download_headers("pdf", filename=filename),
                     )
                 # NGLS - END #
+                logger.info("### _send_chart_response 6")
                 return XlsxResponse(
                     data, headers=generate_download_headers("xlsx", filename=filename)
                 )
 
             # return multi-query results bundled as a zip file
             def _process_data(query_data: Any) -> Any:
+                logger.info("### _send_chart_response 7")
                 if result_format == ChartDataResultFormat.CSV:
                     encoding = current_app.config["CSV_EXPORT"].get("encoding", "utf-8")
                     return query_data.encode(encoding)
@@ -408,14 +424,15 @@ class ChartDataRestApi(ChartRestApi):
                 f"query_{idx + 1}.{result_format}": _process_data(query["data"])
                 for idx, query in enumerate(result["queries"])
             }
+            logger.info("### _send_chart_response 8")
             return Response(
                 create_zip(files),
                 headers=generate_download_headers("zip"),
                 mimetype="application/zip",
             )
-
+        logger.info("### _send_chart_response 9")
         if result_format == ChartDataResultFormat.JSON:
-            logger.info("### JSON 17")
+            logger.info("### _send_chart_response 10")
             response_data = simplejson.dumps(
                 {"result": result["queries"]},
                 default=json_int_dttm_ser,
@@ -436,12 +453,14 @@ class ChartDataRestApi(ChartRestApi):
         datasource: Optional[BaseDatasource] = None,
     ) -> Response:
         try:
+            logger.info("### _get_data_response 0")
             result = command.run(force_cached=force_cached)
+            logger.info(result)
         except ChartDataCacheLoadError as exc:
             return self.response_422(message=exc.message)
         except ChartDataQueryFailedError as exc:
             return self.response_400(message=exc.message)
-
+        logger.info("### _get_data_response 1")
         return self._send_chart_response(result, form_data, datasource)
 
     # pylint: disable=invalid-name, no-self-use
