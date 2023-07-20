@@ -452,6 +452,7 @@ class QueryContextProcessor:
         return CachedTimeOffset(df=rv_df, queries=queries, cache_keys=cache_keys)
 
     def get_data(self, df: pd.DataFrame) -> Union[str, List[Dict[str, Any]]]:
+        logger.info("### get_data 0")
         if self._query_context.result_format in ChartDataResultFormat.table_like():
             include_index = not isinstance(df.index, pd.RangeIndex)
             columns = list(df.columns)

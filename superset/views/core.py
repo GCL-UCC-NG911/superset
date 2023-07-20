@@ -492,6 +492,7 @@ class Superset(BaseSupersetView):  # pylint: disable=too-many-public-methods
 
         # NGLS - BEGIN #
         if response_type == ChartDataResultFormat.PDF:
+            logger.info("### generate_json 0")
             return PdfResponse(
                 viz_obj.get_pdf(), headers=generate_download_headers("pdf")
             )

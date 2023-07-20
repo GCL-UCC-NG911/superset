@@ -1048,7 +1048,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                 if element.get("type") == "CHART":
                     form_data = element.get("form_data")
                     logger.info("### /download 1")
-                    form_data['result_format'] = "pdf"
+                    form_data['result_format'] = "pandas"
                     query_context = self._create_query_context_from_form(form_data)
                     command = ChartDataCommand(query_context)
                     command.validate()
@@ -1437,7 +1437,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         datasource: Optional[BaseDatasource] = None,
     ) -> Any:
         try:
-            logger.info("### _get_data_response 0")
+            logger.info("### _get_data_response 0 0")
             result = command.run(force_cached=force_cached)
             logger.info(result)
         except ChartDataCacheLoadError as exc:

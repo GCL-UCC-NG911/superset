@@ -442,6 +442,7 @@ class BaseReportState:
                     error_text = "Unexpected missing screenshot"
             # NGLS - BEGIN #
             elif self._report_schedule.report_format == ReportDataFormat.PDF:
+                logger.info("### _get_notification_content 0")
                 if self._report_schedule.chart:
                     data = self.get_pdf_data()
                 else:
