@@ -677,6 +677,7 @@ class BaseViz:  # pylint: disable=too-many-public-methods
 
     # NGLS - BEGIN #
     def get_pdf(self) -> Optional[str]:
+        logger.info("### get_pdf 0")
         df = self.get_df_payload()["df"]  # leverage caching logic
         return pdf.df_to_pdf(df, config["PDF_EXPORT"])
 

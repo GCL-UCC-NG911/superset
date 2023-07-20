@@ -16,9 +16,12 @@
 # specific language governing permissions and limitations
 # under the License.
 from typing import Any, Dict
+import logging
 
 import pandas as pd
 import pdfkit
+
+logger = logging.getLogger(__name__)
 
 css = """
 <style>
@@ -37,6 +40,7 @@ css = """
 
 
 def df_to_pdf(df: pd.DataFrame, options: Dict = None, title: str = None) -> Any:
+    logger.info("### df_to_pdf 0")
     title_header = f"<h2>{title}</h2>" if title else ""
     # convert the pandas dataframe to html
     html = df.to_html(index=False, justify="left")
@@ -45,6 +49,7 @@ def df_to_pdf(df: pd.DataFrame, options: Dict = None, title: str = None) -> Any:
     return output
 
 def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = None) -> Any:
+    logger.info("### charts_to_pdf 0")
     title = dashboard.get("dashboardTitle")
     dashboar_title = f"<h1>{title}</h1>" if title else ""
 
