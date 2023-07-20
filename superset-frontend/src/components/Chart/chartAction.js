@@ -823,7 +823,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
 
     console.log('### du 2 25');
     console.log(dashboardInfo);
-    console.log('### du 2 26')
+    console.log('### du 2 26');
     /*
     dispatch(
       postChartFormData(
