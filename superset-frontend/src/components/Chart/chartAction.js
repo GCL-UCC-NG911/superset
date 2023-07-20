@@ -821,8 +821,9 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       dashboardInfo.push(element);
     });
 
-    console.log(dashboardInfo);
     console.log('### du 2 25');
+    console.log(dashboardInfo);
+    console.log('### du 2 26')
     /*
     dispatch(
       postChartFormData(

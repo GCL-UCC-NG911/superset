@@ -1400,6 +1400,7 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         # Post-process the data so it matches the data presented in the chart.
         # This is needed for sending reports based on text charts that do the
         # post-processing of data, eg, the pivot table.
+        logger.info(result_type)
         if result_type == ChartDataResultType.POST_PROCESSED:
             result = apply_post_process(result, form_data, datasource)
             logger.info("### _send_chart_response 1")
@@ -1425,7 +1426,9 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                         data,
                         headers=generate_download_headers("pdf", filename=filename),
                     )
-                return data
+                headers = generate_download_headers("pdf", filename=filename)
+                logger.info(headers)
+                return ({ 'data': data, 'headers': headers})
                 # NGLS - END #
 
         logger.info("### _send_chart_response 9")
