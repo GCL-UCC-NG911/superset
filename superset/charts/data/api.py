@@ -234,9 +234,6 @@ class ChartDataRestApi(ChartRestApi):
         if json_body is None:
             return self.response_400(message=_("Request is not JSON"))
 
-        if json_body:
-            return self.response_400(message=_("Request is not JSON"))
-
         try:
             logger.info("### POST data")
             logger.info(json_body)
