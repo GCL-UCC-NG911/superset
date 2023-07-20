@@ -443,7 +443,7 @@ class BaseChartScreenshot:
         :param thumb_size: Override thumbnail site
         """
         # user = security_manager.find_user("admin")
-        logger.info("# get3 - user [%s], cache [%s], thumb_size [%s]", str(self.user), str(cache), str(thumb_size))
+        logger.info("### get3 0")
 
         user = security_manager.find_user(self.user)
         auth_cookies = machine_auth_provider_factory.instance.get_auth_cookies(user)
@@ -476,20 +476,13 @@ class BaseChartScreenshot:
                 if chart.viz_type == "filter_box":
                     filters.append(element)
                 else:
-                    url = get_url_path(
-                        "ChartDataRestApi.get_data",
-                        pk = element.get("chartId"),
-                        format = "json",
-                        type = "post_processed",
-                        force = self.json.get("force"),
-                        )
-                    logger.info(url)
-                    dataframe = get_chart_dataframe(url, auth_cookies)
+                    # logger.info(url)
+                    # dataframe = get_chart_dataframe(url, auth_cookies)
 
-                    new_chart = element
+                    # new_chart = element
                     # new_chart['url'] = url
-                    new_chart['dataframe'] = dataframe
-                    charts.append(new_chart)
+                    # new_chart['dataframe'] = dataframe
+                    charts.append(element)
 
         # make query with filters
         # for element in charts: 
