@@ -1055,9 +1055,10 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                     command = ChartDataCommand(query_context)
                     command.validate()
                     data = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
+                    element['data'] = data
                     logger.info("### /download 2")
                     logger.info(data)
-
+            DashboardChartScreenshot(current_user, json_body, format, pk).print2()
             data = DashboardChartScreenshot(current_user, json_body, format, pk).get3()
 
         if data:
@@ -1426,26 +1427,8 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                 # NGLS - BEGIN #
                 if result_format == ChartDataResultFormat.PDF:
                     logger.info("### _send_chart_response 5")
-                    return PdfResponse(
-                        data,
-                        headers=generate_download_headers("pdf", filename=filename),
-                    )
-                headers = generate_download_headers("pdf", filename=filename)
-                logger.info(headers)
-                return ({ 'data': data, 'headers': headers})
+                    return data
                 # NGLS - END #
-
-        logger.info("### _send_chart_response 9")
-        if result_format == ChartDataResultFormat.JSON:
-            logger.info("### _send_chart_response 10")
-            response_data = simplejson.dumps(
-                {"result": result["queries"]},
-                default=json_int_dttm_ser,
-                ignore_nan=True,
-            )
-            logger.info(response_data)
-            return response_data
-
         return None
 
     def _get_data_response(
