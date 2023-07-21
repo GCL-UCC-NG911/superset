@@ -485,7 +485,7 @@ export function exploreJSON(
           );
         };
         console.log('### du 4 0');
-        console.log(duration);
+        console.log(Logger.getTimestamp() - logStart);
         if (response.name === 'AbortError') {
           appendErrorLog('abort');
           return dispatch(chartUpdateStopped(key));
@@ -609,8 +609,6 @@ export function postChartFormData(
    *
    */
   console.log('### du 18');
-  console.log(timeout);
-  timeout = 180;
   console.log(timeout);
   return exploreJSON(
     formData,
