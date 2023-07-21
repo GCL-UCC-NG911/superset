@@ -604,6 +604,9 @@ export function postChartFormData(
    *
    */
   console.log('### du 18');
+  console.log('timeout ' + timeout);
+  timeout = 180;
+  console.log('timeout ' + timeout);
   return exploreJSON(
     formData,
     force,
@@ -641,7 +644,7 @@ export function refreshChart(chartKey, force, dashboardId) {
     const chart = (getState().charts || {})[chartKey];
     const timeout =
       getState().dashboardInfo.common.conf.SUPERSET_WEBSERVER_TIMEOUT;
-
+    console.log('timeout' + timeout);
     if (
       !chart.latestQueryFormData ||
       Object.keys(chart.latestQueryFormData).length === 0

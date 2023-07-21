@@ -191,7 +191,7 @@ const ViewResultsModalTrigger = ({
   const history = useHistory();
   const exploreChart = () => history.push(exploreUrl);
   const theme = useTheme();
-
+  // TODO: Customize "resizableConfig" to see whats happen...
   return (
     <>
       <span
