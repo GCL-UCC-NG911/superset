@@ -198,9 +198,7 @@ class HeaderActionsDropdown extends React.PureComponent {
           menu.style.visibility = 'visible';
         });
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE);
-        this.props.addInfoToast(
-          t('Preparing file for download, please wait'),
-        );
+        this.props.addInfoToast(t('Preparing file for download, please wait'));
         break;
       }
       /* NGLS - BEGIN */
@@ -219,9 +217,7 @@ class HeaderActionsDropdown extends React.PureComponent {
           menu.style.visibility = 'visible';
         });
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF);
-        this.props.addInfoToast(
-          t('Preparing file for download, please wait'),
-        );
+        this.props.addInfoToast(t('Preparing file for download, please wait'));
         break;
       }
       /* NGLS - END */
