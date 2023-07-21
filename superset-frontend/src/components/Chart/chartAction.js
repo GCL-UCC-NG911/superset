@@ -380,7 +380,7 @@ export function addChart(chart, key) {
 export function exploreJSON(
   formData,
   force = false,
-  timeout = 60,
+  timeout = 600,
   key,
   method,
   dashboardId,
@@ -597,7 +597,7 @@ export const POST_CHART_FORM_DATA = 'POST_CHART_FORM_DATA';
 export function postChartFormData(
   formData,
   force = false,
-  timeout = 60,
+  timeout = 300,
   key,
   dashboardId,
   ownState,
