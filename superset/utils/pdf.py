@@ -54,7 +54,7 @@ def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = 
     dashboar_title = f"<h1>Dashboard: {title}</h1>" if title else ""
 
     # loop filters
-    if len(charts) > 0:
+    if len(filters) > 0:
         filters_html = "<br><br><h2>Filters:</h2>"
 
     for element in filters:
