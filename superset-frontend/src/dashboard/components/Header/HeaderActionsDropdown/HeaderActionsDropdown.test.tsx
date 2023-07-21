@@ -29,6 +29,7 @@ import HeaderActionsDropdown from '.';
 const createProps = () => ({
   addSuccessToast: jest.fn(),
   addDangerToast: jest.fn(),
+  addInfoToast: jest.fn(),
   customCss: '.ant-menu {margin-left: 100px;}',
   dashboardId: 1,
   dashboardInfo: {

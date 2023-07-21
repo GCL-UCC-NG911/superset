@@ -29,6 +29,7 @@ const createProps = () => ({
   addSuccessToast: jest.fn(),
   addDangerToast: jest.fn(),
   addWarningToast: jest.fn(),
+  addInfoToast: jest.fn(),
   dashboardInfo: {
     id: 1,
     dash_edit_perm: false,

@@ -32,6 +32,7 @@ interface DashboardInfo {
 export interface HeaderDropdownProps {
   addSuccessToast: () => void;
   addDangerToast: () => void;
+  addInfoToast: () => void;
   customCss: string;
   colorNamespace?: string;
   colorScheme?: string;
@@ -61,6 +62,7 @@ export interface HeaderProps {
   addSuccessToast: () => void;
   addDangerToast: () => void;
   addWarningToast: () => void;
+  addInfoToast: () => void;
   colorNamespace?: string;
   charts: ChartState | {};
   colorScheme?: string;

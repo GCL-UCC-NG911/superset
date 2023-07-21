@@ -63,6 +63,7 @@ const uiOverrideRegistry = getUiOverrideRegistry();
 const propTypes = {
   addSuccessToast: PropTypes.func.isRequired,
   addDangerToast: PropTypes.func.isRequired,
+  addInfoToast: PropTypes.func.isRequired,
   addWarningToast: PropTypes.func.isRequired,
   user: PropTypes.object, // UserWithPermissionsAndRoles,
   dashboardInfo: PropTypes.object.isRequired,
@@ -648,6 +649,7 @@ class Header extends React.PureComponent {
             <HeaderActionsDropdown
               addSuccessToast={this.props.addSuccessToast}
               addDangerToast={this.props.addDangerToast}
+              addInfoToast={this.props.addInfoToast}
               dashboardId={dashboardInfo.id}
               dashboardTitle={dashboardTitle}
               dashboardInfo={dashboardInfo}

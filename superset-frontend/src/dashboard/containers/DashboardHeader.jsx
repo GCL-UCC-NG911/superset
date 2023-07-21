@@ -53,6 +53,7 @@ import {
   addSuccessToast,
   addDangerToast,
   addWarningToast,
+  addInfoToast,
 } from 'src/components/MessageToasts/actions';
 
 import { logEvent } from 'src/logger/actions';
@@ -108,6 +109,7 @@ function mapDispatchToProps(dispatch) {
     {
       addSuccessToast,
       addDangerToast,
+      addInfoToast,
       addWarningToast,
       onUndo: undoLayoutAction,
       onRedo: redoLayoutAction,
