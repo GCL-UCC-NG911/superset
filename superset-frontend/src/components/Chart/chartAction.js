@@ -396,6 +396,8 @@ export function exploreJSON(
       signal: controller.signal,
       timeout: timeout * 1000,
     };
+    console.log('### Du 4 1');
+    console.log(timeout);
     if (dashboardId) requestParams.dashboard_id = dashboardId;
 
     const setDataMask = dataMask => {
@@ -482,6 +484,8 @@ export function exploreJSON(
             }),
           );
         };
+        console.log('### du 4 0');
+        console.log(duration);
         if (response.name === 'AbortError') {
           appendErrorLog('abort');
           return dispatch(chartUpdateStopped(key));
@@ -577,6 +581,7 @@ export function getSavedChart(
    *
    */
   console.log('### du 17');
+  console.log(timeout);
   return exploreJSON(
     formData,
     force,
@@ -604,9 +609,9 @@ export function postChartFormData(
    *
    */
   console.log('### du 18');
-  console.log('timeout ' + timeout);
+  console.log(timeout);
   timeout = 180;
-  console.log('timeout ' + timeout);
+  console.log(timeout);
   return exploreJSON(
     formData,
     force,
@@ -644,7 +649,7 @@ export function refreshChart(chartKey, force, dashboardId) {
     const chart = (getState().charts || {})[chartKey];
     const timeout =
       getState().dashboardInfo.common.conf.SUPERSET_WEBSERVER_TIMEOUT;
-    console.log('timeout' + timeout);
+    console.log(timeout);
     if (
       !chart.latestQueryFormData ||
       Object.keys(chart.latestQueryFormData).length === 0
