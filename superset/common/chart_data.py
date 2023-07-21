@@ -34,7 +34,7 @@ class ChartDataResultFormat(str, Enum):
     @classmethod
     def table_like(cls) -> Set["ChartDataResultFormat"]:
         # NGLS - BEGIN #
-        return {cls.CSV} | {cls.XLSX} | {cls.PDF}
+        return {cls.CSV} | {cls.XLSX} | {cls.PDF} | {cls.PANDAS}
         # NGLS - END #
 
 

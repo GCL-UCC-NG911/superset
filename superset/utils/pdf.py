@@ -72,7 +72,7 @@ def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = 
     for element in charts:
         chart_name = element.get("sliceName")
         # If empty retun "No data"
-        dataframe = pd.DataFrame.from_dict(element.get("dataframe"), orient='records')
+        dataframe = pd.DataFrame.from_dict(element.get("dataframe"), orient='index')
         chart_df = dataframe.to_html(index=False, justify="left")
         charts_html = charts_html + f"<br><h2>  &bull;  {chart_name}</h2>" + chart_df
 
