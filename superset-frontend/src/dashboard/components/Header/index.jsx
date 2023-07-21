@@ -64,6 +64,7 @@ const propTypes = {
   addSuccessToast: PropTypes.func.isRequired,
   addDangerToast: PropTypes.func.isRequired,
   addWarningToast: PropTypes.func.isRequired,
+  addInfoToast: PropTypes.func.isRequired,
   user: PropTypes.object, // UserWithPermissionsAndRoles,
   dashboardInfo: PropTypes.object.isRequired,
   dashboardTitle: PropTypes.string,
@@ -671,6 +672,7 @@ class Header extends React.PureComponent {
             <HeaderActionsDropdown
               addSuccessToast={this.props.addSuccessToast}
               addDangerToast={this.props.addDangerToast}
+              addInfoToast={this.props.addInfoToast}
               dashboardId={dashboardInfo.id}
               dashboardTitle={dashboardTitle}
               dashboardInfo={dashboardInfo}

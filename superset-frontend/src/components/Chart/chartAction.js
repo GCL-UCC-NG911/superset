@@ -787,7 +787,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       if (element.type === 'CHART') {
         const chart = allCharts.find(obj => obj.chartId === element.chartId);
         console.log(chart);
-
+        // TODO: Create a protection when latestQueryFormData is empty
         const payload = buildV1ChartDataPayload({
           formData: chart.latestQueryFormData,
           result_format: 'csv',

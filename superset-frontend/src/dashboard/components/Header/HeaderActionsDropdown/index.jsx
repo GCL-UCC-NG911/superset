@@ -51,6 +51,7 @@ import {
 const propTypes = {
   addSuccessToast: PropTypes.func.isRequired,
   addDangerToast: PropTypes.func.isRequired,
+  addInfoToast: PropTypes.func.isRequired,
   dashboardInfo: PropTypes.object.isRequired,
   dashboardId: PropTypes.number,
   dashboardTitle: PropTypes.string,
@@ -392,6 +393,7 @@ class HeaderActionsDropdown extends React.PureComponent {
         // span a pop up
         // alert("This process take a long time please waiting....");
         // addWarningToast(t('Image download takes a long time, please wait.'));
+        this.props.ad
         downloadAsImage(
           SCREENSHOT_NODE_SELECTOR,
           this.props.dashboardTitle,
@@ -401,6 +403,7 @@ class HeaderActionsDropdown extends React.PureComponent {
         });
 
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE);
+        this.props.addInfoToast(t('Image download takes a long time, please wait.'));
         break;
       }
       /* NGLS - BEGIN */
@@ -419,10 +422,12 @@ class HeaderActionsDropdown extends React.PureComponent {
           menu.style.visibility = 'visible';
         });
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF);
+        this.props.addInfoToast(t('PDF download takes a long time, please wait.'));
         break;
       }
       case MENU_KEYS.DOWNLOAD_CHARTS_DATA_AS_PDF: {
         this.props.downlaodAllChartsAsPdf();
+        this.props.addInfoToast(t('PDF download takes a long time, please wait.'));
         break;
       }
       /* NGLS - END */
@@ -469,6 +474,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       lastModifiedTime,
       addSuccessToast,
       addDangerToast,
+      addInfoToast,
       filterboxMigrationState,
       setIsDropdownVisible,
       isDropdownVisible,
@@ -562,18 +568,21 @@ class HeaderActionsDropdown extends React.PureComponent {
               key={MENU_KEYS.DOWNLOAD_SUBMENU}
             >
               <Menu.Item
+                addInfoToast={this.props.addInfoToast}
                 key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
                 onClick={this.handleMenuClick}
               >
                 {t('Screen as image')}
               </Menu.Item>
               <Menu.Item
+                addInfoToast={this.props.addInfoToast}
                 key={MENU_KEYS.DOWNLOAD_AS_PDF}
                 onClick={this.handleMenuClick}
               >
                 {t('Screen as PDF')}
               </Menu.Item>
               <Menu.Item
+                addInfoToast={this.props.addInfoToast}
                 key={MENU_KEYS.DOWNLOAD_CHARTS_DATA_AS_PDF}
                 onClick={this.handleMenuClick}
               >
