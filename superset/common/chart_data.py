@@ -28,6 +28,7 @@ class ChartDataResultFormat(str, Enum):
     XLSX = "xlsx"
     # NGLS - BEGIN #
     PDF = "pdf"
+    PANDAS = "pandas"
     # NGLS - END #
 
     @classmethod
