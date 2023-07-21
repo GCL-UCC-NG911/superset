@@ -425,7 +425,7 @@ class HeaderActionsDropdown extends React.PureComponent {
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF);
         this.props.addInfoToast(
           t('PDF download takes a long time, please wait.'),
-          );
+        );
         break;
       }
       case MENU_KEYS.DOWNLOAD_CHARTS_DATA_AS_PDF: {
