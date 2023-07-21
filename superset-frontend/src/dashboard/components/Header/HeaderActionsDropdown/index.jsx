@@ -199,7 +199,7 @@ class HeaderActionsDropdown extends React.PureComponent {
         });
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE);
         this.props.addInfoToast(
-          t('Image download takes a long time, please wait.'),
+          t('Preparing file for download, please wait'),
         );
         break;
       }
@@ -220,7 +220,7 @@ class HeaderActionsDropdown extends React.PureComponent {
         });
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF);
         this.props.addInfoToast(
-          t('PDF download takes a long time, please wait.'),
+          t('Preparing file for download, please wait'),
         );
         break;
       }
