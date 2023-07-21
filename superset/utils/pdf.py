@@ -51,29 +51,33 @@ def df_to_pdf(df: pd.DataFrame, options: Dict = None, title: str = None) -> Any:
 def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = None) -> Any:
     logger.info("### charts_to_pdf 0")
     title = dashboard.get("dashboardTitle")
-    dashboar_title = f"<h1>{title}</h1>" if title else ""
+    dashboar_title = f"<h1>Dashboard: {title}</h1>" if title else ""
 
     # loop filters
-    filters_html = ""
+    if len(charts) > 0:
+        filters_html = "<br><br><h2>Filters:</h2>"
+
     for element in filters:
+        logger.info(element)
         filter_name = element.get("name")
         # Return the corret message
         # To date/time: No filter
         # Others: No date
         filter_value = element.get("value") if element.get("value") else "No filter"
-        if filters_html == "":
-            if dashboar_title != "":
-                filters_html = "<br><br><h2>Filters:</h2>"
-        else:
-            filters_html = filters_html + f"<h2>    &bull; {filter_name}: {filter_value}</h2>"
+        filters_html = filters_html + f"<br><h2>    &bull; {filter_name}: {filter_value}</h2>"
 
     # loop charts
-    charts_html = "<br><br><h2>Table(s):</h2>"
+    if len(charts) > 0:
+        charts_html = "<br><br><h2>Table(s):</h2>"
+
     for element in charts:
+        logger.info(element)
         chart_name = element.get("sliceName")
         # If empty retun "No data"
         dataframe = pd.DataFrame.from_dict(element.get("dataframe"), orient='index')
+        logger.info(dataframe)
         chart_df = dataframe.to_html(index=False, justify="left")
+        logger.info(chart_df)
         charts_html = charts_html + f"<br><h2>  &bull;  {chart_name}</h2>" + chart_df
 
     # html_charts
