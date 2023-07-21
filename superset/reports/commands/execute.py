@@ -254,6 +254,8 @@ class BaseReportState:
         images = []
         logger.info("##### start get_pdf_image #####")
         logger.info(vars(self))
+        session = self._session
+        logger.info(vars(session))
         snapshots = self._get_screenshots()
 
         for snap in snapshots:
@@ -436,13 +438,14 @@ class BaseReportState:
             feature_flag_manager.is_feature_enabled("ALERTS_ATTACH_REPORTS")
             or self._report_schedule.type == ReportScheduleType.REPORT
         ):
+            logger.info("### _get_notification_content 0")
             if self._report_schedule.report_format == ReportDataFormat.VISUALIZATION:
                 screenshot_data = self._get_screenshots()
                 if not screenshot_data:
                     error_text = "Unexpected missing screenshot"
             # NGLS - BEGIN #
             elif self._report_schedule.report_format == ReportDataFormat.PDF:
-                logger.info("### _get_notification_content 0")
+                logger.info("### _get_notification_content 1")
                 if self._report_schedule.chart:
                     data = self.get_pdf_data()
                 else:
@@ -450,6 +453,7 @@ class BaseReportState:
                 if not data:
                     error_text = "Unexpected missing PDF file"
             elif self._report_schedule.report_format == ReportDataFormat.ALL_CHARTS_DATA_AS_PDF:
+                logger.info("### _get_notification_content 2")
                 data = self.get_pdf_image()
                 if not data:
                     error_text = "Unexpected missing PDF file"
@@ -472,6 +476,7 @@ class BaseReportState:
             self._report_schedule.chart
             and self._report_schedule.report_format == ReportDataFormat.TEXT
         ):
+            logger.info("### _get_notification_content 3")
             embedded_data = self._get_embedded_data()
 
         if self._report_schedule.chart:
@@ -480,6 +485,7 @@ class BaseReportState:
                 f"{self._report_schedule.chart.slice_name}"
             )
         else:
+            logger.info("### _get_notification_content 4")
             name = (
                 f"{self._report_schedule.name}: "
                 f"{self._report_schedule.dashboard.dashboard_title}"
@@ -509,8 +515,10 @@ class BaseReportState:
         :raises: CommandException
         """
         notification_errors: List[SupersetError] = []
+        logger.info("### _send 0")
         for recipient in recipients:
             notification = create_notification(recipient, notification_content)
+            logger.info("### _send 1")
             try:
                 if app.config["ALERT_REPORTS_NOTIFICATION_DRY_RUN"]:
                     logger.info(
@@ -519,6 +527,7 @@ class BaseReportState:
                         recipient.recipient_config_json,
                     )
                 else:
+                    logger.info("### _send 2")
                     notification.send()
             except (NotificationError, SupersetException) as ex:
                 # collect errors but keep processing them
@@ -547,6 +556,7 @@ class BaseReportState:
 
         :raises: CommandException
         """
+        logger.info("### send 0")
         notification_content = self._get_notification_content()
         self._send(notification_content, self._report_schedule.recipients)
 
@@ -556,6 +566,7 @@ class BaseReportState:
 
         :raises: CommandException
         """
+        logger.info("### send_error 0")
         header_data = self._get_log_data()
         logger.info(
             "header_data in notifications for alerts and reports %s, taskid, %s",
@@ -747,6 +758,7 @@ class ReportSuccessState(BaseReportState):
                 raise ex
 
         try:
+            logger.info("### next 0")
             self.send()
             self.update_report_schedule_and_log(ReportState.SUCCESS)
         except Exception as ex:  # pylint: disable=broad-except
