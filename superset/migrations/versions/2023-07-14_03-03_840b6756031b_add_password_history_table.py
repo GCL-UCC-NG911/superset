@@ -42,17 +42,18 @@ def table_verification(table):
         return True
 
 def upgrade():
-    if not table_verification("password_history"):
-        op.create_table(
-            "password_history",
-            sa.Column("id", sa.Integer(), nullable=False),
-            sa.Column("old_password", sa.String(256), nullable=True),
-            sa.Column("timestamp", sa.DateTime(), nullable=True),
-            sa.Column(
-                "user_id", sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True
-            ),
-            sa.PrimaryKeyConstraint("id"),
-        )
+    op.create_table(
+        "password_history",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("old_password", sa.String(256), nullable=True),
+        sa.Column("timestamp", sa.DateTime(), nullable=True),
+        sa.Column("user_id", sa.Integer(), nullable=True),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["ab_user.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
+    )
 
 def downgrade():
-    pass
+    op.drop_table("password_history")
