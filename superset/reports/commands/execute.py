@@ -252,10 +252,19 @@ class BaseReportState:
     # NGLS - BEGIN #
     def get_pdf_image(self) -> Optional[bytes]:
         images = []
-        logger.info("##### start get_pdf_image #####")
+        logger.info("##### get_pdf_image 0")
         logger.info(vars(self))
         session = self._session
         logger.info(vars(session))
+        identity_map = session.identity_map
+        logger.info(vars(identity_map))
+        _transaction = session.identity_map
+        logger.info(vars(_transaction))
+        _query_cls = session.identity_map
+        logger.info(vars(_query_cls))
+        dispatch = session.identity_map
+        logger.info(vars(dispatch))
+        logger.info("##### get_pdf_image 1")
         snapshots = self._get_screenshots()
 
         for snap in snapshots:
