@@ -261,15 +261,33 @@ class BaseReportState:
         identity_map = session.identity_map
         logger.info("##### identity_map")
         logger.info(vars(identity_map))
+        _dict = identity_map._dict
+        logger.info("##### _dict")
+        logger.info(vars(_dict))
+        _wr = identity_map._wr
+        logger.info("##### _wr")
+        logger.info(vars(_wr))
         _transaction = session._transaction
         logger.info("##### _transaction")
         logger.info(vars(_transaction))
-        _dict = _transaction._dict
-        logger.info("##### _dict")
-        logger.info(vars(_dict))
-        _wr = _transaction._wr
-        logger.info("##### _wr")
-        logger.info(vars(_wr))
+        _transactionsession = _transaction.session
+        logger.info("##### _transaction.session")
+        logger.info(vars(_transactionsession))
+        _connections = _transaction._connections
+        logger.info("##### _transaction._connections")
+        logger.info(vars(_connections))
+        _new = _transaction._new
+        logger.info("##### _transaction._new")
+        logger.info(vars(_new))
+        _deleted = _transaction._deleted
+        logger.info("##### _transaction._deleted")
+        logger.info(vars(_deleted))
+        _dirty = _transaction._dirty
+        logger.info("##### _transaction._dirty")
+        logger.info(vars(_dirty))
+        _key_switches = _transaction._key_switches
+        logger.info("##### _transaction._key_switches")
+        logger.info(vars(_key_switches))
         _query_cls = session._query_cls
         logger.info("##### _query_cls")
         logger.info(vars(_query_cls))
