@@ -258,15 +258,15 @@ class BaseReportState:
         session = self._session
         # logger.info("##### _session")
         # logger.info(vars(session))
-        identity_map = session.identity_map
+        # identity_map = session.identity_map
         # logger.info("##### identity_map")
         # logger.info(vars(identity_map))
         # _dict = identity_map._dict
         # logger.info("##### _dict")
         # logger.info(vars(_dict))
-        _wr = identity_map._wr
-        logger.info("##### _wr")
-        logger.info(vars(_wr))
+        # _wr = identity_map._wr
+        # logger.info("##### _wr")
+        # logger.info(vars(_wr))
         _transaction = session._transaction
         logger.info("##### _transaction")
         logger.info(vars(_transaction))
