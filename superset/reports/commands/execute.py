@@ -253,14 +253,14 @@ class BaseReportState:
     def get_pdf_image(self) -> Optional[bytes]:
         images = []
         logger.info("##### get_pdf_image 0")
-        logger.info("##### self")
-        logger.info(vars(self))
+        # logger.info("##### self")
+        # logger.info(vars(self))
         session = self._session
-        logger.info("##### _session")
-        logger.info(vars(session))
+        # logger.info("##### _session")
+        # logger.info(vars(session))
         identity_map = session.identity_map
-        logger.info("##### identity_map")
-        logger.info(vars(identity_map))
+        # logger.info("##### identity_map")
+        # logger.info(vars(identity_map))
         # _dict = identity_map._dict
         # logger.info("##### _dict")
         # logger.info(vars(_dict))
