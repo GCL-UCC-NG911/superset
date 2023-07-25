@@ -261,9 +261,9 @@ class BaseReportState:
         identity_map = session.identity_map
         logger.info("##### identity_map")
         logger.info(vars(identity_map))
-        _dict = identity_map._dict
-        logger.info("##### _dict")
-        logger.info(vars(_dict))
+        # _dict = identity_map._dict
+        # logger.info("##### _dict")
+        # logger.info(vars(_dict))
         _wr = identity_map._wr
         logger.info("##### _wr")
         logger.info(vars(_wr))
