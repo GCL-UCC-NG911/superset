@@ -300,12 +300,21 @@ class BaseReportState:
         test = self._report_schedule.dashboard.digest
         logger.info("##### self._report_schedule.dashboard.digest")
         logger.info(test)
-        test = session.__getattribute__
-        logger.info("##### session.__getattribute__")
-        logger.info(vars(test))
-        test = session.__str__
-        logger.info("##### session.__str__")
-        logger.info(vars(test))
+        test = self._report_schedule.dashboard.charts
+        logger.info("##### self._report_schedule.dashboard.charts")
+        logger.info(test)
+        test = self._report_schedule.dashboard.position_json
+        logger.info("##### self._report_schedule.dashboard.position_json")
+        logger.info(test)
+        test = self._report_schedule.dashboard.data.slices
+        logger.info("##### self._report_schedule.dashboard.data.slices")
+        logger.info(test)
+        # test = session.__getattribute__
+        # logger.info("##### session.__getattribute__")
+        # logger.info(vars(test))
+        # test = session.__str__
+        # logger.info("##### session.__str__")
+        # logger.info(vars(test))
         # dispatch = session.dispatch
         # logger.info("##### dispatch")
         # logger.info(vars(dispatch))
