@@ -303,12 +303,29 @@ class BaseReportState:
         test = self._report_schedule.dashboard.charts
         logger.info("##### self._report_schedule.dashboard.charts")
         logger.info(test)
-        test = self._report_schedule.dashboard.position_json
-        logger.info("##### self._report_schedule.dashboard.position_json")
+        # test = self._report_schedule.dashboard.position_json
+        # logger.info("##### self._report_schedule.dashboard.position_json")
+        # logger.info(test)
+        test = self._report_schedule.dashboard.filter_sets
+        logger.info("##### self._report_schedule.dashboard.filter_sets")
+        logger.info(test)
+        test = self._report_schedule.dashboard.sqla_metadata
+        logger.info("##### self._report_schedule.dashboard.sqla_metadata")
         logger.info(test)
         test = self._report_schedule.dashboard.data
         logger.info("##### self._report_schedule.dashboard.data")
         logger.info(test)
+        dashboard_id = self._report_schedule.dashboard.data['id']
+        native_filter_configuration = self._report_schedule.dashboard.data['metadata']['native_filter_configuration']
+        dashboard_title = self._report_schedule.dashboard.data['dashboard_title']
+        form_data = self._report_schedule.dashboard.data['slices'][0]['form_data']
+        query_context = self._report_schedule.dashboard.data['slices'][0]['query_context']
+        slice_id = self._report_schedule.dashboard.data['slices'][0]['slice_id']
+        slice_name = self._report_schedule.dashboard.data['slices'][0]['slice_name']
+        slice_form_data = self._report_schedule.dashboard.data['slices'][1]['form_data']
+        logger.info("##### self._report_schedule.dashboard.data")
+        logger.info(test)
+
         # test = session.__getattribute__
         # logger.info("##### session.__getattribute__")
         # logger.info(vars(test))
