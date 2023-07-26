@@ -291,15 +291,15 @@ class BaseReportState:
         _query_cls = session._query_cls
         # logger.info("##### _query_cls")
         # logger.info(vars(_query_cls))
-        _set_entities = _query_cls._set_entities
-        logger.info("##### _set_entities")
-        logger.info(vars(_set_entities))
-        subquery = _query_cls.subquery
-        logger.info("##### subquery")
-        logger.info(vars(subquery))
+        # _set_entities = _query_cls._set_entities
+        # logger.info("##### _set_entities")
+        # logger.info(vars(_set_entities))
+        # subquery = _query_cls.subquery
+        # logger.info("##### subquery")
+        # logger.info(vars(subquery))
         selectable = _query_cls.selectable
         logger.info("##### selectable")
-        logger.info(vars(selectable))
+        logger.info(selectable)
         only_return_tuples = _query_cls.only_return_tuples
         logger.info("##### only_return_tuples")
         logger.info(only_return_tuples)
