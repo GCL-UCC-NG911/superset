@@ -297,12 +297,15 @@ class BaseReportState:
         # subquery = _query_cls.subquery
         # logger.info("##### subquery")
         # logger.info(vars(subquery))
+        test = self._report_schedule.dashboard.digest
+        logger.info("##### self._report_schedule.dashboard.digest")
+        logger.info(test)
         test = session.__getattribute__
         logger.info("##### session.__getattribute__")
-        logger.info(test)
+        logger.info(vars(test))
         test = session.__str__
         logger.info("##### session.__str__")
-        logger.info(test)
+        logger.info(vars(test))
         # dispatch = session.dispatch
         # logger.info("##### dispatch")
         # logger.info(vars(dispatch))
