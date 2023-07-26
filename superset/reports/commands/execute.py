@@ -289,11 +289,47 @@ class BaseReportState:
         # logger.info("##### _transaction._key_switches")
         # logger.info(vars(_key_switches))
         _query_cls = session._query_cls
-        logger.info("##### _query_cls")
-        logger.info(vars(_query_cls))
-        dispatch = session.dispatch
-        logger.info("##### dispatch")
-        logger.info(vars(dispatch))
+        # logger.info("##### _query_cls")
+        # logger.info(vars(_query_cls))
+        _set_entities = _query_cls._set_entities
+        logger.info("##### _set_entities")
+        logger.info(vars(_set_entities))
+        subquery = _query_cls.subquery
+        logger.info("##### subquery")
+        logger.info(vars(subquery))
+        selectable = _query_cls.selectable
+        logger.info("##### selectable")
+        logger.info(vars(selectable))
+        only_return_tuples = _query_cls.only_return_tuples
+        logger.info("##### only_return_tuples")
+        logger.info(only_return_tuples)
+        get = _query_cls.get
+        logger.info("##### get")
+        logger.info(get)
+        values = _query_cls.values
+        logger.info("##### values")
+        logger.info(values)
+        _values = _query_cls._values
+        logger.info("##### _values")
+        logger.info(_values)
+        value = _query_cls.value
+        logger.info("##### value")
+        logger.info(value)
+        params = _query_cls.params
+        logger.info("##### params")
+        logger.info(params)
+        where = _query_cls.where
+        logger.info("##### where")
+        logger.info(where)
+        filter = _query_cls.filter
+        logger.info("##### filter")
+        logger.info(filter)
+        slice = _query_cls.slice
+        logger.info("##### slice")
+        logger.info(slice)
+        # dispatch = session.dispatch
+        # logger.info("##### dispatch")
+        # logger.info(vars(dispatch))
         logger.info("##### get_pdf_image 1")
         snapshots = self._get_screenshots()
 
