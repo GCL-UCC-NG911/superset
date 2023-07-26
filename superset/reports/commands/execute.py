@@ -288,7 +288,7 @@ class BaseReportState:
         # _key_switches = _transaction._key_switches
         # logger.info("##### _transaction._key_switches")
         # logger.info(vars(_key_switches))
-        _query_cls = session._query_cls
+        # _query_cls = session._query_cls
         # logger.info("##### _query_cls")
         # logger.info(vars(_query_cls))
         # _set_entities = _query_cls._set_entities
@@ -297,9 +297,9 @@ class BaseReportState:
         # subquery = _query_cls.subquery
         # logger.info("##### subquery")
         # logger.info(vars(subquery))
-        test = self._report_schedule.dashboard.digest
-        logger.info("##### self._report_schedule.dashboard.digest")
-        logger.info(test)
+        # test = self._report_schedule.dashboard.digest
+        # logger.info("##### self._report_schedule.dashboard.digest")
+        # logger.info(test)
         test = self._report_schedule.dashboard.charts
         logger.info("##### self._report_schedule.dashboard.charts")
         logger.info(test)
