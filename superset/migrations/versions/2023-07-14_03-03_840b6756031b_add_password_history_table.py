@@ -37,9 +37,8 @@ def table_verification(table):
         config.get_section(config.config_ini_section), prefix="sqlalchemy."
     )
     inspector = reflection.Inspector.from_engine(engine)
-    tables = inspector.get_table_names()
     has_table = False
-    if table in tables:
+    if table in inspector.get_table_names():
         has_table = True
     return has_table
 
@@ -59,4 +58,4 @@ def upgrade():
         )
 
 def downgrade():
-    pass
+    op.drop_table("password_history")
