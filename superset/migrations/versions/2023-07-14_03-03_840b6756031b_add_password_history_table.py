@@ -52,8 +52,6 @@ def upgrade():
             sa.Column("user_id", sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
             sa.PrimaryKeyConstraint("id"),
         )
-    with op.batch_alter_table("ab_user") as batch_op:
-        batch_op.add_column(sa.Column("old_password", sa.String(256), nullable=True))
 
 def downgrade():
     op.drop_table("password_history")
