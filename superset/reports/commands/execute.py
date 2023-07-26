@@ -297,36 +297,12 @@ class BaseReportState:
         # subquery = _query_cls.subquery
         # logger.info("##### subquery")
         # logger.info(vars(subquery))
-        selectable = _query_cls.selectable
-        logger.info("##### selectable")
-        logger.info(selectable)
-        only_return_tuples = _query_cls.only_return_tuples
-        logger.info("##### only_return_tuples")
-        logger.info(only_return_tuples)
-        get = _query_cls.get
-        logger.info("##### get")
-        logger.info(get)
-        values = _query_cls.values
-        logger.info("##### values")
-        logger.info(values)
-        _values = _query_cls._values
-        logger.info("##### _values")
-        logger.info(_values)
-        value = _query_cls.value
-        logger.info("##### value")
-        logger.info(value)
-        params = _query_cls.params
-        logger.info("##### params")
-        logger.info(params)
-        where = _query_cls.where
-        logger.info("##### where")
-        logger.info(where)
-        filter = _query_cls.filter
-        logger.info("##### filter")
-        logger.info(filter)
-        slice = _query_cls.slice
-        logger.info("##### slice")
-        logger.info(slice)
+        test = session.__getattribute__
+        logger.info("##### session.__getattribute__")
+        logger.info(test)
+        test = session.__str__
+        logger.info("##### session.__str__")
+        logger.info(test)
         # dispatch = session.dispatch
         # logger.info("##### dispatch")
         # logger.info(vars(dispatch))
