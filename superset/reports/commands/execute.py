@@ -255,7 +255,7 @@ class BaseReportState:
         logger.info("##### get_pdf_image 0")
         # logger.info("##### self")
         # logger.info(vars(self))
-        session = self._session
+        # session = self._session
         # logger.info("##### _session")
         # logger.info(vars(session))
         # identity_map = session.identity_map
@@ -306,9 +306,9 @@ class BaseReportState:
         # test = self._report_schedule.dashboard.position_json
         # logger.info("##### self._report_schedule.dashboard.position_json")
         # logger.info(test)
-        test = self._report_schedule.dashboard.filter_sets
-        logger.info("##### self._report_schedule.dashboard.filter_sets")
-        logger.info(test)
+        # test = self._report_schedule.dashboard.filter_sets
+        # logger.info("##### self._report_schedule.dashboard.filter_sets")
+        # logger.info(test)
         test = self._report_schedule.dashboard.sqla_metadata
         logger.info("##### self._report_schedule.dashboard.sqla_metadata")
         logger.info(test)
@@ -323,9 +323,7 @@ class BaseReportState:
         slice_id = self._report_schedule.dashboard.data['slices'][0]['slice_id']
         slice_name = self._report_schedule.dashboard.data['slices'][0]['slice_name']
         slice_form_data = self._report_schedule.dashboard.data['slices'][1]['form_data']
-        logger.info("##### self._report_schedule.dashboard.data")
-        logger.info(test)
-
+        logger.info(query_context)
         # test = session.__getattribute__
         # logger.info("##### session.__getattribute__")
         # logger.info(vars(test))
