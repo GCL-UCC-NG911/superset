@@ -306,8 +306,8 @@ class BaseReportState:
         test = self._report_schedule.dashboard.position_json
         logger.info("##### self._report_schedule.dashboard.position_json")
         logger.info(test)
-        test = self._report_schedule.dashboard.data.slices
-        logger.info("##### self._report_schedule.dashboard.data.slices")
+        test = self._report_schedule.dashboard.data
+        logger.info("##### self._report_schedule.dashboard.data")
         logger.info(test)
         # test = session.__getattribute__
         # logger.info("##### session.__getattribute__")
