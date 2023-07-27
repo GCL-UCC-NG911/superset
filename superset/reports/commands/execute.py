@@ -278,19 +278,13 @@ class BaseReportState:
             ]
 
         alltables = []
-        for (let i = 0; i < childrenElement.children.length; i += 1) {
-            const table = this.getAllTables(props, childrenElement.children[i]);
-            table.forEach(element => {
-                alltables.push(element);
-            });
-        }
         for children in childrenElement['children']:
             tables = self.getAllTables(props, children)
 
             for table in tables:
                 alltables.append(table)
 
-        return alltables;
+        return alltables
 
     def get_pdf_image(self) -> Optional[bytes]:
         images = []
