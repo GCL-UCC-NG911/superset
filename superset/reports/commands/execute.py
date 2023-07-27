@@ -254,10 +254,11 @@ class BaseReportState:
         if props == None or element == None or element == '':
             return []
         
+        childrenElement = props[element]
         logger.info(element)
         logger.info(props)
-        childrenElement = props[element]
         logger.info(childrenElement)
+
         if childrenElement['type'] == 'CHART':
             return [
                 {
@@ -283,9 +284,9 @@ class BaseReportState:
         alltables = []
         for children in childrenElement['children']:
             tables = self.getAllTables(props, children)
-
-            for table in tables:
-                alltables.append(table)
+            logger.info(tables)
+            # for table in tables:
+                # alltables.append(table)
 
         return alltables
 
