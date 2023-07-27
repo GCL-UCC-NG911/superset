@@ -852,6 +852,7 @@ class ReportNotTriggeredErrorState(BaseReportState):
             if not self.is_in_error_grace_period():
                 second_error_message = REPORT_SCHEDULE_ERROR_NOTIFICATION_MARKER
                 try:
+                    logger.info("### send_error 0 0")
                     self.send_error(
                         f"Error occurred for {self._report_schedule.type}:"
                         f" {self._report_schedule.name}",
@@ -922,6 +923,7 @@ class ReportSuccessState(BaseReportState):
                     self.update_report_schedule_and_log(ReportState.NOOP)
                     return
             except Exception as ex:
+                logger.info("### send_error 0 0 0")
                 self.send_error(
                     f"Error occurred for {self._report_schedule.type}:"
                     f" {self._report_schedule.name}",
