@@ -90,7 +90,26 @@ from superset.utils.csv import get_chart_csv_data, get_chart_dataframe
 
 # NGLS - BEGIN #
 from superset.utils import pdf
-
+from superset.charts.data.commands.get_data_command import ChartDataCommand
+from typing import Any, Dict, Optional
+from superset.connectors.base.models import BaseDatasource
+from superset.charts.commands.exceptions import (
+    ChartDataCacheLoadError,
+    ChartDataQueryFailedError,
+)
+from superset.charts.data.query_context_cache_loader import QueryContextCacheLoader
+from superset.charts.schemas import ChartDataQueryContextSchema
+from superset.common.query_context import QueryContext
+from marshmallow import ValidationError
+from superset.views.base import (
+    CsvResponse,
+    generate_download_headers,
+    generate_filename,
+    PdfResponse,
+    XlsxResponse,
+)
+from superset.charts.post_processing import apply_post_process
+from superset.utils.screenshots import DashboardChartScreenshot
 # NGLS - END #
 from superset.utils.screenshots import ChartScreenshot, DashboardScreenshot
 from superset.utils.urls import get_url_path
@@ -250,16 +269,101 @@ class BaseReportState:
         return [image]
 
     # NGLS - BEGIN #
+    def _send_chart_response(
+        self,
+        result: Dict[Any, Any],
+        form_data: Optional[Dict[str, Any]] = None,
+        datasource: Optional[BaseDatasource] = None,
+    ) -> Optional[Any]:
+        result_type = result["query_context"].result_type
+        result_format = result["query_context"].result_format
+
+        logger.info("### _send_chart_response 0")
+        logger.info(form_data)
+        if form_data:
+            title = form_data.get("chart_name", "Untitled")
+            filename = generate_filename(title) if title else None
+
+        # Post-process the data so it matches the data presented in the chart.
+        # This is needed for sending reports based on text charts that do the
+        # post-processing of data, eg, the pivot table.
+        logger.info(result_type)
+        logger.info(result_format)
+        if result_type == ChartDataResultType.POST_PROCESSED:
+            result = apply_post_process(result, form_data, datasource)
+            logger.info("### _send_chart_response 1")
+            logger.info(result)
+        if result_format in ChartDataResultFormat.table_like():
+            logger.info("### _send_chart_response 2")
+            # Verify user has permission to export file
+            if not security_manager.can_access("can_csv", "Superset"):
+                return None
+
+            if not result["queries"]:
+                return None
+
+            if len(result["queries"]) == 1:
+                logger.info("### _send_chart_response 3")
+                # return single query results
+                data = result["queries"][0]["data"]
+                logger.info(data)
+                # NGLS - BEGIN #
+                if result_format == ChartDataResultFormat.PANDAS:
+                    logger.info("### _send_chart_response 5")
+                    return data
+                # NGLS - END #
+        return None
+
+    def _get_data_response(
+        self,
+        command: ChartDataCommand,
+        force_cached: bool = False,
+        form_data: Optional[Dict[str, Any]] = None,
+        datasource: Optional[BaseDatasource] = None,
+    ) -> Any:
+        try:
+            logger.info("### _get_data_response 0 0")
+            result = command.run(force_cached=force_cached)
+            logger.info(result)
+        except ChartDataCacheLoadError as exc:
+            logger.error(exc.message)
+        except ChartDataQueryFailedError as exc:
+            logger.error(exc.message)
+        logger.info("### _get_data_response 1")
+        return self._send_chart_response(result, form_data, datasource)
+
+    # pylint: disable=invalid-name, no-self-use
+    def _load_query_context_form_from_cache(self, cache_key: str) -> Dict[str, Any]:
+        return QueryContextCacheLoader.load(cache_key)
+
+    # pylint: disable=no-self-use
+    def _create_query_context_from_form(
+        self, form_data: Dict[str, Any]
+    ) -> QueryContext:
+        try:
+            return ChartDataQueryContextSchema().load(form_data)
+        except KeyError as ex:
+            raise ValidationError("Request is incorrect") from ex
+        except ValidationError as error:
+            raise error
+
     def getAllTables(self, props, element) -> Optional[Any]:
         if props == None or element == None or element == '':
             return []
         
-        logger.info(element)
-        logger.info(props)
+        # logger.info(element)
+        # logger.info(props)
         childrenElement = props[element]
-        logger.info(childrenElement)
+        # logger.info(childrenElement)
 
         if childrenElement['type'] == 'CHART':
+            form_data = childrenElement.get("form_data")
+            form_data['result_format'] = "pandas"
+            query_context = self._create_query_context_from_form(form_data)
+            command = ChartDataCommand(query_context)
+            command.validate()
+            dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
+
             return [
                 {
                     'chartId': childrenElement['meta']['chartId'],
@@ -267,6 +371,7 @@ class BaseReportState:
                     'uuid': childrenElement['meta']['uuid'],
                     'height': childrenElement['meta']['height'],
                     'width': childrenElement['meta']['width'],
+                    'dataframe': dataframe,
                     'type': 'CHART',
                 },
             ]
@@ -284,9 +389,9 @@ class BaseReportState:
         alltables = []
         for children in childrenElement['children']:
             tables = self.getAllTables(props, children)
-            logger.info(tables)
-            # for table in tables:
-                # alltables.append(table)
+            # logger.info(tables)
+            for table in tables:
+                alltables.append(table)
 
         return alltables
 
@@ -303,10 +408,13 @@ class BaseReportState:
         }
 
         # filters = []
-        charts = self.getAllTables(position_json,'ROOT_ID')
-
-        logger.info(dashboard)
-        logger.info(charts)
+        # charts = self.getAllTables(position_json,'ROOT_ID')
+        format == "data_pdf"
+        dashboardInfo = {
+            dashboard,
+            self.getAllTables(position_json,'ROOT_ID'),
+        }
+        logger.info(dashboardInfo)
 
         test = self._report_schedule.dashboard.charts
         logger.info("##### self._report_schedule.dashboard.charts")
@@ -334,20 +442,10 @@ class BaseReportState:
         logger.info(query_context)
         
         logger.info("##### get_pdf_image 1")
-        snapshots = self._get_screenshots()
-
-        for snap in snapshots:
-            logger.info("##### snap #####")
-            img = Image.open(BytesIO(snap))
-            if img.mode == "RGBA":
-                img = img.convert("RGB")
-            images.append(img)
-
-        new_pdf = BytesIO()
-        images[0].save(new_pdf, "PDF", save_all=True, append_images=images[1:])
-        new_pdf.seek(0)
+        data = DashboardChartScreenshot('admin', dashboardInfo, format, dashboardData['id']).get3()
         logger.info("##### end get_pdf_image #####")
-        return new_pdf.read()
+        
+        return data.read()
 
     def get_all_pdf_image(self) -> Optional[bytes]:
         images = []
