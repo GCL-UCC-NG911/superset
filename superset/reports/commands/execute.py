@@ -256,7 +256,7 @@ class BaseReportState:
         
         logger.info(element)
         logger.info(props)
-        childrenElement = json.dumps(props).get(element)
+        childrenElement = props[element]
         logger.info(childrenElement)
 
         if childrenElement['type'] == 'CHART':
@@ -294,7 +294,7 @@ class BaseReportState:
         images = []
         logger.info("##### get_pdf_image 0")
         dashboardData = self._report_schedule.dashboard.data
-        position_json = self._report_schedule.dashboard.position_json
+        position_json = json.loads(self._report_schedule.dashboard.position_json)
 
         dashboard = {
             'dashboardId': dashboardData['id'],
