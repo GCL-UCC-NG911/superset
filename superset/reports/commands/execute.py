@@ -632,6 +632,7 @@ class BaseReportState:
                 logger.info("### _get_notification_content 2")
                 data = self.get_pdf_image()
                 if not data:
+                    logger.info("### if not data 0")
                     error_text = "Unexpected missing PDF file"
             # NGLS - END #
             elif (
@@ -642,6 +643,7 @@ class BaseReportState:
                 if not data:
                     error_text = "Unexpected missing csv file"
             if error_text:
+                logger.info("### error_text 0")
                 return NotificationContent(
                     name=self._report_schedule.name,
                     text=error_text,
@@ -837,7 +839,9 @@ class ReportNotTriggeredErrorState(BaseReportState):
                 if not AlertCommand(self._report_schedule).run():
                     self.update_report_schedule_and_log(ReportState.NOOP)
                     return
+            logger.info("### send 0 0")
             self.send()
+            logger.info("### send 0 1")
             self.update_report_schedule_and_log(ReportState.SUCCESS)
         except (SupersetErrorsException, Exception) as first_ex:
             error_message = str(first_ex)
