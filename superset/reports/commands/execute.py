@@ -256,8 +256,8 @@ class BaseReportState:
         
         logger.info(element)
         logger.info(props)
-        logger.info(props[element])
-        childrenElement = props[element]
+        childrenElement = json.dumps(props)[element]
+        logger.info(childrenElement)
 
         if childrenElement['type'] == 'CHART':
             return [
