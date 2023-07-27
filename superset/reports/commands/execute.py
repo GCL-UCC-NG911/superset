@@ -250,71 +250,81 @@ class BaseReportState:
         return [image]
 
     # NGLS - BEGIN #
+    def getAllTables(self, props, element) -> Optional[Any]:
+        if props == None or element == None or element == '':
+            return []
+        
+        childrenElement = props[element]
+        if childrenElement['type'] == 'CHART':
+            return [
+                {
+                    'chartId': childrenElement['meta']['chartId'],
+                    'sliceName': childrenElement['meta']{'sliceName'},
+                    'uuid': childrenElement['meta']['uuid'],
+                    'height': childrenElement['meta']['height'],
+                    'width': childrenElement['meta']['width'],
+                    'type': 'CHART',
+                },
+            ]
+
+        if childrenElement['type'] == 'MARKDOWN':
+            return [
+                {
+                    'code': childrenElement['meta']['code'],
+                    'height': childrenElement['meta']['height'],
+                    'width': childrenElement['meta']['width'],
+                    'type': 'MARKDOWN',
+                },
+            ]
+
+        alltables = []
+        for (let i = 0; i < childrenElement.children.length; i += 1) {
+            const table = this.getAllTables(props, childrenElement.children[i]);
+            table.forEach(element => {
+                alltables.push(element);
+            });
+        }
+        for children in childrenElement['children']:
+            tables = self.getAllTables(props, children)
+
+            for table in tables:
+                alltables.append(table)
+
+        return alltables;
+
     def get_pdf_image(self) -> Optional[bytes]:
         images = []
         logger.info("##### get_pdf_image 0")
-        # logger.info("##### self")
-        # logger.info(vars(self))
-        # session = self._session
-        # logger.info("##### _session")
-        # logger.info(vars(session))
-        # identity_map = session.identity_map
-        # logger.info("##### identity_map")
-        # logger.info(vars(identity_map))
-        # _dict = identity_map._dict
-        # logger.info("##### _dict")
-        # logger.info(vars(_dict))
-        # _wr = identity_map._wr
-        # logger.info("##### _wr")
-        # logger.info(vars(_wr))
-        # _transaction = session._transaction
-        # logger.info("##### _transaction")
-        # logger.info(vars(_transaction))
-        # _transactionsession = _transaction.session
-        # logger.info("##### _transaction.session")
-        # logger.info(vars(_transactionsession))
-        # _connections = _transaction._connections
-        # logger.info("##### _transaction._connections")
-        # logger.info(vars(_connections))
-        # _new = _transaction._new
-        # logger.info("##### _transaction._new")
-        # logger.info(vars(_new))
-        # _deleted = _transaction._deleted
-        # logger.info("##### _transaction._deleted")
-        # logger.info(vars(_deleted))
-        # _dirty = _transaction._dirty
-        # logger.info("##### _transaction._dirty")
-        # logger.info(vars(_dirty))
-        # _key_switches = _transaction._key_switches
-        # logger.info("##### _transaction._key_switches")
-        # logger.info(vars(_key_switches))
-        # _query_cls = session._query_cls
-        # logger.info("##### _query_cls")
-        # logger.info(vars(_query_cls))
-        # _set_entities = _query_cls._set_entities
-        # logger.info("##### _set_entities")
-        # logger.info(vars(_set_entities))
-        # subquery = _query_cls.subquery
-        # logger.info("##### subquery")
-        # logger.info(vars(subquery))
-        # test = self._report_schedule.dashboard.digest
-        # logger.info("##### self._report_schedule.dashboard.digest")
-        # logger.info(test)
+        dashboardData = self._report_schedule.dashboard.data
+        position_json = self._report_schedule.dashboard.position_json
+
+        dashboard = {
+            'dashboardId': dashboardData['id'],
+            'dashboardTitle': dashboardData['dashboard_title'],
+            'type': 'DASHBOARD',
+        }
+
+        # filters = []
+        charts = self.getAllTables(position_json,'ROOT_ID')
+
+        logger.info(dashboard)
+        logger.info(charts)
+
         test = self._report_schedule.dashboard.charts
         logger.info("##### self._report_schedule.dashboard.charts")
         logger.info(test)
-        # test = self._report_schedule.dashboard.position_json
-        # logger.info("##### self._report_schedule.dashboard.position_json")
-        # logger.info(test)
+        test = self._report_schedule.dashboard.position_json
+        logger.info("##### self._report_schedule.dashboard.position_json")
+        logger.info(test)
         # test = self._report_schedule.dashboard.filter_sets
         # logger.info("##### self._report_schedule.dashboard.filter_sets")
         # logger.info(test)
-        test = self._report_schedule.dashboard.sqla_metadata
-        logger.info("##### self._report_schedule.dashboard.sqla_metadata")
-        logger.info(test)
-        test = self._report_schedule.dashboard.data
-        logger.info("##### self._report_schedule.dashboard.data")
-        logger.info(test)
+        # test = self._report_schedule.dashboard.sqla_metadata
+        # logger.info("##### self._report_schedule.dashboard.sqla_metadata")
+        # logger.info(test)
+        # test = self._report_schedule.dashboard.data
+        # logger.info("##### self._report_schedule.dashboard.data")
+        # logger.info(test)
         dashboard_id = self._report_schedule.dashboard.data['id']
         native_filter_configuration = self._report_schedule.dashboard.data['metadata']['native_filter_configuration']
         dashboard_title = self._report_schedule.dashboard.data['dashboard_title']
@@ -324,15 +334,7 @@ class BaseReportState:
         slice_name = self._report_schedule.dashboard.data['slices'][0]['slice_name']
         slice_form_data = self._report_schedule.dashboard.data['slices'][1]['form_data']
         logger.info(query_context)
-        # test = session.__getattribute__
-        # logger.info("##### session.__getattribute__")
-        # logger.info(vars(test))
-        # test = session.__str__
-        # logger.info("##### session.__str__")
-        # logger.info(vars(test))
-        # dispatch = session.dispatch
-        # logger.info("##### dispatch")
-        # logger.info(vars(dispatch))
+        
         logger.info("##### get_pdf_image 1")
         snapshots = self._get_screenshots()
 
