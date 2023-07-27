@@ -254,7 +254,9 @@ class BaseReportState:
         if props == None or element == None or element == '':
             return []
         
-        childrenElement = props[element]
+        childrenElement = props.get(element)
+        logger.info(element)
+        logger.info(childrenElement)
         if childrenElement['type'] == 'CHART':
             return [
                 {
