@@ -259,7 +259,7 @@ class BaseReportState:
             return [
                 {
                     'chartId': childrenElement['meta']['chartId'],
-                    'sliceName': childrenElement['meta']{'sliceName'},
+                    'sliceName': childrenElement['meta']['sliceName'],
                     'uuid': childrenElement['meta']['uuid'],
                     'height': childrenElement['meta']['height'],
                     'width': childrenElement['meta']['width'],
@@ -325,14 +325,14 @@ class BaseReportState:
         # test = self._report_schedule.dashboard.data
         # logger.info("##### self._report_schedule.dashboard.data")
         # logger.info(test)
-        dashboard_id = self._report_schedule.dashboard.data['id']
-        native_filter_configuration = self._report_schedule.dashboard.data['metadata']['native_filter_configuration']
-        dashboard_title = self._report_schedule.dashboard.data['dashboard_title']
-        form_data = self._report_schedule.dashboard.data['slices'][0]['form_data']
+        # dashboard_id = self._report_schedule.dashboard.data['id']
+        # native_filter_configuration = self._report_schedule.dashboard.data['metadata']['native_filter_configuration']
+        # dashboard_title = self._report_schedule.dashboard.data['dashboard_title']
+        # form_data = self._report_schedule.dashboard.data['slices'][0]['form_data']
         query_context = self._report_schedule.dashboard.data['slices'][0]['query_context']
-        slice_id = self._report_schedule.dashboard.data['slices'][0]['slice_id']
-        slice_name = self._report_schedule.dashboard.data['slices'][0]['slice_name']
-        slice_form_data = self._report_schedule.dashboard.data['slices'][1]['form_data']
+        # slice_id = self._report_schedule.dashboard.data['slices'][0]['slice_id']
+        # slice_name = self._report_schedule.dashboard.data['slices'][0]['slice_name']
+        # slice_form_data = self._report_schedule.dashboard.data['slices'][1]['form_data']
         logger.info(query_context)
         
         logger.info("##### get_pdf_image 1")
