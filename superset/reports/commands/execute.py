@@ -406,7 +406,7 @@ class BaseReportState:
         allfilters = []
         for element in nativeFilters:
             value = ''
-            if element['defaultDataMask']['filterState']['value']:
+            if "value" in element['defaultDataMask']['filterState']:
                 value = element['defaultDataMask']['filterState']['value']
 
             allfilters.append({
