@@ -696,11 +696,11 @@ class BaseReportState:
                 f"{self._report_schedule.dashboard.dashboard_title}"
             )
         logger.info("### _get_notification_content 5")
-        logger.info(screenshot_data)
-        logger.info(self._report_schedule.description)
-        logger.info(data)
-        logger.info(embedded_data)
-        logger.info(header_data)
+        logger.info(screenshot_data) # []
+        logger.info(self._report_schedule.description) # None
+        logger.info(data) # PDF File
+        logger.info(embedded_data) # None
+        logger.info(header_data) # {'notification_type': 'Report', 'notification_source': <ReportSourceFormat.DASHBOARD: 'dashboard'>, 'notification_format': 'PDF', 'chart_id': None, 'dashboard_id': 24, 'owners': [Eduardo Sanday]}
         logger.info("### _get_notification_content 6")
         return NotificationContent(
             name=name,
@@ -709,7 +709,7 @@ class BaseReportState:
             description=self._report_schedule.description,
             # NGLS - BEGIN #
             data=data,
-            data_format='pdf',
+            data_format=self._report_schedule.report_format,
             # NGLS - END #
             embedded_data=embedded_data,
             header_data=header_data,
@@ -729,6 +729,7 @@ class BaseReportState:
         logger.info("### _send 0")
         for recipient in recipients:
             logger.info(recipient.recipient_config_json)
+            logger.info(vars(recipient))
             # logger.info(notification_content)
             notification = create_notification(recipient, notification_content)
             logger.info("### _send 1")

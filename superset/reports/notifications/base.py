@@ -31,7 +31,7 @@ class NotificationContent:
     # NGLS - BEGIN #
     data: Optional[bytes] = None  # bytes for data attachment
     data_format: Optional[
-        Literal["csv", "pdf", "ALL_CHARTS_DATA_AS_PDF"]
+        Literal["csv", "pdf", "dashboard_pdf"]
     ] = None  # data attachment format (csv, xlsx, pdf, etc)
     # NGLS - END #
     screenshots: Optional[List[bytes]] = None  # bytes for a list of screenshots
