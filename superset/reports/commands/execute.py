@@ -445,7 +445,7 @@ class BaseReportState:
         data = DashboardChartScreenshot('admin', {'formData': formData}, format, dashboardData['id']).get3()
         logger.info("##### end get_pdf_image #####")
         
-        return data.read()
+        return data
 
     def get_all_pdf_image(self) -> Optional[bytes]:
         images = []
@@ -677,7 +677,7 @@ class BaseReportState:
             description=self._report_schedule.description,
             # NGLS - BEGIN #
             data=data,
-            data_format=self._report_schedule.report_format,
+            data_format='pdf',
             # NGLS - END #
             embedded_data=embedded_data,
             header_data=header_data,
