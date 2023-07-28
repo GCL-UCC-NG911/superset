@@ -76,7 +76,7 @@ class ReportDataFormat(str, enum.Enum):
     TEXT = "TEXT"
     # NGLS - BEGIN #
     PDF = "PDF"
-    ALL_CHARTS_DATA_AS_PDF = "ALL_CHARTS_DATA_AS_PDF"
+    DASHBOARD_PDF = "DASHBOARD_PDF"
     # NGLS - END #
 
 

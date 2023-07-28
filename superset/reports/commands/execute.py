@@ -654,11 +654,10 @@ class BaseReportState:
                     data = self.get_pdf_image()
                 if not data:
                     error_text = "Unexpected missing PDF file"
-            elif self._report_schedule.report_format == ReportDataFormat.ALL_CHARTS_DATA_AS_PDF:
+            elif self._report_schedule.report_format == ReportDataFormat.DASHBOARD_PDF:
                 logger.info("### _get_notification_content 2")
                 data = self.get_pdf_image()
                 logger.info("### _get_notification_content 2 1")
-                self._report_schedule.report_format = ReportDataFormat.PDF
                 if not data:
                     logger.info("### if not data 0")
                     error_text = "Unexpected missing PDF file"
@@ -697,6 +696,12 @@ class BaseReportState:
                 f"{self._report_schedule.dashboard.dashboard_title}"
             )
         logger.info("### _get_notification_content 5")
+        logger.info(screenshot_data)
+        logger.info(self._report_schedule.description)
+        logger.info(data)
+        logger.info(embedded_data)
+        logger.info(header_data)
+        logger.info("### _get_notification_content 6")
         return NotificationContent(
             name=name,
             url=url,
