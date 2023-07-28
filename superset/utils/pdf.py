@@ -59,7 +59,7 @@ def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = 
         filters_html = "<br><br><h2>Filters:</h2>"
 
     for element in filters:
-        logger.info(element)
+        # logger.info(element)
         filter_name = element.get("name")
         # Return the corret message
         # To date/time: No filter
@@ -74,13 +74,13 @@ def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = 
         charts_html = "<br><br><h2>Table(s):</h2>"
 
     for element in charts:
-        logger.info(element)
+        # logger.info(element)
         chart_name = element.get("sliceName")
         # If empty retun "No data"
         dataframe = pd.DataFrame.from_dict(element.get("dataframe"), orient='index')
-        logger.info(dataframe)
+        # logger.info(dataframe)
         chart_df = dataframe.to_html(index=False, justify="left")
-        logger.info(chart_df)
+        # logger.info(chart_df)
         charts_html = charts_html + f"<br><h2>  &bull;  {chart_name}</h2>" + chart_df
 
     # html_charts

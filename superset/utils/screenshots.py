@@ -464,7 +464,7 @@ class BaseChartScreenshot:
 
         # creating the lists/objects
         for element in self.json.get("formData"):
-            logger.info(element)
+            # logger.info(element)
             if element.get("type") == "DASHBOARD":
                 dashboard = element
 
@@ -489,10 +489,10 @@ class BaseChartScreenshot:
             # dataframe = get_chart_dataframe(url, auth_cookies)
             # element['dataframe'] = dataframe
 
-        logger.info(auth_cookies)
-        logger.info(dashboard)
-        logger.info(charts)
-        logger.info(filters)
+        # logger.info(auth_cookies)
+        # logger.info(dashboard)
+        # logger.info(charts)
+        # logger.info(filters)
         data = pdf.charts_to_pdf(dashboard, charts, filters, config["PDF_EXPORT"])
         if data:
             return BytesIO(data)

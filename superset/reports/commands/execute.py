@@ -722,8 +722,8 @@ class BaseReportState:
         notification_errors: List[SupersetError] = []
         logger.info("### _send 0")
         for recipient in recipients:
-            logger.info(recipient)
-            logger.info(notification_content)
+            logger.info(recipient.recipient_config_json)
+            # logger.info(notification_content)
             notification = create_notification(recipient, notification_content)
             logger.info("### _send 1")
             try:
