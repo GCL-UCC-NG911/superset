@@ -669,7 +669,7 @@ class BaseReportState:
                 f"{self._report_schedule.name}: "
                 f"{self._report_schedule.dashboard.dashboard_title}"
             )
-
+        logger.info("### _get_notification_content 5")
         return NotificationContent(
             name=name,
             url=url,
@@ -723,6 +723,7 @@ class BaseReportState:
                     )
                 )
         if notification_errors:
+            logger.info("### _send 4")
             # log all errors but raise based on the most severe
             for error in notification_errors:
                 logger.warning(str(error))
