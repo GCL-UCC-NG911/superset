@@ -398,25 +398,21 @@ class BaseReportState:
         return alltables
 
     def get_pdf_image(self) -> Optional[bytes]:
-        images = []
         logger.info("##### get_pdf_image 0")
         dashboardData = self._report_schedule.dashboard.data
         position_json = json.loads(self._report_schedule.dashboard.position_json)
         slices = self._report_schedule.dashboard.data['slices']
 
-        dashboard = {
-            'dashboardId': dashboardData['id'],
-            'dashboardTitle': dashboardData['dashboard_title'],
-            'type': 'DASHBOARD',
-        }
+        dashboard = {}
+        dashboard['dashboardId'] = dashboardData['id']
+        dashboard['dashboardTitle'] = dashboardData['dashboard_title']
+        dashboard['type'] = 'DASHBOARD'
 
         # filters = []
         # charts = self.getAllTables(position_json,'ROOT_ID')
         format == "data_pdf"
-        dashboardInfo = {
-            dashboard,
-            self.getAllTables(position_json, slices, 'ROOT_ID'),
-        }
+        dashboardInfo = [dashboard, self.getAllTables(position_json, slices, 'ROOT_ID')]
+        
         logger.info(dashboardInfo)
 
         test = self._report_schedule.dashboard.charts
@@ -740,6 +736,7 @@ class BaseReportState:
         """
         logger.info("### send 0")
         notification_content = self._get_notification_content()
+        logger.info("### send 1")
         self._send(notification_content, self._report_schedule.recipients)
 
     def send_error(self, name: str, message: str) -> None:
