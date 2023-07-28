@@ -396,23 +396,47 @@ class BaseReportState:
                 alltables.append(table)
 
         return alltables
+    
+    def getAllFilters(self, nativeFilters) -> Optional[Any]:
+        if nativeFilters == None:
+            return []
+        
+        allfilters = []
+        for element in nativeFilters:
+            value = ''
+            if element['defaultDataMask']['filterState']['value']:
+                value = element['defaultDataMask']['filterState']['value']
+
+            allfilters.append({
+                'filterId': element['id'],
+                'name': element['name'],
+                'extraFormData': element['defaultDataMask']['extraFormData'],
+                'value': value,
+                'filterType': element['filterType'],
+                'type': 'FILTER',
+            })
+
+
+        return allfilters
 
     def get_pdf_image(self) -> Optional[bytes]:
         logger.info("##### get_pdf_image 0")
         dashboardData = self._report_schedule.dashboard.data
+        native_filter_configuration = self._report_schedule.dashboard.data['metadata']['native_filter_configuration']
         position_json = json.loads(self._report_schedule.dashboard.position_json)
         slices = self._report_schedule.dashboard.data['slices']
-
+        
         dashboard = {}
         dashboard['dashboardId'] = dashboardData['id']
         dashboard['dashboardTitle'] = dashboardData['dashboard_title']
         dashboard['type'] = 'DASHBOARD'
 
-        # filters = []
+        # filters = self.getAllFilters(native_filter_configuration) 
         # charts = self.getAllTables(position_json,'ROOT_ID')
         format == "data_pdf"
         formData = [dashboard]
         formData.extend(self.getAllTables(position_json, slices, 'ROOT_ID'))
+        formData.extend(self.getAllFilters(native_filter_configuration))
         
         logger.info(formData)
 
@@ -445,7 +469,7 @@ class BaseReportState:
         data = DashboardChartScreenshot('admin', {'formData': formData}, format, dashboardData['id']).get3()
         logger.info("##### end get_pdf_image #####")
         
-        return data
+        return data.read()
 
     def get_all_pdf_image(self) -> Optional[bytes]:
         images = []
