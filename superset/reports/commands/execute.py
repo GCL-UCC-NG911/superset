@@ -613,7 +613,7 @@ class BaseReportState:
         log_data: HeaderDataType = {
             "notification_type": self._report_schedule.type,
             "notification_source": report_source,
-            "notification_format": self._report_schedule.report_format,
+            "notification_format": 'pdf',
             "chart_id": chart_id,
             "dashboard_id": dashboard_id,
             "owners": self._report_schedule.owners,
