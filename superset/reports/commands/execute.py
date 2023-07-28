@@ -347,7 +347,7 @@ class BaseReportState:
         except ValidationError as error:
             raise error
 
-    def getAllTables(self, props, element) -> Optional[Any]:
+    def getAllTables(self, props, slices, element) -> Optional[Any]:
         if props == None or element == None or element == '':
             return []
         
@@ -357,12 +357,14 @@ class BaseReportState:
         # logger.info(childrenElement)
 
         if childrenElement['type'] == 'CHART':
-            form_data = childrenElement.get("form_data")
-            form_data['result_format'] = "pandas"
-            query_context = self._create_query_context_from_form(form_data)
-            command = ChartDataCommand(query_context)
-            command.validate()
-            dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
+            for slice in slices:
+                if slice['slice_id'] == childrenElement['meta']['chartId']:
+                    form_data = slice['query_context']
+                    form_data['result_format'] = "pandas"
+                    query_context = self._create_query_context_from_form(form_data)
+                    command = ChartDataCommand(query_context)
+                    command.validate()
+                    dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
 
             return [
                 {
@@ -400,6 +402,7 @@ class BaseReportState:
         logger.info("##### get_pdf_image 0")
         dashboardData = self._report_schedule.dashboard.data
         position_json = json.loads(self._report_schedule.dashboard.position_json)
+        slices = self._report_schedule.dashboard.data['slices']
 
         dashboard = {
             'dashboardId': dashboardData['id'],
@@ -412,7 +415,7 @@ class BaseReportState:
         format == "data_pdf"
         dashboardInfo = {
             dashboard,
-            self.getAllTables(position_json,'ROOT_ID'),
+            self.getAllTables(position_json, slices, 'ROOT_ID'),
         }
         logger.info(dashboardInfo)
 
