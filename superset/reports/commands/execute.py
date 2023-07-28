@@ -696,6 +696,8 @@ class BaseReportState:
         notification_errors: List[SupersetError] = []
         logger.info("### _send 0")
         for recipient in recipients:
+            logger.info(recipient)
+            logger.info(notification_content)
             notification = create_notification(recipient, notification_content)
             logger.info("### _send 1")
             try:
@@ -708,6 +710,7 @@ class BaseReportState:
                 else:
                     logger.info("### _send 2")
                     notification.send()
+                    logger.info("### _send 3")
             except (NotificationError, SupersetException) as ex:
                 # collect errors but keep processing them
                 notification_errors.append(
