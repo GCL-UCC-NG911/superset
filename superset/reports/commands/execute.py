@@ -359,6 +359,8 @@ class BaseReportState:
         if childrenElement['type'] == 'CHART':
             for slice in slices:
                 if slice['slice_id'] == childrenElement['meta']['chartId']:
+                    logger.info("### ### slice_id") 
+                    logger.info(slice['slice_id'])
                     form_data = json.loads(slice['query_context'])
                     form_data['result_format'] = "pandas"
                     query_context = self._create_query_context_from_form(form_data)
@@ -613,7 +615,7 @@ class BaseReportState:
         log_data: HeaderDataType = {
             "notification_type": self._report_schedule.type,
             "notification_source": report_source,
-            "notification_format": 'pdf',
+            "notification_format": self._report_schedule.report_format,
             "chart_id": chart_id,
             "dashboard_id": dashboard_id,
             "owners": self._report_schedule.owners,
