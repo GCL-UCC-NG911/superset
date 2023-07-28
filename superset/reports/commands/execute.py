@@ -658,6 +658,7 @@ class BaseReportState:
                 logger.info("### _get_notification_content 2")
                 data = self.get_pdf_image()
                 logger.info("### _get_notification_content 2 1")
+                self._report_schedule.report_format = ReportDataFormat.PDF
                 if not data:
                     logger.info("### if not data 0")
                     error_text = "Unexpected missing PDF file"
