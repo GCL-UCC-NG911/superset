@@ -278,7 +278,7 @@ class BaseReportState:
         result_type = result["query_context"].result_type
         result_format = result["query_context"].result_format
 
-        logger.info("### _send_chart_response 0")
+        # logger.info("### _send_chart_response 0")
         logger.info(form_data)
         if form_data:
             title = form_data.get("chart_name", "Untitled")
@@ -291,10 +291,10 @@ class BaseReportState:
         logger.info(result_format)
         if result_type == ChartDataResultType.POST_PROCESSED:
             result = apply_post_process(result, form_data, datasource)
-            logger.info("### _send_chart_response 1")
+            # logger.info("### _send_chart_response 1")
             logger.info(result)
         if result_format in ChartDataResultFormat.table_like():
-            logger.info("### _send_chart_response 2")
+            # logger.info("### _send_chart_response 2")
             # Verify user has permission to export file
             if not security_manager.can_access("can_csv", "Superset"):
                 return None
@@ -303,7 +303,7 @@ class BaseReportState:
                 return None
 
             if len(result["queries"]) == 1:
-                logger.info("### _send_chart_response 3")
+                # logger.info("### _send_chart_response 3")
                 # return single query results
                 data = result["queries"][0]["data"]
                 logger.info(data)
@@ -416,12 +416,12 @@ class BaseReportState:
         
         logger.info(formData)
 
-        test = self._report_schedule.dashboard.charts
-        logger.info("##### self._report_schedule.dashboard.charts")
-        logger.info(test)
-        test = self._report_schedule.dashboard.position_json
-        logger.info("##### self._report_schedule.dashboard.position_json")
-        logger.info(test)
+        # test = self._report_schedule.dashboard.charts
+        # logger.info("##### self._report_schedule.dashboard.charts")
+        # logger.info(test)
+        # test = self._report_schedule.dashboard.position_json
+        # logger.info("##### self._report_schedule.dashboard.position_json")
+        # logger.info(test)
         # test = self._report_schedule.dashboard.filter_sets
         # logger.info("##### self._report_schedule.dashboard.filter_sets")
         # logger.info(test)
@@ -435,11 +435,11 @@ class BaseReportState:
         # native_filter_configuration = self._report_schedule.dashboard.data['metadata']['native_filter_configuration']
         # dashboard_title = self._report_schedule.dashboard.data['dashboard_title']
         # form_data = self._report_schedule.dashboard.data['slices'][0]['form_data']
-        query_context = self._report_schedule.dashboard.data['slices'][0]['query_context']
+        # query_context = self._report_schedule.dashboard.data['slices'][0]['query_context']
         # slice_id = self._report_schedule.dashboard.data['slices'][0]['slice_id']
         # slice_name = self._report_schedule.dashboard.data['slices'][0]['slice_name']
         # slice_form_data = self._report_schedule.dashboard.data['slices'][1]['form_data']
-        logger.info(query_context)
+        # logger.info(query_context)
         
         logger.info("##### get_pdf_image 1")
         data = DashboardChartScreenshot('admin', {'formData': formData}, format, dashboardData['id']).get3()
@@ -893,6 +893,7 @@ class ReportWorkingState(BaseReportState):
 
     def next(self) -> None:
         if self.is_on_working_timeout():
+            logger.info("### self.is_on_working_timeout 0")
             exception_timeout = ReportScheduleWorkingTimeoutError()
             self.update_report_schedule_and_log(
                 ReportState.ERROR,
@@ -904,6 +905,7 @@ class ReportWorkingState(BaseReportState):
             ReportState.WORKING,
             error_message=str(exception_working),
         )
+        logger.info("### self.is_on_working_timeout 1")
         raise exception_working
 
 
