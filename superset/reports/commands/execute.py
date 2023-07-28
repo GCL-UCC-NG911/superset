@@ -411,9 +411,10 @@ class BaseReportState:
         # filters = []
         # charts = self.getAllTables(position_json,'ROOT_ID')
         format == "data_pdf"
-        dashboardInfo = [dashboard, self.getAllTables(position_json, slices, 'ROOT_ID')]
+        formData = [dashboard]
+        formData.extend(self.getAllTables(position_json, slices, 'ROOT_ID'))
         
-        logger.info(dashboardInfo)
+        logger.info(formData)
 
         test = self._report_schedule.dashboard.charts
         logger.info("##### self._report_schedule.dashboard.charts")
@@ -441,7 +442,7 @@ class BaseReportState:
         logger.info(query_context)
         
         logger.info("##### get_pdf_image 1")
-        data = DashboardChartScreenshot('admin', dashboardInfo, format, dashboardData['id']).get3()
+        data = DashboardChartScreenshot('admin', {'formData': formData}, format, dashboardData['id']).get3()
         logger.info("##### end get_pdf_image #####")
         
         return data.read()
