@@ -359,7 +359,7 @@ class BaseReportState:
         if childrenElement['type'] == 'CHART':
             for slice in slices:
                 if slice['slice_id'] == childrenElement['meta']['chartId']:
-                    form_data = slice['query_context']
+                    form_data = json.loads(slice['query_context'])
                     form_data['result_format'] = "pandas"
                     query_context = self._create_query_context_from_form(form_data)
                     command = ChartDataCommand(query_context)
