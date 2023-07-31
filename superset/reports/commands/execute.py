@@ -347,7 +347,7 @@ class BaseReportState:
         except ValidationError as error:
             raise error
 
-    def getAllTables(self, props, slices, element) -> Optional[Any]:
+    def getAllTables(self, props, slices, filters, element) -> Optional[Any]:
         if props == None or element == None or element == '':
             return []
         
@@ -362,6 +362,14 @@ class BaseReportState:
                     logger.info("### ### slice_id") 
                     logger.info(slice['slice_id'])
                     form_data = json.loads(slice['query_context'])
+                    for filter in filters:
+                        if filter['filterType'] == 'filter_time':
+                            if filter['value'] != '':
+                                for query in form_data['queries']:
+                                    if 'time_range' in query:
+                                        query['time_range'] = filter['value']
+                                form_data['form_data']['time_range'] = filter['value']
+
                     logger.info(form_data)
                     form_data['result_format'] = "pandas"
                     query_context = self._create_query_context_from_form(form_data)
@@ -434,12 +442,12 @@ class BaseReportState:
         dashboard['dashboardTitle'] = dashboardData['dashboard_title']
         dashboard['type'] = 'DASHBOARD'
 
-        # filters = self.getAllFilters(native_filter_configuration) 
+        filters = self.getAllFilters(native_filter_configuration) 
         # charts = self.getAllTables(position_json,'ROOT_ID')
         format == "data_pdf"
         formData = [dashboard]
-        formData.extend(self.getAllTables(position_json, slices, 'ROOT_ID'))
-        formData.extend(self.getAllFilters(native_filter_configuration))
+        formData.extend(filters)
+        formData.extend(self.getAllTables(position_json, slices, filters, 'ROOT_ID'))
         
         logger.info(formData)
 
