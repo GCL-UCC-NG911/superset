@@ -401,7 +401,7 @@ class BaseReportState:
 
         alltables = []
         for children in childrenElement['children']:
-            tables = self.getAllTables(props, slices, children)
+            tables = self.getAllTables(props, slices, filters, children)
             # logger.info(tables)
             for table in tables:
                 alltables.append(table)
