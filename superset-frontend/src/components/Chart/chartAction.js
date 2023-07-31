@@ -532,7 +532,7 @@ const buildV1DashboardDataPayload = ({
   resultType = 'full',
   force = false,
 }) => {
-  // console.log('### buildV1DashboardDataPayload');
+  console.log('### buildV1DashboardDataPayload');
   return {
     formData,
     force,
