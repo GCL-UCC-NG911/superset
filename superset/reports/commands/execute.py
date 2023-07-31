@@ -362,6 +362,7 @@ class BaseReportState:
                     logger.info("### ### slice_id") 
                     logger.info(slice['slice_id'])
                     form_data = json.loads(slice['query_context'])
+                    logger.info(form_data)
                     form_data['result_format'] = "pandas"
                     query_context = self._create_query_context_from_form(form_data)
                     command = ChartDataCommand(query_context)
@@ -726,13 +727,13 @@ class BaseReportState:
         :raises: CommandException
         """
         notification_errors: List[SupersetError] = []
-        logger.info("### _send 0")
+        # logger.info("### _send 0")
         for recipient in recipients:
-            logger.info(recipient.recipient_config_json)
-            logger.info(vars(recipient))
+            # logger.info(recipient.recipient_config_json)
+            # logger.info(vars(recipient))
             # logger.info(notification_content)
             notification = create_notification(recipient, notification_content)
-            logger.info("### _send 1")
+            # logger.info("### _send 1")
             try:
                 if app.config["ALERT_REPORTS_NOTIFICATION_DRY_RUN"]:
                     logger.info(
@@ -741,9 +742,9 @@ class BaseReportState:
                         recipient.recipient_config_json,
                     )
                 else:
-                    logger.info("### _send 2")
+                    # logger.info("### _send 2")
                     notification.send()
-                    logger.info("### _send 3")
+                    # logger.info("### _send 3")
             except (NotificationError, SupersetException) as ex:
                 # collect errors but keep processing them
                 notification_errors.append(
@@ -756,7 +757,7 @@ class BaseReportState:
                     )
                 )
         if notification_errors:
-            logger.info("### _send 4")
+            # logger.info("### _send 4")
             # log all errors but raise based on the most severe
             for error in notification_errors:
                 logger.warning(str(error))
@@ -772,9 +773,9 @@ class BaseReportState:
 
         :raises: CommandException
         """
-        logger.info("### send 0")
+        # logger.info("### send 0")
         notification_content = self._get_notification_content()
-        logger.info("### send 1")
+        # logger.info("### send 1")
         self._send(notification_content, self._report_schedule.recipients)
 
     def send_error(self, name: str, message: str) -> None:
@@ -783,7 +784,7 @@ class BaseReportState:
 
         :raises: CommandException
         """
-        logger.info("### send_error 0")
+        # logger.info("### send_error 0")
         header_data = self._get_log_data()
         logger.info(
             "header_data in notifications for alerts and reports %s, taskid, %s",
@@ -878,9 +879,9 @@ class ReportNotTriggeredErrorState(BaseReportState):
                 if not AlertCommand(self._report_schedule).run():
                     self.update_report_schedule_and_log(ReportState.NOOP)
                     return
-            logger.info("### send 0 0")
+            # logger.info("### send 0 0")
             self.send()
-            logger.info("### send 0 1")
+            # logger.info("### send 0 1")
             self.update_report_schedule_and_log(ReportState.SUCCESS)
         except (SupersetErrorsException, Exception) as first_ex:
             error_message = str(first_ex)
@@ -895,7 +896,7 @@ class ReportNotTriggeredErrorState(BaseReportState):
             if not self.is_in_error_grace_period():
                 second_error_message = REPORT_SCHEDULE_ERROR_NOTIFICATION_MARKER
                 try:
-                    logger.info("### send_error 0 0")
+                    # logger.info("### send_error 0 0")
                     self.send_error(
                         f"Error occurred for {self._report_schedule.type}:"
                         f" {self._report_schedule.name}",
@@ -927,7 +928,7 @@ class ReportWorkingState(BaseReportState):
 
     def next(self) -> None:
         if self.is_on_working_timeout():
-            logger.info("### self.is_on_working_timeout 0")
+            # logger.info("### self.is_on_working_timeout 0")
             exception_timeout = ReportScheduleWorkingTimeoutError()
             self.update_report_schedule_and_log(
                 ReportState.ERROR,
@@ -939,7 +940,7 @@ class ReportWorkingState(BaseReportState):
             ReportState.WORKING,
             error_message=str(exception_working),
         )
-        logger.info("### self.is_on_working_timeout 1")
+        # logger.info("### self.is_on_working_timeout 1")
         raise exception_working
 
 
@@ -968,7 +969,7 @@ class ReportSuccessState(BaseReportState):
                     self.update_report_schedule_and_log(ReportState.NOOP)
                     return
             except Exception as ex:
-                logger.info("### send_error 0 0 0")
+                # logger.info("### send_error 0 0 0")
                 self.send_error(
                     f"Error occurred for {self._report_schedule.type}:"
                     f" {self._report_schedule.name}",
@@ -981,7 +982,7 @@ class ReportSuccessState(BaseReportState):
                 raise ex
 
         try:
-            logger.info("### next 0")
+            # logger.info("### next 0")
             self.send()
             self.update_report_schedule_and_log(ReportState.SUCCESS)
         except Exception as ex:  # pylint: disable=broad-except

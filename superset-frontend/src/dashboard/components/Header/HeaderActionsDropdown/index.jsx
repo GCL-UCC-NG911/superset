@@ -126,7 +126,7 @@ const buildV1DashboardDataPayload = ({
   resultFormat,
   resultType,
 }) => {
-  console.log('### buildV1DashboardDataPayload');
+  // console.log('### buildV1DashboardDataPayload');
   return {
     formData,
     force,
@@ -300,7 +300,7 @@ class HeaderActionsDropdown extends React.PureComponent {
         type: 'DASHBOARD',
       },
     ];
-    console.log('### native_filter_configuration');
+    // console.log('### native_filter_configuration');
     props?.dashboardInfo?.metadata?.native_filter_configuration?.forEach(
       element => {
         console.log(element);
@@ -314,7 +314,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     // const gridChildren = props?.layout?.GRID_ID?.children;
     // console.log(gridChildren.length);
     const allTables = this.getAllTables(props?.layout, 'ROOT_ID');
-    console.log('### allTables');
+    // console.log('### allTables');
     console.log(allTables);
     allTables.forEach(element => {
       dashboardInfo.push(element);
@@ -322,7 +322,7 @@ class HeaderActionsDropdown extends React.PureComponent {
     allFilters.forEach(element => {
       dashboardInfo.push(element);
     });
-    console.log('### dashboardInfo');
+    // console.log('### dashboardInfo');
     console.log(dashboardInfo);
     this.downloadPDFTables(
       props?.dashboardId,

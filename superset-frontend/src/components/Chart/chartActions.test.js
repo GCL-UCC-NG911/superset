@@ -105,7 +105,7 @@ describe('chart actions', () => {
       getChartDataUriStub = sinon
         .stub(exploreUtils, 'getChartDataUri')
         .callsFake(() => URI(mockBigIntUrl));
-      console.log('### du 12 ');
+      // console.log('### du 12 ');
       const { json } = await actions.getChartDataRequest({
         formData: fakeMetadata,
       });
@@ -224,7 +224,7 @@ describe('chart actions', () => {
       getExploreUrlStub = sinon
         .stub(exploreUtils, 'getExploreUrl')
         .callsFake(() => mockBigIntUrl);
-      console.log('### du 13 ');
+      // console.log('### du 13 ');
       const { json } = await actions.getChartDataRequest({
         formData: fakeMetadata,
       });

@@ -69,7 +69,7 @@ export const useResultsPane = ({
     }
     if (isRequest && !cache.has(queryFormData)) {
       setIsLoading(true);
-      console.log('### du 16 ');
+      // console.log('### du 16 ');
       getChartDataRequest({
         formData: queryFormData,
         force: queryForce,
@@ -78,7 +78,7 @@ export const useResultsPane = ({
         ownState,
       })
         .then(({ json }) => {
-          console.log('### DU 6');
+          // console.log('### DU 6');
           setResultResp(ensureIsArray(json.result));
           setResponseError('');
           cache.set(queryFormData, json.result);

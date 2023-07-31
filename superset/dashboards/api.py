@@ -1057,13 +1057,13 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                     logger.info("### /download 2")
                     logger.info(element)
             # DashboardChartScreenshot(current_user, json_body, format, pk).print2()
-            logger.info("### /download 3")
+            # logger.info("### /download 3")
             data = DashboardChartScreenshot(current_user, json_body, format, pk).get3()
-            logger.info("### /download 4")
-            logger.info(data)
+            # logger.info("### /download 4")
+            # logger.info(data)
 
         if data:
-            logger.info("### /download 5")
+            # logger.info("### /download 5")
             if "pdf" in format:
               return Response(
                   FileWrapper(data), mimetype="application/pdf", direct_passthrough=True
@@ -1379,8 +1379,8 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         result_type = result["query_context"].result_type
         result_format = result["query_context"].result_format
 
-        logger.info("### _send_chart_response 0")
-        logger.info(form_data)
+        # logger.info("### _send_chart_response 0")
+        # logger.info(form_data)
         if form_data:
             title = form_data.get("chart_name", "Untitled")
             filename = generate_filename(title) if title else None
@@ -1388,14 +1388,14 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         # Post-process the data so it matches the data presented in the chart.
         # This is needed for sending reports based on text charts that do the
         # post-processing of data, eg, the pivot table.
-        logger.info(result_type)
-        logger.info(result_format)
+        # logger.info(result_type)
+        # logger.info(result_format)
         if result_type == ChartDataResultType.POST_PROCESSED:
             result = apply_post_process(result, form_data, datasource)
-            logger.info("### _send_chart_response 1")
+            # logger.info("### _send_chart_response 1")
             logger.info(result)
         if result_format in ChartDataResultFormat.table_like():
-            logger.info("### _send_chart_response 2")
+            # logger.info("### _send_chart_response 2")
             # Verify user has permission to export file
             if not security_manager.can_access("can_csv", "Superset"):
                 return None
@@ -1404,13 +1404,13 @@ class DashboardRestApi(BaseSupersetModelRestApi):
                 return None
 
             if len(result["queries"]) == 1:
-                logger.info("### _send_chart_response 3")
+                # logger.info("### _send_chart_response 3")
                 # return single query results
                 data = result["queries"][0]["data"]
-                logger.info(data)
+                # logger.info(data)
                 # NGLS - BEGIN #
                 if result_format == ChartDataResultFormat.PANDAS:
-                    logger.info("### _send_chart_response 5")
+                    # logger.info("### _send_chart_response 5")
                     return data
                 # NGLS - END #
         return None
@@ -1425,12 +1425,12 @@ class DashboardRestApi(BaseSupersetModelRestApi):
         try:
             logger.info("### _get_data_response 0 0")
             result = command.run(force_cached=force_cached)
-            logger.info(result)
+            # logger.info(result)
         except ChartDataCacheLoadError as exc:
             logger.error(exc.message)
         except ChartDataQueryFailedError as exc:
             logger.error(exc.message)
-        logger.info("### _get_data_response 1")
+        # logger.info("### _get_data_response 1")
         return self._send_chart_response(result, form_data, datasource)
 
     # pylint: disable=invalid-name, no-self-use

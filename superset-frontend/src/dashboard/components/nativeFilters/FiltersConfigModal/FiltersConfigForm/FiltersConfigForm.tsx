@@ -496,7 +496,7 @@ const FiltersConfigForm = (
         requestParams: { dashboardId: 0 },
       })
         .then(({ response, json }) => {
-          console.log('### Du 4');
+          // console.log('### Du 4');
           if (isFeatureEnabled(FeatureFlag.GLOBAL_ASYNC_QUERIES)) {
             // deal with getChartDataRequest transforming the response data
             const result = 'result' in json ? json.result[0] : json;

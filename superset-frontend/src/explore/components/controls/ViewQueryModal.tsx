@@ -42,7 +42,7 @@ const ViewQueryModal: React.FC<Props> = props => {
   const [result, setResult] = useState<Result[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  console.log('### du 15 ');
+  // console.log('### du 15 ');
   const loadChartData = (resultType: string) => {
     setIsLoading(true);
     getChartDataRequest({
@@ -51,7 +51,7 @@ const ViewQueryModal: React.FC<Props> = props => {
       resultType,
     })
       .then(({ json }) => {
-        console.log('### DU 5');
+        // console.log('### DU 5');
         setResult(ensureIsArray(json.result));
         setIsLoading(false);
         setError(null);

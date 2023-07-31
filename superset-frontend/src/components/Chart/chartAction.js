@@ -196,7 +196,7 @@ const v1ChartDataRequest = async (
     body: JSON.stringify(payload),
     parseMethod: 'json-bigint',
   };
-  console.log('### DU 2');
+  // console.log('### DU 2');
   console.log(formData);
   // console.log(resultFormat);
   // console.log(resultType);
@@ -230,7 +230,7 @@ export async function getChartDataRequest({
       credentials: 'include',
     };
   }
-  console.log('### DU 9');
+  // console.log('### DU 9');
   console.log(shouldUseLegacyApi(formData));
   if (shouldUseLegacyApi(formData)) {
     return legacyChartDataRequest(
@@ -311,7 +311,7 @@ export function runAnnotationQuery({
       fd.annotation_layers[annotationIndex].overrides = sliceFormData;
     }
 
-    console.log('### DU 1');
+    // console.log('### DU 1');
 
     return SupersetClient.post({
       url,
@@ -386,7 +386,7 @@ export function exploreJSON(
   dashboardId,
   ownState,
 ) {
-  console.log('### du 10 ');
+  // console.log('### du 10 ');
   console.log(formData);
   return async dispatch => {
     const logStart = Logger.getTimestamp();
@@ -396,7 +396,7 @@ export function exploreJSON(
       signal: controller.signal,
       timeout: timeout * 1000,
     };
-    console.log('### Du 4 1');
+    // console.log('### Du 4 1');
     console.log(timeout);
     if (dashboardId) requestParams.dashboard_id = dashboardId;
 
@@ -415,10 +415,10 @@ export function exploreJSON(
     });
 
     dispatch(chartUpdateStarted(controller, formData, key));
-    console.log('### du 7 ');
+    // console.log('### du 7 ');
     const chartDataRequestCaught = chartDataRequest
       .then(({ response, json }) => {
-        console.log('### du 3 ');
+        // console.log('### du 3 ');
         if (isFeatureEnabled(FeatureFlag.GLOBAL_ASYNC_QUERIES)) {
           // deal with getChartDataRequest transforming the response data
           const result = 'result' in json ? json.result : json;
@@ -484,7 +484,7 @@ export function exploreJSON(
             }),
           );
         };
-        console.log('### du 4 0');
+        // console.log('### du 4 0');
         console.log(Logger.getTimestamp() - logStart);
         if (response.name === 'AbortError') {
           appendErrorLog('abort');
@@ -532,7 +532,7 @@ const buildV1DashboardDataPayload = ({
   resultType = 'full',
   force = false,
 }) => {
-  console.log('### buildV1DashboardDataPayload');
+  // console.log('### buildV1DashboardDataPayload');
   return {
     formData,
     force,
@@ -548,7 +548,7 @@ export function postDashboardFormData(
   resultType = 'full',
   force = false,
 ) {
-  console.log('### du 2 10 ');
+  // console.log('### du 2 10 ');
   const url = `/api/v1/dashboard/${dashboardId}/download`;
   const payload = buildV1DashboardDataPayload({
     formData,
@@ -580,7 +580,7 @@ export function getSavedChart(
    *  GET  /explore_json?{"chart_id":1,"extra_filters":"..."}
    *
    */
-  console.log('### du 17');
+  // console.log('### du 17');
   console.log(timeout);
   return exploreJSON(
     formData,
@@ -608,7 +608,7 @@ export function postChartFormData(
    * This will post the form data to the endpoint, returning a new chart.
    *
    */
-  console.log('### du 18');
+  // console.log('### du 18');
   console.log(timeout);
   return exploreJSON(
     formData,
@@ -622,7 +622,7 @@ export function postChartFormData(
 }
 
 export function redirectSQLLab(formData) {
-  console.log('### du 11 ');
+  // console.log('### du 11 ');
   return dispatch => {
     getChartDataRequest({ formData, resultFormat: 'json', resultType: 'query' })
       .then(({ json }) => {
@@ -643,7 +643,7 @@ export function redirectSQLLab(formData) {
 
 export function refreshChart(chartKey, force, dashboardId) {
   return (dispatch, getState) => {
-    console.log('### du 23');
+    // console.log('### du 23');
     const chart = (getState().charts || {})[chartKey];
     const timeout =
       getState().dashboardInfo.common.conf.SUPERSET_WEBSERVER_TIMEOUT;
@@ -652,10 +652,10 @@ export function refreshChart(chartKey, force, dashboardId) {
       !chart.latestQueryFormData ||
       Object.keys(chart.latestQueryFormData).length === 0
     ) {
-      console.log('### du 24');
+      // console.log('### du 24');
       return;
     }
-    console.log('### du 25');
+    // console.log('### du 25');
     dispatch(
       postChartFormData(
         chart.latestQueryFormData,
@@ -666,7 +666,7 @@ export function refreshChart(chartKey, force, dashboardId) {
         getState().dataMask[chart.id]?.ownState,
       ),
     );
-    console.log('### du 26');
+    // console.log('### du 26');
   };
 }
 
@@ -754,7 +754,7 @@ function getAllFilters(defaultFilters, changeFilters = null) {
 
 export function downloadAllChartsAs(chartList, force, dashboardId) {
   return (dispatch, getState) => {
-    console.log('### du 2 23');
+    // console.log('### du 2 23');
     console.log(getState());
     console.log(chartList);
     console.log(force);
@@ -827,9 +827,9 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       dashboardInfo.push(element);
     });
 
-    console.log('### du 2 25');
+    // console.log('### du 2 25');
     console.log(dashboardInfo);
-    console.log('### du 2 26');
+    // console.log('### du 2 26');
     /*
     dispatch(
       postChartFormData(
@@ -853,7 +853,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       ),
     );
 
-    console.log('### du 26');
+    // console.log('### du 26');
   };
 }
 

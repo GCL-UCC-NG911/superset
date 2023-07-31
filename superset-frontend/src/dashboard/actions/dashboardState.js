@@ -517,7 +517,7 @@ export function downloadAllCharts(
 ) {
   console.log('downloadCharts');
   return dispatch => {
-    console.log('### du 20');
+    // console.log('### du 20');
     console.log(interval);
     dispatch(downloadAllChartsAs(chartList, force, dashboardId));
   };
