@@ -20,7 +20,7 @@ repos:
     hooks:
       - id: black
         language_version: python3
-        args: ["--exclude='migrations'", "--diff"]
+        args: ["--diff"]
   # blacklist unsafe functions like make_url (see #19526)
   - repo: https://github.com/skorokithakis/blacklist-pre-commit-hook
     rev: e2f070289d8eddcaec0b580d3bde29437e7c8221
