@@ -360,7 +360,8 @@ class BaseReportState:
             for slice in slices:
                 if slice['slice_id'] == childrenElement['meta']['chartId']:
                     logger.info("### ### slice_id") 
-                    logger.info(slice['slice_id'])
+                    logger.info(slice)
+                    # TODO: protection
                     form_data = json.loads(slice['query_context'])
                     for filter in filters:
                         if filter['filterType'] == 'filter_time':
@@ -437,6 +438,8 @@ class BaseReportState:
         position_json = json.loads(self._report_schedule.dashboard.position_json)
         slices = self._report_schedule.dashboard.data['slices']
         
+        logger.info(self._report_schedule.dashboard.data)
+
         dashboard = {}
         dashboard['dashboardId'] = dashboardData['id']
         dashboard['dashboardTitle'] = dashboardData['dashboard_title']
