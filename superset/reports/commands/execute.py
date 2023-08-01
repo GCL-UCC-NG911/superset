@@ -364,20 +364,20 @@ class BaseReportState:
                     # TODO: protection
                     if slice['query_context'] != None:
                         form_data = json.loads(slice['query_context'])
-                    for filter in filters:
-                        if filter['filterType'] == 'filter_time':
-                            if filter['value'] != '':
-                                for query in form_data['queries']:
-                                    if 'time_range' in query:
-                                        query['time_range'] = filter['value']
-                                form_data['form_data']['time_range'] = filter['value']
+                        for filter in filters:
+                            if filter['filterType'] == 'filter_time':
+                                if filter['value'] != '':
+                                    for query in form_data['queries']:
+                                        if 'time_range' in query:
+                                            query['time_range'] = filter['value']
+                                    form_data['form_data']['time_range'] = filter['value']
 
-                    logger.info(form_data)
-                    form_data['result_format'] = "pandas"
-                    query_context = self._create_query_context_from_form(form_data)
-                    command = ChartDataCommand(query_context)
-                    command.validate()
-                    dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
+                        logger.info(form_data)
+                        form_data['result_format'] = "pandas"
+                        query_context = self._create_query_context_from_form(form_data)
+                        command = ChartDataCommand(query_context)
+                        command.validate()
+                        dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
 
             return [
                 {
