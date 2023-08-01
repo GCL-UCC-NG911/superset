@@ -23,13 +23,14 @@ Create Date: 2023-07-14 03:03:11.900092
 """
 
 # revision identifiers, used by Alembic.
-revision = '840b6756031b'
-down_revision = 'f3c2d8ec8595'
+revision = "840b6756031b"
+down_revision = "f3c2d8ec8595"
 
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import engine_from_config
 from sqlalchemy.engine import reflection
+
 
 def table_verification(table):
     config = op.get_context().config
@@ -42,6 +43,7 @@ def table_verification(table):
         has_table = True
     return has_table
 
+
 def upgrade():
     if not table_verification("password_history"):
         op.create_table(
@@ -49,9 +51,12 @@ def upgrade():
             sa.Column("id", sa.Integer(), nullable=False),
             sa.Column("old_password", sa.String(256), nullable=True),
             sa.Column("timestamp", sa.DateTime(), nullable=True),
-            sa.Column("user_id", sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
+            sa.Column(
+                "user_id", sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True
+            ),
             sa.PrimaryKeyConstraint("id"),
         )
+
 
 def downgrade():
     op.drop_table("password_history")
