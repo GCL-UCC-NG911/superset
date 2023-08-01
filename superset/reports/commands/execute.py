@@ -362,7 +362,8 @@ class BaseReportState:
                     logger.info("### ### slice_id") 
                     logger.info(slice)
                     # TODO: protection
-                    form_data = json.loads(slice['query_context'])
+                    if slice['query_context'] != None:
+                        form_data = json.loads(slice['query_context'])
                     for filter in filters:
                         if filter['filterType'] == 'filter_time':
                             if filter['value'] != '':
