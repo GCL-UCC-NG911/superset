@@ -49,6 +49,7 @@ import {
 const propTypes = {
   addSuccessToast: PropTypes.func.isRequired,
   addDangerToast: PropTypes.func.isRequired,
+  addInfoToast: PropTypes.func.isRequired,
   dashboardInfo: PropTypes.object.isRequired,
   dashboardId: PropTypes.number,
   dashboardTitle: PropTypes.string,
@@ -197,6 +198,7 @@ class HeaderActionsDropdown extends React.PureComponent {
           menu.style.visibility = 'visible';
         });
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE);
+        this.props.addInfoToast(t('Preparing file for download, please wait'));
         break;
       }
       /* NGLS - BEGIN */
@@ -215,6 +217,7 @@ class HeaderActionsDropdown extends React.PureComponent {
           menu.style.visibility = 'visible';
         });
         this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF);
+        this.props.addInfoToast(t('Preparing file for download, please wait'));
         break;
       }
       /* NGLS - END */
@@ -261,6 +264,7 @@ class HeaderActionsDropdown extends React.PureComponent {
       lastModifiedTime,
       addSuccessToast,
       addDangerToast,
+      addInfoToast,
       filterboxMigrationState,
       setIsDropdownVisible,
       isDropdownVisible,
@@ -326,6 +330,7 @@ class HeaderActionsDropdown extends React.PureComponent {
             <SaveModal
               addSuccessToast={this.props.addSuccessToast}
               addDangerToast={this.props.addDangerToast}
+              addInfoToast={this.props.addInfoToast}
               dashboardId={dashboardId}
               dashboardTitle={dashboardTitle}
               dashboardInfo={dashboardInfo}
@@ -383,6 +388,7 @@ class HeaderActionsDropdown extends React.PureComponent {
               emailBody={emailBody}
               addSuccessToast={addSuccessToast}
               addDangerToast={addDangerToast}
+              addInfoToast={addInfoToast}
               dashboardId={dashboardId}
             />
           </Menu.SubMenu>
