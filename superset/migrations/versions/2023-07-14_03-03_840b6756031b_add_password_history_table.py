@@ -31,6 +31,7 @@ import sqlalchemy as sa
 from sqlalchemy import engine_from_config
 from sqlalchemy.engine import reflection
 
+
 def table_verification(table):
     config = op.get_context().config
     engine = engine_from_config(
