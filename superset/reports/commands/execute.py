@@ -113,6 +113,7 @@ from superset.utils.screenshots import DashboardChartScreenshot
 # NGLS - END #
 from superset.utils.screenshots import ChartScreenshot, DashboardScreenshot
 from superset.utils.urls import get_url_path
+from superset.utils.date_parser import get_since_until
 
 logger = logging.getLogger(__name__)
 
@@ -414,14 +415,18 @@ class BaseReportState:
         allfilters = []
         for element in nativeFilters:
             value = ''
+            timeRange = None
             if "value" in element['defaultDataMask']['filterState']:
                 value = element['defaultDataMask']['filterState']['value']
+                if element['filterType'] == 'filter_time':
+                    timeRange = get_since_until(time_range=value)
 
             allfilters.append({
                 'filterId': element['id'],
                 'name': element['name'],
                 'extraFormData': element['defaultDataMask']['extraFormData'],
                 'value': value,
+                'time_range': timeRange,
                 'filterType': element['filterType'],
                 'type': 'FILTER',
             })
