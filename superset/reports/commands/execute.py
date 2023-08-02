@@ -278,23 +278,19 @@ class BaseReportState:
         result_type = result["query_context"].result_type
         result_format = result["query_context"].result_format
 
-        # logger.info("### _send_chart_response 0")
+        logger.info("### _send_chart_response 0")
         logger.info(form_data)
-        if form_data:
-            title = form_data.get("chart_name", "Untitled")
-            filename = generate_filename(title) if title else None
-
-        # Post-process the data so it matches the data presented in the chart.
+         # Post-process the data so it matches the data presented in the chart.
         # This is needed for sending reports based on text charts that do the
         # post-processing of data, eg, the pivot table.
         logger.info(result_type)
         logger.info(result_format)
         if result_type == ChartDataResultType.POST_PROCESSED:
             result = apply_post_process(result, form_data, datasource)
-            # logger.info("### _send_chart_response 1")
+            logger.info("### _send_chart_response 1")
             logger.info(result)
         if result_format in ChartDataResultFormat.table_like():
-            # logger.info("### _send_chart_response 2")
+            logger.info("### _send_chart_response 2")
             # Verify user has permission to export file
             if not security_manager.can_access("can_csv", "Superset"):
                 return None
@@ -317,7 +313,7 @@ class BaseReportState:
     def _get_data_response(
         self,
         command: ChartDataCommand,
-        force_cached: bool = False,
+        force_cached: bool = True,
         form_data: Optional[Dict[str, Any]] = None,
         datasource: Optional[BaseDatasource] = None,
     ) -> Any:
@@ -357,6 +353,7 @@ class BaseReportState:
         # logger.info(childrenElement)
 
         if childrenElement['type'] == 'CHART':
+            dataframe = None
             for slice in slices:
                 if slice['slice_id'] == childrenElement['meta']['chartId']:
                     logger.info("### ### slice_id") 
