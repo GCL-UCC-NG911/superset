@@ -668,6 +668,7 @@ class BaseReportState:
                 logger.info("### _get_notification_content 2")
                 data = self.get_pdf_image()
                 logger.info("### _get_notification_content 2 1")
+                header_data['notification_format'] = 'PDF'
                 if not data:
                     logger.info("### if not data 0")
                     error_text = "Unexpected missing PDF file"
@@ -708,7 +709,7 @@ class BaseReportState:
         logger.info("### _get_notification_content 5")
         logger.info(screenshot_data) # []
         logger.info(self._report_schedule.description) # None
-        logger.info(data) # PDF File
+        # logger.info(data) # PDF File
         logger.info(embedded_data) # None
         logger.info(header_data) # {'notification_type': 'Report', 'notification_source': <ReportSourceFormat.DASHBOARD: 'dashboard'>, 'notification_format': 'PDF', 'chart_id': None, 'dashboard_id': 24, 'owners': [Eduardo Sanday]}
         logger.info("### _get_notification_content 6")
