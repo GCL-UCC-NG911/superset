@@ -798,7 +798,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
         // TODO:
         // 1. Create a protection when latestQueryFormData is empty
         // 2. Try to genererate the query
-        let payload = None;
+        let payload = {};
 
         if (Object.keys(chart.latestQueryFormData).length !== 0) {
           payload = buildV1ChartDataPayload({
