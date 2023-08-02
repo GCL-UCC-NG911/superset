@@ -54,18 +54,19 @@ def charts_to_pdf(dashboard: Dict, charts: list, filters: list, options: Dict = 
     dashboar_title = f"<h1>Dashboard: {title}</h1>" if title else ""
 
     # loop filters
+    logger.info('### loop filters')
     filters_html = ""
     if len(filters) > 0:
         filters_html = "<br><br><h2>Filters:</h2>"
 
     for element in filters:
-        # logger.info(element)
+        logger.info(element)
         filter_name = element.get("name")
         # Return the corret message
         # To date/time: No filter
         # Others: No date
         if element.get('filterType') == 'filter_time':
-            filter_value = element.get("value") if element.get("time_range") else "No filter"
+            filter_value = element.get("time_range") if element.get("value") else "No filter"
         else:
             filter_value = element.get("value") if element.get("value") else "Not selected"
         filters_html = filters_html + f"<br><h2>    &bull; {filter_name}: {filter_value}</h2>"

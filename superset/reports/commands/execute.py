@@ -359,16 +359,18 @@ class BaseReportState:
                 if slice['slice_id'] == childrenElement['meta']['chartId']:
                     logger.info("### ### slice_id") 
                     logger.info(slice)
-                    # TODO: protection
+                    # TODO: Include in query others filters
                     if slice['query_context'] != None:
                         form_data = json.loads(slice['query_context'])
                         for filter in filters:
-                            if filter['filterType'] == 'filter_time':
-                                if filter['value'] != '':
-                                    for query in form_data['queries']:
-                                        if 'time_range' in query:
-                                            query['time_range'] = filter['value']
-                                    form_data['form_data']['time_range'] = filter['value']
+                            if slice['slice_id'] in filter['chartsInScope']:
+
+                                if filter['filterType'] == 'filter_time':
+                                    if filter['value'] != '':
+                                        for query in form_data['queries']:
+                                            if 'time_range' in query:
+                                                query['time_range'] = filter['value']
+                                        form_data['form_data']['time_range'] = filter['value']
 
                         logger.info(form_data)
                         form_data['result_format'] = "pandas"
@@ -416,6 +418,12 @@ class BaseReportState:
         for element in nativeFilters:
             value = ''
             timeRange = None
+            # TODO: Create the dinamic filters
+            # if "requiredFirst" in element:
+                # if element['requiredFirst']:
+
+
+
             if "value" in element['defaultDataMask']['filterState']:
                 value = element['defaultDataMask']['filterState']['value']
                 if element['filterType'] == 'filter_time':
@@ -424,9 +432,11 @@ class BaseReportState:
             allfilters.append({
                 'filterId': element['id'],
                 'name': element['name'],
+                'chartsInScope': element['chartsInScope'],
                 'extraFormData': element['defaultDataMask']['extraFormData'],
                 'value': value,
                 'time_range': timeRange,
+                'description': element['description'],
                 'filterType': element['filterType'],
                 'type': 'FILTER',
             })

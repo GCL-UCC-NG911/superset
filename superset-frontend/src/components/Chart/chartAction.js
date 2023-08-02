@@ -788,20 +788,28 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       getState()?.dashboardInfo?.position_data,
       'ROOT_ID',
     );
+    console.log('allTables');
+    console.log(allTables);
     allTables.forEach(element => {
       console.log(element.chartId);
       if (element.type === 'CHART') {
         const chart = allCharts.find(obj => obj.chartId === element.chartId);
         console.log(chart);
-        // TODO: Create a protection when latestQueryFormData is empty
-        const payload = buildV1ChartDataPayload({
-          formData: chart.latestQueryFormData,
-          result_format: 'csv',
-          result_type: 'full',
-          force: false,
-          setDataMask: {},
-          ownState: {},
-        });
+        // TODO:
+        // 1. Create a protection when latestQueryFormData is empty
+        // 2. Try to genererate the query
+        let payload = None;
+
+        if (Object.keys(chart.latestQueryFormData).length !== 0) {
+          payload = buildV1ChartDataPayload({
+            formData: chart.latestQueryFormData,
+            result_format: 'csv',
+            result_type: 'full',
+            force: false,
+            setDataMask: {},
+            ownState: {},
+          });
+        }
 
         const chartObj = {
           chartId: element.chartId,
