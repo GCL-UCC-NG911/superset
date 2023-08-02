@@ -319,7 +319,7 @@ class BaseReportState:
     ) -> Any:
         try:
             logger.info("### _get_data_response 0 0")
-            result = command.run(force_cached=force_cached)
+            result = command.run(force_cached=False)
             logger.info(result)
         except ChartDataCacheLoadError as exc:
             logger.error(exc.message)
