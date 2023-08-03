@@ -754,7 +754,7 @@ function getAllFilters(defaultFilters, changeFilters = null) {
 
 export function downloadAllChartsAs(chartList, force, dashboardId) {
   return (dispatch, getState) => {
-    // console.log('### du 2 23');
+    console.log('### du 2 23');
     console.log(getState());
     console.log(chartList);
     console.log(force);
@@ -809,6 +809,19 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
             setDataMask: {},
             ownState: {},
           });
+        } else {
+          console.log('runQuery');
+          console.log(this.props);
+          /*
+            this.props.actions.postChartFormData(
+              this.props.formData,
+              this.props.force || getUrlParam(URL_PARAMS.force), // allow override via url params force=true
+              this.props.timeout,
+              this.props.chartId,
+              this.props.dashboardId,
+              this.props.ownState,
+            );
+          */
         }
 
         const chartObj = {
