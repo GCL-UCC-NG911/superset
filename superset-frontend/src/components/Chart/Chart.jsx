@@ -162,6 +162,7 @@ class Chart extends React.PureComponent {
   runQuery() {
     if (this.props.chartId > 0 && isFeatureEnabled(FeatureFlag.CLIENT_CACHE)) {
       // Load saved chart with a GET request
+      console.log('### DU 3 0 0');
       this.props.actions.getSavedChart(
         this.props.formData,
         this.props.force || getUrlParam(URL_PARAMS.force), // allow override via url params force=true
@@ -173,6 +174,15 @@ class Chart extends React.PureComponent {
     } else {
       // Create chart with POST request
       console.log('### DU 3 0');
+      console.log(this.props.formData);
+      console.log(this.props.force);
+      console.log(getUrlParam(URL_PARAMS.force));
+      console.log(this.props.force || getUrlParam(URL_PARAMS.force));
+      console.log(this.props.timeout);
+      console.log(this.props.chartId);
+      console.log(this.props.dashboardId);
+      console.log(this.props.ownState);
+      console.log('### DU 3 1');
       this.props.actions.postChartFormData(
         this.props.formData,
         this.props.force || getUrlParam(URL_PARAMS.force), // allow override via url params force=true
