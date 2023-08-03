@@ -196,7 +196,7 @@ const v1ChartDataRequest = async (
     body: JSON.stringify(payload),
     parseMethod: 'json-bigint',
   };
-  // console.log('### DU 2');
+  console.log('### DU 2');
   console.log(formData);
   // console.log(resultFormat);
   // console.log(resultType);
@@ -386,7 +386,7 @@ export function exploreJSON(
   dashboardId,
   ownState,
 ) {
-  // console.log('### du 10 ');
+  console.log('### du 10 ');
   console.log(formData);
   return async dispatch => {
     const logStart = Logger.getTimestamp();
@@ -396,7 +396,7 @@ export function exploreJSON(
       signal: controller.signal,
       timeout: timeout * 1000,
     };
-    // console.log('### Du 4 1');
+    console.log('### Du 4 1');
     console.log(timeout);
     if (dashboardId) requestParams.dashboard_id = dashboardId;
 
@@ -580,7 +580,7 @@ export function getSavedChart(
    *  GET  /explore_json?{"chart_id":1,"extra_filters":"..."}
    *
    */
-  // console.log('### du 17');
+  console.log('### du 17');
   console.log(timeout);
   return exploreJSON(
     formData,
@@ -608,7 +608,7 @@ export function postChartFormData(
    * This will post the form data to the endpoint, returning a new chart.
    *
    */
-  // console.log('### du 18');
+  console.log('### du 18');
   console.log(timeout);
   return exploreJSON(
     formData,
@@ -835,7 +835,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
       dashboardInfo.push(element);
     });
 
-    // console.log('### du 2 25');
+    console.log('### du 2 25');
     console.log(dashboardInfo);
     // console.log('### du 2 26');
     /*
