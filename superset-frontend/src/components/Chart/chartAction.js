@@ -769,6 +769,8 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
         console.log(chart?.id);
         allCharts.push({
           chartId: chart?.id,
+          chartStatus: chart?.status,
+          form_data: chart?.form_data,
           latestQueryFormData: chart?.latestQueryFormData,
           ownState: getState().dataMask[chart?.id]?.ownState,
         });
@@ -800,7 +802,8 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
         // 2. Try to genererate the query
         let payload = {};
 
-        if (Object.keys(chart.latestQueryFormData).length !== 0) {
+        // if (Object.keys(chart.latestQueryFormData).length !== 0) {
+        if (chart.chartStatus !== 'rendered') {
           payload = buildV1ChartDataPayload({
             formData: chart.latestQueryFormData,
             result_format: 'csv',
@@ -811,7 +814,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
           });
         } else {
           console.log('runQuery');
-          console.log(this.props);
+          // console.log(this.props);
           /*
             this.props.actions.postChartFormData(
               this.props.formData,
@@ -822,6 +825,14 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
               this.props.ownState,
             );
           */
+            payload = buildV1ChartDataPayload({
+              formData: chart.form_data,
+              result_format: 'csv',
+              result_type: 'full',
+              force: true,
+              setDataMask: {},
+              ownState: {},
+            });
         }
 
         const chartObj = {
