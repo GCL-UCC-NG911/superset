@@ -825,14 +825,14 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
               this.props.ownState,
             );
           */
-            payload = buildV1ChartDataPayload({
-              formData: chart.form_data,
-              result_format: 'csv',
-              result_type: 'full',
-              force: true,
-              setDataMask: {},
-              ownState: {},
-            });
+          payload = buildV1ChartDataPayload({
+            formData: chart.form_data,
+            result_format: 'csv',
+            result_type: 'full',
+            force: true,
+            setDataMask: {},
+            ownState: {},
+          });
         }
 
         const chartObj = {
