@@ -473,7 +473,7 @@ class BaseChartScreenshot:
                 if element['value'] != '':
                     if element['filterType'] == 'filter_time':
                         timeRange = get_since_until(time_range=element['value'])
-                        element['timeRange'] = timeRange
+                        element['time_range'] = timeRange
                 filters.append(element)
 
             if element.get("type") == "CHART":
