@@ -42,6 +42,7 @@ from superset.utils.webdriver import (
     WindowSize,
 )
 from superset.utils.urls import get_url_path, modify_url_query
+from superset.utils.date_parser import get_since_until
 
 # from superset.charts.data.commands.get_data_command import ChartDataCommand
 # from superset.charts.schemas import ChartDataQueryContextSchema
@@ -469,6 +470,10 @@ class BaseChartScreenshot:
                 dashboard = element
 
             if element.get("type") == "FILTER":
+                if element['value'] != '':
+                    if element['filterType'] == 'filter_time':
+                        timeRange = get_since_until(time_range=element['value'])
+                        element['timeRange'] = timeRange
                 filters.append(element)
 
             if element.get("type") == "CHART":
