@@ -763,13 +763,14 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
     chartList.forEach(chartKey => {
       const chart = (getState().charts || {})[chartKey];
       console.log(chart?.id);
-      console.log(chart?.latestQueryFormData);
-      console.log(getState().dataMask[chart?.id]?.ownState);
+      console.log(chart);
+      // console.log(chart?.latestQueryFormData);
+      // console.log(getState().dataMask[chart?.id]?.ownState);
       if (chart?.id !== undefined) {
         console.log(chart?.id);
         allCharts.push({
           chartId: chart?.id,
-          chartStatus: chart?.status,
+          chartStatus: chart?.chartStatus,
           form_data: chart?.form_data,
           latestQueryFormData: chart?.latestQueryFormData,
           ownState: getState().dataMask[chart?.id]?.ownState,
