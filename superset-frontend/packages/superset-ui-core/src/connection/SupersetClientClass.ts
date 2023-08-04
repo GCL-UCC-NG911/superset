@@ -178,7 +178,7 @@ export default class SupersetClientClass {
       Object.entries(payloadWithToken).forEach(([key, value]) => {
         const data = document.createElement('input');
         // Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'type')
-        // data.type = 'hidden';
+        data.type = 'hidden';
         data.name = key;
         data.value = value;
         hiddenForm.appendChild(data);
