@@ -472,6 +472,8 @@ class BaseChartScreenshot:
             if element.get("type") == "FILTER":
                 if element['value'] != '':
                     if element['filterType'] == 'filter_time':
+                        logger.info('### element[filterType] == filter_time')
+                        logger.info(element['value'])
                         timeRange = get_since_until(time_range=element['value'])
                         element['time_range'] = timeRange
                 filters.append(element)

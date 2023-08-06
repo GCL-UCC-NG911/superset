@@ -417,7 +417,7 @@ class BaseReportState:
         allfilters = []
         for element in nativeFilters:
             value = ''
-            # timeRange = None
+            timeRange = None
             # TODO: Create the dinamic filters
             # if "requiredFirst" in element:
                 # if element['requiredFirst']:
