@@ -426,8 +426,8 @@ class BaseReportState:
 
             if "value" in element['defaultDataMask']['filterState']:
                 value = element['defaultDataMask']['filterState']['value']
-                # if element['filterType'] == 'filter_time':
-                    # timeRange = get_since_until(time_range=value)
+                if element['filterType'] == 'filter_time':
+                    timeRange = get_since_until(time_range=value)
 
             allfilters.append({
                 'filterId': element['id'],
@@ -435,7 +435,7 @@ class BaseReportState:
                 'chartsInScope': element['chartsInScope'],
                 'extraFormData': element['defaultDataMask']['extraFormData'],
                 'value': value,
-                # 'time_range': timeRange,
+                'time_range': timeRange,
                 'description': element['description'],
                 'filterType': element['filterType'],
                 'type': 'FILTER',
