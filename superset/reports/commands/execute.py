@@ -374,6 +374,8 @@ class BaseReportState:
                     form_data = slice['form_data']
                     for filter in filters:
                         if slice['slice_id'] in filter['chartsInScope']:
+                            logger.info("### ### filter['chartsInScope']")
+                            logger.info(filter['chartsInScope'])
                             if filter['filterType'] == 'filter_time':
                                 if filter['value'] != '':
                                     logger.info("### ### filter[value] != _")
