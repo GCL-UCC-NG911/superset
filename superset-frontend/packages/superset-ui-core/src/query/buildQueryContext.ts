@@ -48,14 +48,24 @@ export default function buildQueryContext(
       ? { buildQuery: options, queryFields: {} }
       : options || {};
   let queries = buildQuery(buildQueryObject(formData, queryFields));
+  console.log('### ### formData');
+  console.log(formData);
+  console.log('### ### queryFields');
+  console.log(queryFields);
+  console.log('### ### buildQuery');
+  console.log(buildQuery);
   // --- query mutator begin ---
   // todo(Yongjie): move the query mutator into buildQueryObject instead of buildQueryContext
+  console.log('### ### query');
+  console.log(queries);
   queries.forEach(query => {
     if (Array.isArray(query.post_processing)) {
       // eslint-disable-next-line no-param-reassign
       query.post_processing = query.post_processing.filter(Boolean);
     }
   });
+  console.log('### ### isXAxisSet(formData)');
+  console.log(isXAxisSet(formData));
   if (isXAxisSet(formData)) {
     queries = queries.map(query => normalizeTimeColumn(formData, query));
   }

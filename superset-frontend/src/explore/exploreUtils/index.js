@@ -207,6 +207,7 @@ export const buildV1ChartDataPayload = ({
   setDataMask,
   ownState,
 }) => {
+  console.log('######');
   const buildQuery =
     getChartBuildQueryRegistry().get(formData.viz_type) ??
     (buildQueryformData =>

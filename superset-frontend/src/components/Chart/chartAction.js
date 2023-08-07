@@ -805,6 +805,8 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
 
         // if (Object.keys(chart.latestQueryFormData).length !== 0) {
         if (chart.chartStatus !== 'rendered') {
+          console.log('chart.latestQueryFormData');
+          console.log(chart.latestQueryFormData);
           payload = buildV1ChartDataPayload({
             formData: chart.latestQueryFormData,
             result_format: 'csv',
@@ -826,6 +828,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
               this.props.ownState,
             );
           */
+          console.log(chart.form_data);
           payload = buildV1ChartDataPayload({
             formData: chart.form_data,
             result_format: 'csv',
@@ -835,7 +838,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
             ownState: {},
           });
         }
-
+        console.log(payload);
         const chartObj = {
           chartId: element.chartId,
           sliceName: element.sliceName,
