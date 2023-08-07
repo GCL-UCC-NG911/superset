@@ -374,7 +374,7 @@ class BaseReportState:
                     form_data = slice['form_data']
                     for filter in filters:
                         logger.info(filter)
-                        if slice['slice_id'] in filter['chartsInScope']:
+                        if not filter['chartsInScope'] or slice['slice_id'] in filter['chartsInScope']:
                             logger.info("### ### filter['chartsInScope']")
                             logger.info(filter['chartsInScope'])
                             if filter['filterType'] == 'filter_time':
@@ -397,6 +397,7 @@ class BaseReportState:
                         # result_format: 'pandas',
                         # result_type: 'full',
                     # }
+                    # TODO: Create a tyr catch to protect if this chart does not return query...
                     query_context = self._create_query_context_from_form(form_data)
                     logger.info("### ### query_context")
                     logger.info(query_context)
