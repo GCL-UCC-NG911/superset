@@ -804,7 +804,7 @@ export function downloadAllChartsAs(chartList, force, dashboardId) {
         let payload = {};
 
         // if (Object.keys(chart.latestQueryFormData).length !== 0) {
-        if (chart.chartStatus !== 'rendered') {
+        if (chart.chartStatus === 'rendered') {
           console.log('chart.latestQueryFormData');
           console.log(chart.latestQueryFormData);
           payload = buildV1ChartDataPayload({
