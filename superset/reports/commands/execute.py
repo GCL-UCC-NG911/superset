@@ -373,14 +373,14 @@ class BaseReportState:
                                         # form_data['form_data']['time_range'] = filter['value']
                     form_data = slice['form_data']
                     for filter in filters:
-                        logger.info(filter)
+                        # logger.info(filter)
                         if not filter['chartsInScope'] or slice['slice_id'] in filter['chartsInScope']:
-                            logger.info("### ### filter['chartsInScope']")
-                            logger.info(filter['chartsInScope'])
+                            # logger.info("### ### filter['chartsInScope']")
+                            # logger.info(filter['chartsInScope'])
                             if filter['filterType'] == 'filter_time':
                                 if filter['value'] != '':
-                                    logger.info("### ### filter[value] != _")
-                                    for query in form_data['queries']:
+                                    # logger.info("### ### filter[value] != _")
+                                    for query in form_data:
                                         if 'time_range' in query:
                                             logger.info("### ### time_range in query")
                                             query['time_range'] = filter['value']
