@@ -373,6 +373,7 @@ class BaseReportState:
                                         # form_data['form_data']['time_range'] = filter['value']
                     form_data = slice['form_data']
                     for filter in filters:
+                        logger.info(filter)
                         if slice['slice_id'] in filter['chartsInScope']:
                             logger.info("### ### filter['chartsInScope']")
                             logger.info(filter['chartsInScope'])
@@ -388,7 +389,14 @@ class BaseReportState:
                     logger.info("### ### commit 0")
                     logger.info("### ### form_data")
                     logger.info(form_data)
-                    # form_data['result_format'] = "pandas"
+                    # query = {
+                        # datasource: '',
+                        # force: True,
+                        # queries: '',
+                        # form_data: '',
+                        # result_format: 'pandas',
+                        # result_type: 'full',
+                    # }
                     query_context = self._create_query_context_from_form(form_data)
                     logger.info("### ### query_context")
                     logger.info(query_context)
@@ -467,6 +475,7 @@ class BaseReportState:
         position_json = json.loads(self._report_schedule.dashboard.position_json)
         slices = self._report_schedule.dashboard.data['slices']
         
+        logger.info("### ### self._report_schedule.dashboard.data")
         logger.info(self._report_schedule.dashboard.data)
 
         dashboard = {}
