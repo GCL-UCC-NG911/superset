@@ -370,14 +370,15 @@ class BaseReportState:
                                         for query in form_data['queries']:
                                             if 'time_range' in query:
                                                 query['time_range'] = filter['value']
+                                        logger.debug(f"Success on update the time range in chart")
                                         form_data['form_data']['time_range'] = filter['value']
 
-                        logger.info(form_data)
-                        form_data['result_format'] = "pandas"
-                        query_context = self._create_query_context_from_form(form_data)
-                        command = ChartDataCommand(query_context)
-                        command.validate()
-                        dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
+            logger.info(form_data)
+            form_data['result_format'] = "pandas"
+            query_context = self._create_query_context_from_form(form_data)
+            command = ChartDataCommand(query_context)
+            command.validate()
+            dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
 
             return [
                 {
