@@ -371,7 +371,7 @@ class BaseReportState:
                                                 # query['time_range'] = filter['value']
                                         # logger.debug(f"Success on update the time range in chart")
                                         # form_data['form_data']['time_range'] = filter['value']
-                    form_data = json.loads(slice['form_data'])
+                    form_data = slice['form_data']
                     for filter in filters:
                         if slice['slice_id'] in filter['chartsInScope']:
                             if filter['filterType'] == 'filter_time':
