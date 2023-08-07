@@ -385,6 +385,7 @@ class BaseReportState:
                                             query['time_range'] = filter['value']
                                     logger.debug(f"Success on update the time range in chart")
                                     form_data['time_range'] = filter['value']
+                    logger.info("### ### commit 0")
                     logger.info("### ### form_data")
                     logger.info(form_data)
                     # form_data['result_format'] = "pandas"
@@ -394,7 +395,6 @@ class BaseReportState:
                     command = ChartDataCommand(query_context)
                     command.validate()
                     dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
-
                     return [
                         {
                             'chartId': childrenElement['meta']['chartId'],
