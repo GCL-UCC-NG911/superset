@@ -360,37 +360,46 @@ class BaseReportState:
                     logger.info("### ### slice_id") 
                     logger.info(slice)
                     # TODO: Include in query others filters
-                    if slice['query_context'] != None:
-                        form_data = json.loads(slice['query_context'])
-                        for filter in filters:
-                            if slice['slice_id'] in filter['chartsInScope']:
+                    # if slice['query_context'] != None:
+                        # form_data = json.loads(slice['query_context'])
+                        # for filter in filters:
+                            # if slice['slice_id'] in filter['chartsInScope']:
+                                # if filter['filterType'] == 'filter_time':
+                                    # if filter['value'] != '':
+                                        # for query in form_data['queries']:
+                                            # if 'time_range' in query:
+                                                # query['time_range'] = filter['value']
+                                        # logger.debug(f"Success on update the time range in chart")
+                                        # form_data['form_data']['time_range'] = filter['value']
+                    form_data = json.loads(slice['form_data'])
+                    for filter in filters:
+                        if slice['slice_id'] in filter['chartsInScope']:
+                            if filter['filterType'] == 'filter_time':
+                                if filter['value'] != '':
+                                    for query in form_data['queries']:
+                                        if 'time_range' in query:
+                                            query['time_range'] = filter['value']
+                                    logger.debug(f"Success on update the time range in chart")
+                                    form_data['time_range'] = filter['value']
+                    logger.info(form_data)
+                    # form_data['result_format'] = "pandas"
+                    query_context = self._create_query_context_from_form(form_data)
+                    logger.info(query_context)
+                    command = ChartDataCommand(query_context)
+                    command.validate()
+                    dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
 
-                                if filter['filterType'] == 'filter_time':
-                                    if filter['value'] != '':
-                                        for query in form_data['queries']:
-                                            if 'time_range' in query:
-                                                query['time_range'] = filter['value']
-                                        logger.debug(f"Success on update the time range in chart")
-                                        form_data['form_data']['time_range'] = filter['value']
-
-            logger.info(form_data)
-            form_data['result_format'] = "pandas"
-            query_context = self._create_query_context_from_form(form_data)
-            command = ChartDataCommand(query_context)
-            command.validate()
-            dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
-
-            return [
-                {
-                    'chartId': childrenElement['meta']['chartId'],
-                    'sliceName': childrenElement['meta']['sliceName'],
-                    'uuid': childrenElement['meta']['uuid'],
-                    'height': childrenElement['meta']['height'],
-                    'width': childrenElement['meta']['width'],
-                    'dataframe': dataframe,
-                    'type': 'CHART',
-                },
-            ]
+                    return [
+                        {
+                            'chartId': childrenElement['meta']['chartId'],
+                            'sliceName': childrenElement['meta']['sliceName'],
+                            'uuid': childrenElement['meta']['uuid'],
+                            'height': childrenElement['meta']['height'],
+                            'width': childrenElement['meta']['width'],
+                            'dataframe': dataframe,
+                            'type': 'CHART',
+                        },
+                    ]
 
         if childrenElement['type'] == 'MARKDOWN':
             return [
