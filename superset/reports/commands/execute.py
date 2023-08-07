@@ -376,14 +376,18 @@ class BaseReportState:
                         if slice['slice_id'] in filter['chartsInScope']:
                             if filter['filterType'] == 'filter_time':
                                 if filter['value'] != '':
+                                    logger.info("### ### filter[value] != _")
                                     for query in form_data['queries']:
                                         if 'time_range' in query:
+                                            logger.info("### ### time_range in query")
                                             query['time_range'] = filter['value']
                                     logger.debug(f"Success on update the time range in chart")
                                     form_data['time_range'] = filter['value']
+                    logger.info("### ### form_data")
                     logger.info(form_data)
                     # form_data['result_format'] = "pandas"
                     query_context = self._create_query_context_from_form(form_data)
+                    logger.info("### ### query_context")
                     logger.info(query_context)
                     command = ChartDataCommand(query_context)
                     command.validate()
