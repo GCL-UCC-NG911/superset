@@ -115,7 +115,7 @@ from superset.utils.screenshots import ChartScreenshot, DashboardScreenshot
 from superset.utils.urls import get_url_path
 from superset.utils.date_parser import get_since_until
 # from superset.viz import BaseViz, viz_types
-from superset.common.query_context_factory import QueryContextFactory
+# from superset.common.query_context_factory import QueryContextFactory
 
 logger = logging.getLogger(__name__)
 
@@ -419,27 +419,27 @@ class BaseReportState:
                         # viz_class = viz_types.get(form_data['viz_type'])
                         # test = viz_class(datasource=datasource, form_data=form_data)
                         # logger.info(test.query_obj())
-                        qc = QueryContextFactory().create(
-                            datasource={
-                                "type": form_data['datasource'].split('__')[1],
-                                "id": form_data['datasource'].split('__')[0],
-                            },
-                            queries=[
-                                {
-                                    "columns": ["col1", "col2"],
-                                    "metrics": form_data['metrics'],
-                                    "time_range": form_data['time_range'],
-                                    "granularity": form_data['granularity_sqla'],
-                                    "order_desc": form_data['order_desc'],
-                                }
-                            ],
-                            form_data = form_data,
-                            result_type='full',
-                            result_format='pandas',
-                            force=True,
-                        )
-                        logger.info(slice.query_obj())
-                        logger.info(qc)
+                        # qc = QueryContextFactory().create(
+                            # datasource={
+                                # "type": form_data['datasource'].split('__')[1],
+                                # "id": form_data['datasource'].split('__')[0],
+                            # },
+                            # queries=[
+                                # {
+                                    # "columns": ["col1", "col2"],
+                                    # "metrics": form_data['metrics'],
+                                    # "time_range": form_data['time_range'],
+                                    # "granularity": form_data['granularity_sqla'],
+                                    # "order_desc": form_data['order_desc'],
+                                # }
+                            # ],
+                            # form_data = form_data,
+                            # result_type='full',
+                            # result_format='pandas',
+                            # force=True,
+                        # )
+                        # logger.info(slice.query_obj())
+                        # logger.info(qc)
                         dataframe = {
                             # 'load': load,
                             'getQuery': getQuery,
