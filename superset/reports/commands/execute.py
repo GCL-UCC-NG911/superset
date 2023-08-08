@@ -114,6 +114,7 @@ from superset.utils.screenshots import DashboardChartScreenshot
 from superset.utils.screenshots import ChartScreenshot, DashboardScreenshot
 from superset.utils.urls import get_url_path
 from superset.utils.date_parser import get_since_until
+from superset.viz import BaseViz, viz_types
 
 logger = logging.getLogger(__name__)
 
@@ -397,7 +398,7 @@ class BaseReportState:
                                             logger.debug(f"Success on update the time range in chart")
                                             form_data['time_range'] = filter['value']
                         payload = form_data
-                        payload['result_format'] = 'PANDAS'
+                        payload['result_format'] = 'pandas'
                         payload['result_type'] = 'full'
                         # load = ChartDataQueryContextSchema().load(form_data)
                         # logger.info("### ### load(form_data)")
@@ -410,6 +411,13 @@ class BaseReportState:
                         # logger.info(test)
                         # logger.info("### ### form_data")
                         # logger.info(form_data)
+                        datasource = {
+                           'id': form_data['datasource'].split('__')[0],
+                           'type': form_data['datasource'].split('__')[1],
+                        }
+                        viz_class = viz_types.get(form_data['viz_type'])
+                        test = viz_class(datasource=datasource, form_data=form_data)
+                        logger.info(test.query_obj())
                         dataframe = {
                             # 'load': load,
                             'getQuery': getQuery,
@@ -418,8 +426,19 @@ class BaseReportState:
                         }
                         logger.info("### ### dataframe")
                         logger.info(dataframe)
-                        logger.info(vars(getQuery))
+                        logger.info(vars(getQuery._query_object_factory))
                     # TODO: Create a tyr catch to protect if this chart does not return query...
+                    # payload = {
+                    #   'datasource': {
+                    #       'id': form_data['datasource'].split('__')[0],
+                    #       'type': form_data['datasource'].split('__')[1],
+                    #   },
+                    #   'force': True,
+                    #   'queries': 
+                    #   'result_format': 'json',
+                    #   'result_type': 'full',
+                    #   'form_data': form_data,
+                    # }
                     query_context = self._create_query_context_from_form(payload)
                     logger.info("### ### query_context")
                     logger.info(query_context)
