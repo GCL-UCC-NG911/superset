@@ -405,7 +405,7 @@ class BaseReportState:
                         getQuery = ChartDataQueryContextSchema().get_query_context_factory()
                         # logger.info("### ### get_query_context_factory")
                         # logger.info(getQuery)
-                        makeQuery = ChartDataQueryContextSchema().make_query_context(form_data)
+                        # makeQuery = ChartDataQueryContextSchema().make_query_context(form_data)
                         # logger.info("### ### query_context")
                         # logger.info(test)
                         # logger.info("### ### form_data")
@@ -413,7 +413,7 @@ class BaseReportState:
                         dataframe = {
                             # 'load': load,
                             'getQuery': getQuery,
-                            'makeQuery': makeQuery,
+                            # 'makeQuery': makeQuery,
                             'form_data': form_data,
                         }
                         logger.info("### ### dataframe")
