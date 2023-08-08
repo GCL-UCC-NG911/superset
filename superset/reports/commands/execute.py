@@ -439,7 +439,7 @@ class BaseReportState:
                             force=True,
                         )
                         # logger.info(slice.query_obj())
-                        logger.info(qc)
+                        logger.info(vars(qc))
                         dataframe = {
                             # 'load': load,
                             'getQuery': getQuery,
