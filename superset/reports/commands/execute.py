@@ -356,71 +356,73 @@ class BaseReportState:
         if childrenElement['type'] == 'CHART':
             dataframe = None
             for slice in slices:
+                dataframe = None
                 if slice['slice_id'] == childrenElement['meta']['chartId']:
                     logger.info("### ### slice_id") 
                     logger.info(slice)
                     # TODO: Include in query others filters
-                    # if slice['query_context'] != None:
-                        # form_data = json.loads(slice['query_context'])
-                        # for filter in filters:
-                            # if slice['slice_id'] in filter['chartsInScope']:
-                                # if filter['filterType'] == 'filter_time':
-                                    # if filter['value'] != '':
-                                        # for query in form_data['queries']:
-                                            # if 'time_range' in query:
-                                                # query['time_range'] = filter['value']
-                                        # logger.debug(f"Success on update the time range in chart")
-                                        # form_data['form_data']['time_range'] = filter['value']
-                    form_data = slice['form_data']
-                    for filter in filters:
-                        # logger.info(filter)
-                        if not filter['chartsInScope'] or slice['slice_id'] in filter['chartsInScope']:
-                            # logger.info("### ### filter['chartsInScope']")
-                            # logger.info(filter['chartsInScope'])
-                            if filter['filterType'] == 'filter_time':
-                                if filter['value'] != '':
-                                    # logger.info("### ### filter[value] != _")
-                                    if 'time_range' in form_data:
-                                        logger.info("### ### time_range in query")
-                                        logger.info(form_data['time_range'])
-                                        logger.info(filter['value'])
+                    if slice['query_context'] != None:
+                        form_data = json.loads(slice['query_context'])
+                        for filter in filters:
+                            if slice['slice_id'] in filter['chartsInScope']:
+                                if filter['filterType'] == 'filter_time':
+                                    if filter['value'] != '':
+                                        for query in form_data['queries']:
+                                            if 'time_range' in query:
+                                                query['time_range'] = filter['value']
                                         logger.debug(f"Success on update the time range in chart")
-                                        form_data['time_range'] = filter['value']
-                    logger.info("### ### commit 0")
-                    logger.info("### ### form_data")
-                    logger.info(form_data)
-                    # query = {
-                        # datasource: '',
-                        # force: True,
-                        # queries: '',
-                        # form_data: '',
-                        # result_format: 'pandas',
-                        # result_type: 'full',
-                    # }
+                                        form_data['form_data']['time_range'] = filter['value']
+                        # TODO: Create a tyr catch to protect if this chart does not return query...
+                        query_context = self._create_query_context_from_form(form_data)
+                        logger.info("### ### query_context")
+                        logger.info(query_context)
+                        command = ChartDataCommand(query_context)
+                        command.validate()
+                        dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
+                    else:
+                        form_data = slice['form_data']
+                        for filter in filters:
+                            # logger.info(filter)
+                            if not filter['chartsInScope'] or slice['slice_id'] in filter['chartsInScope']:
+                                # logger.info("### ### filter['chartsInScope']")
+                                # logger.info(filter['chartsInScope'])
+                                if filter['filterType'] == 'filter_time':
+                                    if filter['value'] != '':
+                                        # logger.info("### ### filter[value] != _")
+                                        if 'time_range' in form_data:
+                                            # logger.info("### ### time_range in query")
+                                            # logger.info(form_data['time_range'])
+                                            # logger.info(filter['value'])
+                                            logger.debug(f"Success on update the time range in chart")
+                                            form_data['time_range'] = filter['value']
+                        logger.info("### ### form_data")
+                        logger.info(form_data)
+                        test = ChartDataQueryContextSchema().make_query_context(form_data)
+                        logger.info("### ### query_context")
+                        logger.info(test)
+                        test = ChartDataQueryContextSchema().get_query_context_factory()
+                        logger.info("### ### get_query_context_factory")
+                        logger.info(test)
+                    
                     # TODO: Create a tyr catch to protect if this chart does not return query...
-                    test = ChartDataQueryContextSchema().make_query_context(form_data)
+                    query_context = self._create_query_context_from_form(form_data)
                     logger.info("### ### query_context")
-                    logger.info(test)
-                    test = ChartDataQueryContextSchema().get_query_context_factory()
-                    logger.info("### ### get_query_context_factory")
-                    logger.info(test)
-                    # query_context = self._create_query_context_from_form(form_data)
-                    # logger.info("### ### query_context")
-                    # logger.info(query_context)
-                    # command = ChartDataCommand(query_context)
-                    # command.validate()
-                    # dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
-                    return [
-                        {
-                            'chartId': childrenElement['meta']['chartId'],
-                            'sliceName': childrenElement['meta']['sliceName'],
-                            'uuid': childrenElement['meta']['uuid'],
-                            'height': childrenElement['meta']['height'],
-                            'width': childrenElement['meta']['width'],
-                            'dataframe': dataframe,
-                            'type': 'CHART',
-                        },
-                    ]
+                    logger.info(query_context)
+                    command = ChartDataCommand(query_context)
+                    command.validate()
+                    dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
+
+            return [
+                {
+                    'chartId': childrenElement['meta']['chartId'],
+                    'sliceName': childrenElement['meta']['sliceName'],
+                    'uuid': childrenElement['meta']['uuid'],
+                    'height': childrenElement['meta']['height'],
+                    'width': childrenElement['meta']['width'],
+                    'dataframe': dataframe,
+                    'type': 'CHART',
+                },
+            ]
 
         if childrenElement['type'] == 'MARKDOWN':
             return [
