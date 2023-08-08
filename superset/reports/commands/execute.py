@@ -418,8 +418,9 @@ class BaseReportState:
                         }
                         logger.info("### ### dataframe")
                         logger.info(dataframe)
+                        logger.info(vars(getQuery))
                     # TODO: Create a tyr catch to protect if this chart does not return query...
-                    query_context = self._create_query_context_from_form(form_data)
+                    query_context = self._create_query_context_from_form(payload)
                     logger.info("### ### query_context")
                     logger.info(query_context)
                     command = ChartDataCommand(query_context)
