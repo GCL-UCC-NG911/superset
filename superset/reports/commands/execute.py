@@ -380,12 +380,12 @@ class BaseReportState:
                             if filter['filterType'] == 'filter_time':
                                 if filter['value'] != '':
                                     # logger.info("### ### filter[value] != _")
-                                    for query in form_data:
-                                        if 'time_range' in query:
-                                            logger.info("### ### time_range in query")
-                                            query['time_range'] = filter['value']
-                                    logger.debug(f"Success on update the time range in chart")
-                                    form_data['time_range'] = filter['value']
+                                    if 'time_range' in form_data:
+                                        logger.info("### ### time_range in query")
+                                        logger.info(form_data['time_range'])
+                                        logger.info(filter['value'])
+                                        logger.debug(f"Success on update the time range in chart")
+                                        form_data['time_range'] = filter['value']
                     logger.info("### ### commit 0")
                     logger.info("### ### form_data")
                     logger.info(form_data)
