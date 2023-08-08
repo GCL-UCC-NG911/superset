@@ -484,8 +484,8 @@ class BaseReportState:
         position_json = json.loads(self._report_schedule.dashboard.position_json)
         slices = self._report_schedule.dashboard.data['slices']
         
-        logger.info("### ### self._report_schedule.dashboard.data")
-        logger.info(self._report_schedule.dashboard.data)
+        # logger.info("### ### self._report_schedule.dashboard.data")
+        # logger.info(self._report_schedule.dashboard.data)
 
         dashboard = {}
         dashboard['dashboardId'] = dashboardData['id']
