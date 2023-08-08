@@ -399,7 +399,7 @@ class BaseReportState:
                         payload = form_data
                         payload['result_format'] = 'PANDAS'
                         payload['result_type'] = 'full'
-                        load = ChartDataQueryContextSchema().load(form_data)
+                        # load = ChartDataQueryContextSchema().load(form_data)
                         # logger.info("### ### load(form_data)")
                         # logger.info(load)
                         getQuery = ChartDataQueryContextSchema().get_query_context_factory()
@@ -411,7 +411,7 @@ class BaseReportState:
                         # logger.info("### ### form_data")
                         # logger.info(form_data)
                         dataframe = {
-                            'load': load,
+                            # 'load': load,
                             'getQuery': getQuery,
                             'makeQuery': makeQuery,
                             'form_data': form_data,
