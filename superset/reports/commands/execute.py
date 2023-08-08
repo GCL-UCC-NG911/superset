@@ -373,6 +373,7 @@ class BaseReportState:
                                         logger.debug(f"Success on update the time range in chart")
                                         form_data['form_data']['time_range'] = filter['value']
                         # TODO: Create a tyr catch to protect if this chart does not return query...
+                        form_data['form_data']['result_format'] = 'pandas'
                         query_context = self._create_query_context_from_form(form_data)
                         logger.info("### ### query_context")
                         logger.info(query_context)
@@ -395,14 +396,21 @@ class BaseReportState:
                                             # logger.info(filter['value'])
                                             logger.debug(f"Success on update the time range in chart")
                                             form_data['time_range'] = filter['value']
-                        logger.info("### ### form_data")
-                        logger.info(form_data)
-                        test = ChartDataQueryContextSchema().make_query_context(form_data)
-                        logger.info("### ### query_context")
+                        payload = form_data
+                        payload['result_format'] = 'PANDAS'
+                        payload['result_type'] = 'full'
+                        test = ChartDataQueryContextSchema().load(form_data)
+                        logger.info("### ### load(form_data)")
                         logger.info(test)
                         test = ChartDataQueryContextSchema().get_query_context_factory()
                         logger.info("### ### get_query_context_factory")
                         logger.info(test)
+                        test = ChartDataQueryContextSchema().make_query_context(form_data)
+                        logger.info("### ### query_context")
+                        logger.info(test)
+                        logger.info("### ### form_data")
+                        logger.info(form_data)
+                        dataframe = 
                     
                     # TODO: Create a tyr catch to protect if this chart does not return query...
                     query_context = self._create_query_context_from_form(form_data)
