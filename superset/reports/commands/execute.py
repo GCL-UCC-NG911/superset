@@ -398,12 +398,15 @@ class BaseReportState:
                         # result_type: 'full',
                     # }
                     # TODO: Create a tyr catch to protect if this chart does not return query...
-                    query_context = self._create_query_context_from_form(form_data)
+                    test = ChartDataQueryContextSchema().make_query_context(form_data)
                     logger.info("### ### query_context")
-                    logger.info(query_context)
-                    command = ChartDataCommand(query_context)
-                    command.validate()
-                    dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
+                    logger.info(test)
+                    # query_context = self._create_query_context_from_form(form_data)
+                    # logger.info("### ### query_context")
+                    # logger.info(query_context)
+                    # command = ChartDataCommand(query_context)
+                    # command.validate()
+                    # dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
                     return [
                         {
                             'chartId': childrenElement['meta']['chartId'],
