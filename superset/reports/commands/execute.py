@@ -399,19 +399,25 @@ class BaseReportState:
                         payload = form_data
                         payload['result_format'] = 'PANDAS'
                         payload['result_type'] = 'full'
-                        test = ChartDataQueryContextSchema().load(form_data)
-                        logger.info("### ### load(form_data)")
-                        logger.info(test)
-                        test = ChartDataQueryContextSchema().get_query_context_factory()
-                        logger.info("### ### get_query_context_factory")
-                        logger.info(test)
-                        test = ChartDataQueryContextSchema().make_query_context(form_data)
-                        logger.info("### ### query_context")
-                        logger.info(test)
-                        logger.info("### ### form_data")
-                        logger.info(form_data)
-                        dataframe = 
-                    
+                        load = ChartDataQueryContextSchema().load(form_data)
+                        # logger.info("### ### load(form_data)")
+                        # logger.info(load)
+                        getQuery = ChartDataQueryContextSchema().get_query_context_factory()
+                        # logger.info("### ### get_query_context_factory")
+                        # logger.info(getQuery)
+                        makeQuery = ChartDataQueryContextSchema().make_query_context(form_data)
+                        # logger.info("### ### query_context")
+                        # logger.info(test)
+                        # logger.info("### ### form_data")
+                        # logger.info(form_data)
+                        dataframe = {
+                            'load': load,
+                            'getQuery': getQuery,
+                            'makeQuery': makeQuery,
+                            'form_data': form_data,
+                        }
+                        logger.info("### ### dataframe")
+                        logger.info(dataframe)
                     # TODO: Create a tyr catch to protect if this chart does not return query...
                     query_context = self._create_query_context_from_form(form_data)
                     logger.info("### ### query_context")
