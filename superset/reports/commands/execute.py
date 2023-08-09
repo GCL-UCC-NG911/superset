@@ -438,9 +438,9 @@ class BaseReportState:
                         )
                         # logger.info(slice.query_obj())
                         logger.info(vars(qc))
-                        logger.info(vars(vars(qc)['_processor']))
-                        logger.info("### ### dataframe")
-                        logger.info(dataframe)
+                        # logger.info(vars(vars(qc)['_processor']))
+                        logger.info(qc._processor._query_context)
+                        logger.info(qc._processor._qc_datasource)
                         payload = qc.cache_values
                         payload['force'] = True
                         payload['form_data'] = form_data
@@ -464,7 +464,7 @@ class BaseReportState:
                         command = ChartDataCommand(query_context)
                         command.validate()
                         dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
-
+                        logger.info(dataframe)
             return [
                 {
                     'chartId': childrenElement['meta']['chartId'],
