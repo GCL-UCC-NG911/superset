@@ -404,7 +404,7 @@ class BaseReportState:
                         # load = ChartDataQueryContextSchema().load(form_data)
                         # logger.info("### ### load(form_data)")
                         # logger.info(load)
-                        getQuery = ChartDataQueryContextSchema().get_query_context_factory()
+                        # getQuery = ChartDataQueryContextSchema().get_query_context_factory()
                         # logger.info("### ### get_query_context_factory")
                         # logger.info(getQuery)
                         # makeQuery = ChartDataQueryContextSchema().make_query_context(form_data)
@@ -426,7 +426,6 @@ class BaseReportState:
                             },
                             queries=[
                                 {
-                                    "columns": ["col1", "col2"],
                                     "metrics": form_data['metrics'],
                                     "time_range": form_data['time_range'],
                                     "granularity": form_data['granularity_sqla'],
@@ -435,37 +434,36 @@ class BaseReportState:
                             ],
                             form_data = form_data,
                             result_type='full',
-                            result_format='pandas',
                             force=True,
                         )
                         # logger.info(slice.query_obj())
                         logger.info(vars(qc))
-                        dataframe = {
-                            # 'load': load,
-                            'getQuery': getQuery,
-                            # 'makeQuery': makeQuery,
-                            'form_data': form_data,
-                        }
+                        logger.info(vars(vars(qc)['_processor']))
                         logger.info("### ### dataframe")
                         logger.info(dataframe)
-                    # TODO: Create a tyr catch to protect if this chart does not return query...
-                    # payload = {
-                    #   'datasource': {
-                    #       'id': form_data['datasource'].split('__')[0],
-                    #       'type': form_data['datasource'].split('__')[1],
-                    #   },
-                    #   'force': True,
-                    #   'queries': 
-                    #   'result_format': 'json',
-                    #   'result_type': 'full',
-                    #   'form_data': form_data,
-                    # }
-                    query_context = self._create_query_context_from_form(payload)
-                    logger.info("### ### query_context")
-                    logger.info(query_context)
-                    command = ChartDataCommand(query_context)
-                    command.validate()
-                    dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
+                        payload = qc.cache_values
+                        payload['force'] = True
+                        payload['form_data'] = form_data
+                        payload['result_format'] = 'pandas'
+                        payload['result_type'] = 'full'
+                        # TODO: Create a tyr catch to protect if this chart does not return query...
+                        # payload = {
+                        #   'datasource': {
+                        #       'id': form_data['datasource'].split('__')[0],
+                        #       'type': form_data['datasource'].split('__')[1],
+                        #   },
+                        #   'force': True,
+                        #   'queries': 
+                        #   'result_format': 'json',
+                        #   'result_type': 'full',
+                        #   'form_data': form_data,
+                        # }
+                        query_context = self._create_query_context_from_form(payload)
+                        logger.info("### ### query_context")
+                        logger.info(query_context)
+                        command = ChartDataCommand(query_context)
+                        command.validate()
+                        dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
 
             return [
                 {
