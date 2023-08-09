@@ -358,7 +358,6 @@ class BaseReportState:
         if childrenElement['type'] == 'CHART':
             dataframe = None
             for slice in slices:
-                dataframe = None
                 if slice['slice_id'] == childrenElement['meta']['chartId']:
                     logger.info("### ### slice_id") 
                     logger.info(slice)
