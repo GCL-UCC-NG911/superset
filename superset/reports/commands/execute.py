@@ -460,11 +460,19 @@ class BaseReportState:
                         # }
                         query_context = self._create_query_context_from_form(payload)
                         logger.info("### ### query_context")
-                        logger.info(query_context)
+                        logger.info(vars(query_context))
                         command = ChartDataCommand(query_context)
                         command.validate()
                         dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
                         logger.info(dataframe)
+
+                        # Late import to avoid circular import issues
+                        from superset.charts.dao import ChartDAO
+
+                        chart = ChartDAO.find_by_id(slice['slice_id'], skip_base_filter=True)
+                        logger.info("### ### chart")
+                        logger.info(chart.__dict__)
+
             return [
                 {
                     'chartId': childrenElement['meta']['chartId'],
@@ -724,8 +732,8 @@ class BaseReportState:
             report_source = ReportSourceFormat.DASHBOARD
             dashboard_id = self._report_schedule.dashboard_id
 
-        logger.info("### _get_log_data")
-        logger.info(self._report_schedule.report_format)
+        # logger.info("### _get_log_data")
+        # logger.info(self._report_schedule.report_format)
 
         log_data: HeaderDataType = {
             "notification_type": self._report_schedule.type,
@@ -755,14 +763,14 @@ class BaseReportState:
             feature_flag_manager.is_feature_enabled("ALERTS_ATTACH_REPORTS")
             or self._report_schedule.type == ReportScheduleType.REPORT
         ):
-            logger.info("### _get_notification_content 0")
+            # logger.info("### _get_notification_content 0")
             if self._report_schedule.report_format == ReportDataFormat.VISUALIZATION:
                 screenshot_data = self._get_screenshots()
                 if not screenshot_data:
                     error_text = "Unexpected missing screenshot"
             # NGLS - BEGIN #
             elif self._report_schedule.report_format == ReportDataFormat.PDF:
-                logger.info("### _get_notification_content 1")
+                # logger.info("### _get_notification_content 1")
                 if self._report_schedule.chart:
                     data = self.get_pdf_data()
                 else:
@@ -770,13 +778,13 @@ class BaseReportState:
                 if not data:
                     error_text = "Unexpected missing PDF file"
             elif self._report_schedule.report_format == ReportDataFormat.DASHBOARD_PDF:
-                logger.info("### _get_notification_content 2")
+                # logger.info("### _get_notification_content 2")
                 data = self.get_pdf_image()
-                logger.info("### _get_notification_content 2 1")
+                # logger.info("### _get_notification_content 2 1")
                 header_data['notification_format'] = 'PDF'
                 self._report_schedule.report_format = 'PDF'
                 if not data:
-                    logger.info("### if not data 0")
+                    # logger.info("### if not data 0")
                     error_text = "Unexpected missing PDF file"
             # NGLS - END #
             elif (
@@ -787,7 +795,7 @@ class BaseReportState:
                 if not data:
                     error_text = "Unexpected missing csv file"
             if error_text:
-                logger.info("### error_text 0")
+                # logger.info("### error_text 0")
                 return NotificationContent(
                     name=self._report_schedule.name,
                     text=error_text,
@@ -798,7 +806,7 @@ class BaseReportState:
             self._report_schedule.chart
             and self._report_schedule.report_format == ReportDataFormat.TEXT
         ):
-            logger.info("### _get_notification_content 3")
+            # logger.info("### _get_notification_content 3")
             embedded_data = self._get_embedded_data()
 
         if self._report_schedule.chart:
@@ -812,13 +820,13 @@ class BaseReportState:
                 f"{self._report_schedule.name}: "
                 f"{self._report_schedule.dashboard.dashboard_title}"
             )
-        logger.info("### _get_notification_content 5")
-        logger.info(screenshot_data) # []
-        logger.info(self._report_schedule.description) # None
+        # logger.info("### _get_notification_content 5")
+        # logger.info(screenshot_data) # []
+        # logger.info(self._report_schedule.description) # None
         # logger.info(data) # PDF File
-        logger.info(embedded_data) # None
-        logger.info(header_data) # {'notification_type': 'Report', 'notification_source': <ReportSourceFormat.DASHBOARD: 'dashboard'>, 'notification_format': 'PDF', 'chart_id': None, 'dashboard_id': 24, 'owners': [Eduardo Sanday]}
-        logger.info("### _get_notification_content 6")
+        # logger.info(embedded_data) # None
+        # logger.info(header_data) # {'notification_type': 'Report', 'notification_source': <ReportSourceFormat.DASHBOARD: 'dashboard'>, 'notification_format': 'PDF', 'chart_id': None, 'dashboard_id': 24, 'owners': [Eduardo Sanday]}
+        # logger.info("### _get_notification_content 6")
         return NotificationContent(
             name=name,
             url=url,
