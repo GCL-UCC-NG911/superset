@@ -359,8 +359,8 @@ class BaseReportState:
             dataframe = None
             for slice in slices:
                 if slice['slice_id'] == childrenElement['meta']['chartId']:
-                    logger.info("### ### slice_id") 
-                    logger.info(slice)
+                    # logger.info("### ### slice_id") 
+                    # logger.info(slice)
                     # TODO: Include in query others filters
                     if slice['query_context'] != None:
                         form_data = json.loads(slice['query_context'])
@@ -376,8 +376,6 @@ class BaseReportState:
                         # TODO: Create a tyr catch to protect if this chart does not return query...
                         form_data['form_data']['result_format'] = 'pandas'
                         query_context = self._create_query_context_from_form(form_data)
-                        logger.info("### ### query_context")
-                        logger.info(query_context)
                         command = ChartDataCommand(query_context)
                         command.validate()
                         dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
@@ -436,10 +434,10 @@ class BaseReportState:
                             force=True,
                         )
                         # logger.info(slice.query_obj())
-                        logger.info(vars(qc))
+                        # logger.info(vars(qc))
                         # logger.info(vars(vars(qc)['_processor']))
-                        logger.info(qc._processor._query_context)
-                        logger.info(qc._processor._qc_datasource)
+                        # logger.info(qc._processor._query_context)
+                        # logger.info(qc._processor._qc_datasource)
                         payload = qc.cache_values
                         payload['force'] = True
                         payload['form_data'] = form_data
@@ -458,12 +456,12 @@ class BaseReportState:
                         #   'form_data': form_data,
                         # }
                         query_context = self._create_query_context_from_form(payload)
-                        logger.info("### ### query_context")
-                        logger.info(vars(query_context))
+                        # logger.info("### ### query_context")
+                        # logger.info(vars(query_context))
                         command = ChartDataCommand(query_context)
                         command.validate()
                         dataframe = self._get_data_response(command, form_data=form_data, datasource=query_context.datasource)
-                        logger.info(dataframe)
+                        # logger.info(dataframe)
 
                         # Late import to avoid circular import issues
                         from superset.charts.dao import ChartDAO
@@ -558,7 +556,7 @@ class BaseReportState:
         formData = [dashboard]
         formData.extend(filters)
         formData.extend(self.getAllTables(position_json, slices, filters, 'ROOT_ID'))
-        
+        logger.info("##### get_pdf_image formData")
         logger.info(formData)
 
         # test = self._report_schedule.dashboard.charts
