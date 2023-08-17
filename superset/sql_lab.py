@@ -557,7 +557,7 @@ def execute_sql_statements(  # pylint: disable=too-many-arguments, too-many-loca
     payload["query"]["state"] = QueryStatus.SUCCESS
 
     logger.info("##### start query")
-    logger.info(query)
+    logger.info(vars(query))
     logger.info("##### end query")
 
     if store_results and results_backend:
@@ -577,11 +577,12 @@ def execute_sql_statements(  # pylint: disable=too-many-arguments, too-many-loca
             if cache_timeout is None:
                 cache_timeout = config["CACHE_DEFAULT_TIMEOUT"]
 
-            compressed = zlib_compress(serialized_payload)
+            # compressed = zlib_compress(serialized_payload)
+            compressed = serialized_payload
             logger.info(
                 "*** serialized payload size: %i", getsizeof(serialized_payload)
             )
-            logger.info("*** compressed payload size: %i", getsizeof(compressed))
+            # logger.info("*** compressed payload size: %i", getsizeof(compressed))
             results_backend.set(key, compressed, cache_timeout)
         query.results_key = key
 
