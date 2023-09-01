@@ -35,6 +35,8 @@ import { DEFAULT_FETCH_RETRY_OPTIONS, DEFAULT_BASE_URL } from './constants';
 
 const defaultUnauthorizedHandler = () => {
   if (!window.location.pathname.startsWith('/login')) {
+    console.log('window.location.href');
+    console.log(window.location.href);
     window.location.href = `/login?next=${window.location.href}`;
   }
 };
