@@ -114,7 +114,8 @@ export function getChartDataUri({ path, qs, allowDomainSharding = false }) {
     port: window.location.port ? window.location.port : '',
     path,
   });
-  console.log('getChartDataUri - uri: ' + uri)
+  console.log('getChartDataUri - uri: ');
+  console.log(uri);
   if (qs) {
     uri = uri.search(qs);
   }

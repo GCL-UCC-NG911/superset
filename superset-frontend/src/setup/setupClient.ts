@@ -25,9 +25,12 @@ function getDefaultConfiguration(): ClientConfig {
 
   // when using flask-jwt-extended csrf is set in cookies
   const cookieCSRFToken = parseCookie().csrf_access_token || '';
-  console.log('host: ' + window.location?.host);
-  console.log('cookieCSRFToken: ' + cookieCSRFToken);
-  console.log('csrfToken: ' + csrfToken);
+  console.log('host: ');
+  console.log(window.location?.host);
+  console.log('cookieCSRFToken: ');
+  console.log(cookieCSRFToken);
+  console.log('csrfToken: ');
+  console.log(csrfToken);
   return {
     protocol: ['http:', 'https:'].includes(window?.location?.protocol)
       ? (window?.location?.protocol as 'http:' | 'https:')
