@@ -31,6 +31,7 @@ import { addDangerToast } from 'src/components/MessageToasts/actions';
 import ToastContainer from 'src/components/MessageToasts/ToastContainer';
 import { UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';
 import { embeddedApi } from './api';
+import logger from 'packages/superset-ui-core/src/utils/logging';
 
 const debugMode = process.env.WEBPACK_MODE === 'development';
 const bootstrapData = getBootstrapData();
@@ -148,6 +149,7 @@ function start() {
  * Configures SupersetClient with the correct settings for the embedded dashboard page.
  */
 function setupGuestClient(guestToken: string) {
+  logger.info('setupGuestClient - guestTokenHeaderName: ' + bootstrapData.config?.GUEST_TOKEN_HEADER_NAME);
   setupClient({
     guestToken,
     guestTokenHeaderName: bootstrapData.config?.GUEST_TOKEN_HEADER_NAME,

@@ -2093,6 +2093,8 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
     @staticmethod
     def _get_guest_token_jwt_audience() -> str:
         audience = current_app.config["GUEST_TOKEN_JWT_AUDIENCE"] or get_url_host()
+        logger.info("_get_guest_token_jwt_audience")
+        logger.info(audience)
         if callable(audience):
             audience = audience()
         return audience

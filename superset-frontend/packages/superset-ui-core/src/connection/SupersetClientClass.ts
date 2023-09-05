@@ -34,10 +34,11 @@ import {
 import { DEFAULT_FETCH_RETRY_OPTIONS, DEFAULT_BASE_URL } from './constants';
 
 const defaultUnauthorizedHandler = () => {
-  console.log('window.location.href');
+  console.log('window.location.href start');
   console.log(window.location.href);
   console.log(window.location.pathname);
   console.log(window.location.pathname.startsWith('/login'));
+  console.log('window.location.href end');
   if (!window.location.pathname.startsWith('/login')) {
     window.location.href = `/login?next=${window.location.href}`;
   }
@@ -114,6 +115,14 @@ export default class SupersetClientClass {
       this.headers[guestTokenHeaderName] = guestToken;
     }
     this.handleUnauthorized = unauthorizedHandler;
+    console.log('SupersetClientClass - constructor - start');
+    console.log(this.baseUrl);
+    console.log(this.host);
+    console.log(this.headers);
+    console.log(this.csrfToken);
+    console.log(this.guestToken);
+    console.log(this.guestTokenHeaderName);
+    console.log('SupersetClientClass - constructor - end');
   }
 
   async init(force = false): CsrfPromise {
@@ -314,6 +323,13 @@ export default class SupersetClientClass {
     url?: string;
   } = {}) {
     if (typeof url === 'string') return url;
+
+    console.log('getUrl - start');
+    console.log(inputHost);
+    console.log(this.host);
+    console.log(endpoint);
+    console.log(url);
+    console.log('getUrl - end');
 
     const host = inputHost ?? this.host;
     const cleanHost = host.slice(-1) === '/' ? host.slice(0, -1) : host; // no backslash
