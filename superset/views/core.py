@@ -764,6 +764,7 @@ class Superset(BaseSupersetView):  # pylint: disable=too-many-public-methods
         the form_data param with a form_data_key by saving the original content
         to the cache layer.
         """
+        logger.info("get_redirect_url")
         redirect_url = request.url.replace("/superset/explore", "/explore")
         form_data_key = None
         request_form_data = request.args.get("form_data")
@@ -2623,6 +2624,7 @@ class Superset(BaseSupersetView):  # pylint: disable=too-many-public-methods
     @expose("/welcome/")
     def welcome(self) -> FlaskResponse:
         """Personalized welcome page"""
+        logger.info("welcome")
         if not g.user or not get_user_id():
             if conf["PUBLIC_ROLE_LIKE"]:
                 return self.render_template("superset/public_welcome.html")

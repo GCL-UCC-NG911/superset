@@ -56,6 +56,7 @@ class R(BaseSupersetView):  # pylint: disable=invalid-name
     @event_logger.log_this
     @expose("/<int:url_id>")
     def index(self, url_id: int) -> FlaskResponse:
+        logger.info("redirectts")
         url = db.session.query(models.Url).get(url_id)
         if url and url.url:
             explore_url = self._validate_explore_url(url.url)

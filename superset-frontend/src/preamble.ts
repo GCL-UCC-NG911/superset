@@ -77,6 +77,7 @@ const getMe = makeApi<void, User>({
  * If you aren't logged in in the first place (!isActive), then we shouldn't do this.
  */
 if (bootstrapData.user?.isActive) {
+  console.log('preamble');
   document.addEventListener('visibilitychange', () => {
     // we only care about the tab becoming visible, not vice versa
     if (document.visibilityState !== 'visible') return;

@@ -698,4 +698,5 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
 class SupersetIndexView(IndexView):
     @expose("/")
     def index(self) -> FlaskResponse:
+        logger.info("index /")
         return redirect("/superset/welcome/")
