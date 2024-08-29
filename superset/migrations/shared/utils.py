@@ -18,7 +18,8 @@ import json
 import logging
 import os
 import time
-from typing import Any, Callable, Dict, Iterator, Optional, Union
+from collections.abc import Iterator
+from typing import Any, Callable, Optional, Union
 from uuid import uuid4
 
 from alembic import op
@@ -34,23 +35,40 @@ logger = logging.getLogger(__name__)
 DEFAULT_BATCH_SIZE = int(os.environ.get("BATCH_SIZE", 1000))
 
 
-def table_has_column(table: str, column: str) -> bool:
+def get_table_column(
+    table_name: str,
+    column_name: str,
+) -> Optional[list[dict[str, Any]]]:
+    """
+    Get the specified column.
+
+    :param table_name: The Table name
+    :param column_name: The column name
+    :returns: The column
+    """
+
+    insp = inspect(op.get_context().bind)
+
+    try:
+        for column in insp.get_columns(table_name):
+            if column["name"] == column_name:
+                return column
+    except NoSuchTableError:
+        pass
+
+    return None
+
+
+def table_has_column(table_name: str, column_name: str) -> bool:
     """
     Checks if a column exists in a given table.
 
-    :param table: A table name
-    :param column: A column name
+    :param table_name: A table name
+    :param column_name: A column name
     :returns: True iff the column exists in the table
     """
-    config = op.get_context().config
-    engine = engine_from_config(
-        config.get_section(config.config_ini_section), prefix="sqlalchemy."
-    )
-    insp = reflection.Inspector.from_engine(engine)
-    try:
-        return any(col["name"] == column for col in insp.get_columns(table))
-    except NoSuchTableError:
-        return False
+
+    return bool(get_table_column(table_name, column_name))
 
 
 uuid_by_dialect = {
@@ -127,7 +145,7 @@ def paginated_update(
             print_page_progress(processed, total)
 
 
-def try_load_json(data: Optional[str]) -> Dict[str, Any]:
+def try_load_json(data: Optional[str]) -> dict[str, Any]:
     try:
         return data and json.loads(data) or {}
     except json.decoder.JSONDecodeError:

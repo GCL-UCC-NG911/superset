@@ -16,21 +16,22 @@
 # under the License.
 import re
 import time
-from typing import Any, Dict
+from typing import Any
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pandas as pd
 import pytest
 from pandas import DateOffset
 
-from superset import db
+from superset import app, db
 from superset.charts.schemas import ChartDataQueryContextSchema
 from superset.common.chart_data import ChartDataResultFormat, ChartDataResultType
 from superset.common.query_context import QueryContext
 from superset.common.query_context_factory import QueryContextFactory
 from superset.common.query_object import QueryObject
 from superset.connectors.sqla.models import SqlMetric
-from superset.datasource.dao import DatasourceDAO
+from superset.daos.datasource import DatasourceDAO
 from superset.extensions import cache_manager
 from superset.superset_typing import AdhocColumn
 from superset.utils.core import (
@@ -49,7 +50,7 @@ from tests.integration_tests.fixtures.birth_names_dashboard import (
 from tests.integration_tests.fixtures.query_context import get_query_context
 
 
-def get_sql_text(payload: Dict[str, Any]) -> str:
+def get_sql_text(payload: dict[str, Any]) -> str:
     payload["result_type"] = ChartDataResultType.QUERY.value
     query_context = ChartDataQueryContextSchema().load(payload)
     responses = query_context.get_payload()
@@ -121,6 +122,7 @@ class TestQueryContext(SupersetTestCase):
 
         cached = cache_manager.cache.get(cache_key)
         assert cached is not None
+        assert "form_data" in cached["data"]
 
         rehydrated_qc = ChartDataQueryContextSchema().load(cached["data"])
         rehydrated_qo = rehydrated_qc.queries[0]
@@ -144,7 +146,6 @@ class TestQueryContext(SupersetTestCase):
 
         # make temporary change and revert it to refresh the changed_on property
         datasource = DatasourceDAO.get_datasource(
-            session=db.session,
             datasource_type=DatasourceType(payload["datasource"]["type"]),
             datasource_id=payload["datasource"]["id"],
         )
@@ -168,7 +169,6 @@ class TestQueryContext(SupersetTestCase):
 
         # make temporary change and revert it to refresh the changed_on property
         datasource = DatasourceDAO.get_datasource(
-            session=db.session,
             datasource_type=DatasourceType(payload["datasource"]["type"]),
             datasource_id=payload["datasource"]["id"],
         )
@@ -565,9 +565,9 @@ class TestQueryContext(SupersetTestCase):
         query_context = ChartDataQueryContextSchema().load(payload)
         query_object = query_context.queries[0]
         # query without cache
-        query_context.processing_time_offsets(df, query_object)
+        query_context.processing_time_offsets(df.copy(), query_object)
         # query with cache
-        rv = query_context.processing_time_offsets(df, query_object)
+        rv = query_context.processing_time_offsets(df.copy(), query_object)
         cache_keys = rv["cache_keys"]
         cache_keys__1_year_ago = cache_keys[0]
         cache_keys__1_year_later = cache_keys[1]
@@ -579,7 +579,7 @@ class TestQueryContext(SupersetTestCase):
         payload["queries"][0]["time_offsets"] = ["1 year later", "1 year ago"]
         query_context = ChartDataQueryContextSchema().load(payload)
         query_object = query_context.queries[0]
-        rv = query_context.processing_time_offsets(df, query_object)
+        rv = query_context.processing_time_offsets(df.copy(), query_object)
         cache_keys = rv["cache_keys"]
         self.assertEqual(cache_keys__1_year_ago, cache_keys[1])
         self.assertEqual(cache_keys__1_year_later, cache_keys[0])
@@ -589,10 +589,11 @@ class TestQueryContext(SupersetTestCase):
         query_context = ChartDataQueryContextSchema().load(payload)
         query_object = query_context.queries[0]
         rv = query_context.processing_time_offsets(
-            df,
+            df.copy(),
             query_object,
         )
-        self.assertIs(rv["df"], df)
+
+        self.assertEqual(rv["df"].shape, df.shape)
         self.assertEqual(rv["queries"], [])
         self.assertEqual(rv["cache_keys"], [])
 
@@ -689,6 +690,70 @@ class TestQueryContext(SupersetTestCase):
                     row["sum__num__3 years later"]
                     == df_3_years_later.loc[index]["sum__num"]
                 )
+
+    @pytest.mark.usefixtures("load_birth_names_dashboard_with_slices")
+    @patch("superset.common.query_context.QueryContext.get_query_result")
+    def test_time_offsets_in_query_object_no_limit(self, query_result_mock):
+        """
+        Ensure that time_offsets can generate the correct queries and
+        it doesnt use the row_limit nor row_offset from the original
+        query object
+        """
+        payload = get_query_context("birth_names")
+        payload["queries"][0]["columns"] = [
+            {
+                "timeGrain": "P1D",
+                "columnType": "BASE_AXIS",
+                "sqlExpression": "ds",
+                "label": "ds",
+                "expressionType": "SQL",
+            }
+        ]
+        payload["queries"][0]["metrics"] = ["sum__num"]
+        payload["queries"][0]["groupby"] = ["name"]
+        payload["queries"][0]["is_timeseries"] = True
+        payload["queries"][0]["row_limit"] = 100
+        payload["queries"][0]["row_offset"] = 10
+        payload["queries"][0]["time_range"] = "1990 : 1991"
+
+        initial_data = {
+            "__timestamp": ["1990-01-01", "1990-01-01"],
+            "name": ["zban", "ahwb"],
+            "sum__num": [43571, 27225],
+        }
+        initial_df = pd.DataFrame(initial_data)
+
+        mock_query_result = Mock()
+        mock_query_result.df = initial_df
+        side_effects = [mock_query_result]
+        query_result_mock.side_effect = side_effects
+        # Proceed with the test as before
+        query_context = ChartDataQueryContextSchema().load(payload)
+        query_object = query_context.queries[0]
+        # First call to get_query_result, should return initial_df
+        query_result = query_context.get_query_result(query_object)
+        df = query_result.df
+        # Setup the payload for time offsets
+        payload["queries"][0]["time_offsets"] = ["1 year ago", "1 year later"]
+        query_context = ChartDataQueryContextSchema().load(payload)
+        query_object = query_context.queries[0]
+        time_offsets_obj = query_context.processing_time_offsets(df, query_object)
+        sqls = time_offsets_obj["queries"]
+        row_limit_value = app.config["ROW_LIMIT"]
+        row_limit_pattern_with_config_value = r"LIMIT " + re.escape(
+            str(row_limit_value)
+        )
+        self.assertEqual(len(sqls), 2)
+        # 1 year ago
+        assert re.search(r"1989-01-01.+1990-01-01", sqls[0], re.S)
+        assert not re.search(r"LIMIT 100", sqls[0], re.S)
+        assert not re.search(r"OFFSET 10", sqls[0], re.S)
+        assert re.search(row_limit_pattern_with_config_value, sqls[0], re.S)
+        # 1 year later
+        assert re.search(r"1991-01-01.+1992-01-01", sqls[1], re.S)
+        assert not re.search(r"LIMIT 100", sqls[1], re.S)
+        assert not re.search(r"OFFSET 10", sqls[1], re.S)
+        assert re.search(row_limit_pattern_with_config_value, sqls[1], re.S)
 
 
 def test_get_label_map(app_context, virtual_dataset_comma_in_column_value):

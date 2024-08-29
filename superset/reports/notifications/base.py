@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -16,8 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 from dataclasses import dataclass
-from typing import Any, List, Literal, Optional, Type
-
+# NGLS - BEGIN #
+from typing import Any, Literal, Optional
+# NGLS - END #
 import pandas as pd
 
 from superset.reports.models import ReportRecipients, ReportRecipientType
@@ -34,7 +34,8 @@ class NotificationContent:
         Literal["csv", "pdf"]
     ] = None  # data attachment format (csv, xlsx, pdf, etc)
     # NGLS - END #
-    screenshots: Optional[List[bytes]] = None  # bytes for a list of screenshots
+    csv: Optional[bytes] = None  # bytes for csv file
+    screenshots: Optional[list[bytes]] = None  # bytes for a list of screenshots
     text: Optional[str] = None
     description: Optional[str] = ""
     url: Optional[str] = None  # url to chart/dashboard for this screenshot
@@ -49,7 +50,7 @@ class BaseNotification:  # pylint: disable=too-few-public-methods
     notification type
     """
 
-    plugins: List[Type["BaseNotification"]] = []
+    plugins: list[type["BaseNotification"]] = []
     type: Optional[ReportRecipientType] = None
     """
     Child classes set their notification type ex: `type = "email"` this string will be

@@ -21,6 +21,7 @@ import {
   css,
   GenericDataType,
   getTimeFormatter,
+  safeHtmlSpan,
   styled,
   t,
   TimeFormats,
@@ -28,7 +29,7 @@ import {
 } from '@superset-ui/core';
 import { Global } from '@emotion/react';
 import { Column } from 'react-table';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import { Space } from 'src/components';
 import { Input } from 'src/components/Input';
 import {
@@ -43,7 +44,6 @@ import Button from 'src/components/Button';
 import Popover from 'src/components/Popover';
 import { prepareCopyToClipboardTabularData } from 'src/utils/common';
 import CopyToClipboard from 'src/components/CopyToClipboard';
-import RowCountLabel from 'src/explore/components/RowCountLabel';
 import { getTimeColumns, setTimeColumns } from './utils';
 
 export const CellNull = styled('span')`
@@ -116,14 +116,6 @@ export const FilterInput = ({
     />
   );
 };
-
-export const RowCount = ({
-  data,
-  loading,
-}: {
-  data?: Record<string, any>[];
-  loading: boolean;
-}) => <RowCountLabel rowcount={data?.length ?? 0} loading={loading} />;
 
 enum FormatPickerValue {
   Formatted = 'formatted',
@@ -247,8 +239,8 @@ export const useFilteredTableData = (
       return [];
     }
     return data.filter((_, index: number) =>
-      rowsAsStrings[index].some(value =>
-        value?.includes(filterText.toLowerCase()),
+      rowsAsStrings[index].some(
+        value => value?.includes(filterText.toLowerCase()),
       ),
     );
   }, [data, filterText, rowsAsStrings]);
@@ -263,6 +255,7 @@ export const useTableColumns = (
   datasourceId?: string,
   isVisible?: boolean,
   moreConfigs?: { [key: string]: Partial<Column> },
+  allowHTML?: boolean,
 ) => {
   const [originalFormattedTimeColumns, setOriginalFormattedTimeColumns] =
     useState<string[]>(getTimeColumns(datasourceId));
@@ -308,7 +301,7 @@ export const useTableColumns = (
               const colType = coltypes?.[index];
               const firstValue = data[0][key];
               const originalFormattedTimeColumnIndex =
-                colType === GenericDataType.TEMPORAL
+                colType === GenericDataType.Temporal
                   ? originalFormattedTimeColumns.indexOf(key)
                   : -1;
               const isOriginalTimeColumn =
@@ -318,7 +311,7 @@ export const useTableColumns = (
                 id: key || index,
                 accessor: row => row[key],
                 Header:
-                  colType === GenericDataType.TEMPORAL &&
+                  colType === GenericDataType.Temporal &&
                   typeof firstValue !== 'string' ? (
                     <DataTableTemporalHeaderCell
                       columnName={key}
@@ -340,11 +333,14 @@ export const useTableColumns = (
                     return <CellNull>{NULL_DISPLAY}</CellNull>;
                   }
                   if (
-                    colType === GenericDataType.TEMPORAL &&
+                    colType === GenericDataType.Temporal &&
                     originalFormattedTimeColumnIndex === -1 &&
                     typeof value === 'number'
                   ) {
                     return timeFormatter(value);
+                  }
+                  if (typeof value === 'string' && allowHTML) {
+                    return safeHtmlSpan(value);
                   }
                   return String(value);
                 },

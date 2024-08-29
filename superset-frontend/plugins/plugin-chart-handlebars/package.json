@@ -22,6 +22,23 @@
     "esm",
     "lib"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apache/superset.git",
+    "directory": "superset-frontend/plugins/plugin-chart-handlebars"
+  },
+  "keywords": [
+    "superset"
+  ],
+  "author": "Superset",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/apache/superset/issues"
+  },
+  "homepage": "https://github.com/apache/superset/tree/master/superset-frontend/plugins/plugin-chart-handlebars#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "handlebars": "^4.7.7",
     "just-handlebars-helpers": "^1.0.19"
@@ -41,7 +58,9 @@
     "react-ace": "^10.1.0",
     "react-dom": "^16.13.1"
   },
-  "publishConfig": {
-    "access": "public"
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/lodash": "^4.14.202",
+    "jest": "^29.7.0"
   }
 }

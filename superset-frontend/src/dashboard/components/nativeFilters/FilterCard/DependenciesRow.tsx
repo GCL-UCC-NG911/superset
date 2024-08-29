@@ -16,11 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
-import { css, t, useTheme } from '@superset-ui/core';
+import { css, t, useTheme, useTruncation } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
-import { useTruncation } from 'src/hooks/useTruncation';
 import { setDirectPathToChild } from 'src/dashboard/actions/dashboardState';
 import {
   DependencyItem,
@@ -54,12 +53,8 @@ const DependencyValue = ({
 
 export const DependenciesRow = React.memo(({ filter }: FilterCardRowProps) => {
   const dependencies = useFilterDependencies(filter);
-  const dependenciesRef = useRef<HTMLDivElement>(null);
-  const plusRef = useRef<HTMLDivElement>(null);
-  const [elementsTruncated, hasHiddenElements] = useTruncation(
-    dependenciesRef,
-    plusRef,
-  );
+  const [dependenciesRef, plusRef, elementsTruncated, hasHiddenElements] =
+    useTruncation();
   const theme = useTheme();
 
   const tooltipText = useMemo(

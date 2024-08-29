@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unused-state */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -24,13 +25,14 @@ interface HoverMenuProps {
   position: 'left' | 'top';
   innerRef: RefObject<HTMLDivElement>;
   children: React.ReactNode;
+  onHover?: (data: { isHovered: boolean }) => void;
 }
 
 const HoverStyleOverrides = styled.div`
   .hover-menu {
     opacity: 0;
     position: absolute;
-    z-index: 10;
+    z-index: 11; // one more than DragDroppable
     font-size: ${({ theme }) => theme.typography.sizes.m};
   }
 
@@ -70,6 +72,20 @@ export default class HoverMenu extends React.PureComponent<HoverMenuProps> {
     children: null,
   };
 
+  handleMouseEnter = () => {
+    const { onHover } = this.props;
+    if (onHover) {
+      onHover({ isHovered: true });
+    }
+  };
+
+  handleMouseLeave = () => {
+    const { onHover } = this.props;
+    if (onHover) {
+      onHover({ isHovered: false });
+    }
+  };
+
   render() {
     const { innerRef, position, children } = this.props;
     return (
@@ -81,6 +97,9 @@ export default class HoverMenu extends React.PureComponent<HoverMenuProps> {
             position === 'left' && 'hover-menu--left',
             position === 'top' && 'hover-menu--top',
           )}
+          onMouseEnter={this.handleMouseEnter}
+          onMouseLeave={this.handleMouseLeave}
+          data-test="hover-menu"
         >
           {children}
         </div>

@@ -37,7 +37,7 @@ import {
   SET_DIRECT_PATH,
   SET_FOCUSED_FILTER_FIELD,
   UNSET_FOCUSED_FILTER_FIELD,
-  SET_ACTIVE_TABS,
+  SET_ACTIVE_TAB,
   SET_FULL_SIZE_CHART_ID,
   ON_FILTERS_REFRESH,
   ON_FILTERS_REFRESH_SUCCESS,
@@ -179,7 +179,7 @@ export default function dashboardStateReducer(state = {}, action) {
         directPathLastUpdated: Date.now(),
       };
     },
-    [SET_ACTIVE_TABS]() {
+    [SET_ACTIVE_TAB]() {
       const newActiveTabs = new Set(state.activeTabs);
       newActiveTabs.delete(action.prevTabId);
       newActiveTabs.add(action.tabId);

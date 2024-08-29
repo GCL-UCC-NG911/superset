@@ -24,9 +24,9 @@ import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
 import { HeaderDropdownProps } from 'src/dashboard/components/Header/types';
 import injectCustomCss from 'src/dashboard/util/injectCustomCss';
-import HeaderActionsDropdown from '.';
+import { HeaderActionsDropdown } from '.';
 
-const createProps = () => ({
+const createProps = (): HeaderDropdownProps => ({
   addSuccessToast: jest.fn(),
   addDangerToast: jest.fn(),
   addInfoToast: jest.fn(),
@@ -68,12 +68,34 @@ const createProps = () => ({
   userCanCurate: false,
   lastModifiedTime: 0,
   isDropdownVisible: true,
+  manageEmbedded: jest.fn(),
   dataMask: {},
   logEvent: jest.fn(),
 });
+
 const editModeOnProps = {
   ...createProps(),
   editMode: true,
+};
+
+const editModeOnWithFilterScopesProps = {
+  ...editModeOnProps,
+  dashboardInfo: {
+    ...editModeOnProps.dashboardInfo,
+    metadata: {
+      filter_scopes: {
+        '1': { scopes: ['ROOT_ID'], immune: [] },
+      },
+    },
+  },
+};
+
+const guestUserProps = {
+  ...createProps(),
+  dashboardInfo: {
+    ...createProps().dashboardInfo,
+    userId: undefined,
+  },
 };
 
 function setup(props: HeaderDropdownProps) {
@@ -100,6 +122,11 @@ test('should render', () => {
 //   expect(screen.getByRole('button')).toBeInTheDocument();
 // });
 /* NGLS - END */
+test('should render the Download dropdown button when not in edit mode', () => {
+  const mockedProps = createProps();
+  setup(mockedProps);
+  expect(screen.getByRole('button', { name: 'Download' })).toBeInTheDocument();
+});
 
 test('should render the menu items', async () => {
   const mockedProps = createProps();
@@ -108,9 +135,10 @@ test('should render the menu items', async () => {
   expect(screen.getByText('Refresh dashboard')).toBeInTheDocument();
   expect(screen.getByText('Set auto-refresh interval')).toBeInTheDocument();
   /* NGLS - BEGIN */
-  expect(screen.getByText('Download')).toBeInTheDocument();
+  // expect(screen.getByText('Download')).toBeInTheDocument();
   /* NGLS - END */
   expect(screen.getByText('Enter fullscreen')).toBeInTheDocument();
+  expect(screen.getByText('Download')).toBeInTheDocument();
 });
 
 /* NGLS - BEGIN */
@@ -134,9 +162,27 @@ test('should render the menu items in edit mode', async () => {
   setup(editModeOnProps);
   expect(screen.getAllByRole('menuitem')).toHaveLength(4);
   expect(screen.getByText('Set auto-refresh interval')).toBeInTheDocument();
-  expect(screen.getByText('Set filter mapping')).toBeInTheDocument();
   expect(screen.getByText('Edit properties')).toBeInTheDocument();
   expect(screen.getByText('Edit CSS')).toBeInTheDocument();
+  expect(screen.getByText('Download')).toBeInTheDocument();
+});
+
+test('should render the menu items in Embedded mode', async () => {
+  setup(guestUserProps);
+  expect(screen.getAllByRole('menuitem')).toHaveLength(3);
+  expect(screen.getByText('Refresh dashboard')).toBeInTheDocument();
+  expect(screen.getByText('Download')).toBeInTheDocument();
+  expect(screen.getByText('Set auto-refresh interval')).toBeInTheDocument();
+});
+
+test('should not render filter mapping in edit mode if explicit filter scopes undefined', async () => {
+  setup(editModeOnProps);
+  expect(screen.queryByText('Set filter mapping')).not.toBeInTheDocument();
+});
+
+test('should render filter mapping in edit mode if explicit filter scopes defined', async () => {
+  setup(editModeOnWithFilterScopesProps);
+  expect(screen.getByText('Set filter mapping')).toBeInTheDocument();
 });
 
 test('should show the share actions', async () => {
@@ -150,7 +196,7 @@ test('should show the share actions', async () => {
   expect(screen.getByText('Share')).toBeInTheDocument();
 });
 
-test('should render the "Save Modal" when user can save', async () => {
+test('should render the "Save as" menu item when user can save', async () => {
   const mockedProps = createProps();
   const canSaveProps = {
     ...mockedProps,
@@ -160,7 +206,7 @@ test('should render the "Save Modal" when user can save', async () => {
   expect(screen.getByText('Save as')).toBeInTheDocument();
 });
 
-test('should NOT render the "Save Modal" menu item when user cannot save', async () => {
+test('should NOT render the "Save as" menu item when user cannot save', async () => {
   const mockedProps = createProps();
   setup(mockedProps);
   expect(screen.queryByText('Save as')).not.toBeInTheDocument();
@@ -212,9 +258,9 @@ test('should show the properties modal', async () => {
 
 describe('UNSAFE_componentWillReceiveProps', () => {
   let wrapper: any;
+
   const mockedProps = createProps();
   const props = { ...mockedProps, customCss: '' };
-
   beforeEach(() => {
     wrapper = shallow(<HeaderActionsDropdown {...props} />);
     wrapper.setState({ css: props.customCss });

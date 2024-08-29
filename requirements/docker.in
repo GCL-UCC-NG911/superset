@@ -16,5 +16,12 @@
 # limitations under the License.
 #
 -r base.in
--e .[cors,druid,hive,mysql,ngls,postgres,thumbnails]
-gevent==22.10.2
+# <<<<<<< HEAD
+# -e .[cors,druid,hive,mysql,ngls,postgres,thumbnails]
+# gevent==22.10.2
+# =======
+# -e .[postgres,gevent]
+# greenlet>=2.0.2
+# >>>>>>> ngls-4.0.2
+-e .[cors,druid,hive,mysql,ngls,postgres,thumbnails,gevent]
+greenlet>=2.0.2

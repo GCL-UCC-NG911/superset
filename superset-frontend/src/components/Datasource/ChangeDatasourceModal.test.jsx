@@ -50,6 +50,10 @@ const datasourceData = {
 const DATASOURCES_ENDPOINT =
   'glob:*/api/v1/dataset/?q=(order_column:table_name,order_direction:asc,page:0,page_size:25)';
 const DATASOURCE_ENDPOINT = `glob:*/datasource/get/${datasourceData.type}/${datasourceData.id}`;
+//   NGLS - BEGIN 2
+//   'glob:*/api/v1/dataset/?q=(order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:25)';
+// const DATASOURCE_ENDPOINT = `glob:*/api/v1/dataset/${datasourceData.id}`;
+//   NGLS - END 2
 const DATASOURCE_PAYLOAD = { new: 'data' };
 
 const INFO_ENDPOINT = 'glob:*/api/v1/dataset/_info?*';
@@ -112,6 +116,6 @@ describe('ChangeDatasourceModal', () => {
     });
     await waitForComponentToPaint(wrapper);
 
-    expect(fetchMock.calls(/datasource\/get\/table\/7/)).toHaveLength(1);
+    expect(fetchMock.calls(/api\/v1\/dataset\/7/)).toHaveLength(1);
   });
 });

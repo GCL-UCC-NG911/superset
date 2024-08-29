@@ -19,21 +19,18 @@
 import {
   AnnotationData,
   AnnotationOpacity,
+  AxisType,
   CategoricalColorScale,
   EventAnnotationLayer,
   FilterState,
   FormulaAnnotationLayer,
-  getTimeFormatter,
   IntervalAnnotationLayer,
   isTimeseriesAnnotationResult,
-  NumberFormatter,
-  smartDateDetailedFormatter,
-  smartDateFormatter,
+  LegendState,
   SupersetTheme,
-  TimeFormatter,
   TimeseriesAnnotationLayer,
   TimeseriesDataRecord,
-  AxisType,
+  ValueFormatter,
 } from '@superset-ui/core';
 import { SeriesOption } from 'echarts';
 import {
@@ -51,10 +48,13 @@ import {
   MarkArea2DDataItemOption,
 } from 'echarts/types/src/component/marker/MarkAreaModel';
 import { MarkLine1DDataItemOption } from 'echarts/types/src/component/marker/MarkLineModel';
-
 import { extractForecastSeriesContext } from '../utils/forecast';
-import { ForecastSeriesEnum, LegendOrientation, StackType } from '../types';
-import { EchartsTimeseriesSeriesType } from './types';
+import {
+  EchartsTimeseriesSeriesType,
+  ForecastSeriesEnum,
+  LegendOrientation,
+  StackType,
+} from '../types';
 
 import {
   evalFormula,
@@ -62,18 +62,88 @@ import {
   formatAnnotationLabel,
   parseAnnotationOpacity,
 } from '../utils/annotation';
-import { currentSeries, getChartPadding } from '../utils/series';
+import { getChartPadding } from '../utils/series';
 import {
-  AreaChartExtraControlsValue,
   OpacityEnum,
+  StackControlsValue,
   TIMESERIES_CONSTANTS,
 } from '../constants';
+
+// based on weighted wiggle algorithm
+// source: https://ieeexplore.ieee.org/document/4658136
+export const getBaselineSeriesForStream = (
+  series: [string | number, number][][],
+  seriesType: EchartsTimeseriesSeriesType,
+) => {
+  const seriesLength = series[0].length;
+  const baselineSeriesDelta = new Array(seriesLength).fill([0, 0]);
+  const getVal = (value: number | null) => value ?? 0;
+  for (let i = 0; i < seriesLength; i += 1) {
+    let seriesSum = 0;
+    let weightedSeriesSum = 0;
+    for (let j = 0; j < series.length; j += 1) {
+      const delta =
+        i > 0
+          ? getVal(series[j][i][1]) - getVal(series[j][i - 1][1])
+          : getVal(series[j][i][1]);
+      let deltaPrev = 0;
+      for (let k = 1; k < j - 1; k += 1) {
+        deltaPrev +=
+          i > 0
+            ? getVal(series[k][i][1]) - getVal(series[k][i - 1][1])
+            : getVal(series[k][i][1]);
+      }
+      weightedSeriesSum += (0.5 * delta + deltaPrev) * getVal(series[j][i][1]);
+      seriesSum += getVal(series[j][i][1]);
+    }
+    baselineSeriesDelta[i] = [series[0][i][0], -weightedSeriesSum / seriesSum];
+  }
+  const baselineSeries = baselineSeriesDelta.reduce((acc, curr, i) => {
+    if (i === 0) {
+      acc.push(curr);
+    } else {
+      acc.push([curr[0], acc[i - 1][1] + curr[1]]);
+    }
+    return acc;
+  }, []);
+  return {
+    data: baselineSeries,
+    name: 'baseline',
+    stack: 'obs',
+    stackStrategy: 'all' as const,
+    type: 'line' as const,
+    lineStyle: {
+      opacity: 0,
+    },
+    tooltip: {
+      show: false,
+    },
+    silent: true,
+    showSymbol: false,
+    areaStyle: {
+      opacity: 0,
+    },
+    step: [
+      EchartsTimeseriesSeriesType.Start,
+      EchartsTimeseriesSeriesType.Middle,
+      EchartsTimeseriesSeriesType.End,
+    ].includes(seriesType)
+      ? (seriesType as
+          | EchartsTimeseriesSeriesType.Start
+          | EchartsTimeseriesSeriesType.Middle
+          | EchartsTimeseriesSeriesType.End)
+      : undefined,
+    smooth: seriesType === EchartsTimeseriesSeriesType.Smooth,
+  };
+};
 
 export function transformSeries(
   series: SeriesOption,
   colorScale: CategoricalColorScale,
+  colorScaleKey: string,
   opts: {
     area?: boolean;
+    connectNulls?: boolean;
     filterState?: FilterState;
     seriesContexts?: { [key: string]: ForecastSeriesEnum[] };
     markerEnabled?: boolean;
@@ -81,10 +151,12 @@ export function transformSeries(
     areaOpacity?: number;
     seriesType?: EchartsTimeseriesSeriesType;
     stack?: StackType;
+    stackIdSuffix?: string;
     yAxisIndex?: number;
     showValue?: boolean;
     onlyTotal?: boolean;
-    formatter?: NumberFormatter;
+    legendState?: LegendState;
+    formatter?: ValueFormatter;
     totalStackedValues?: number[];
     showValueIndexes?: number[];
     thresholdValues?: number[];
@@ -99,6 +171,7 @@ export function transformSeries(
   const { name } = series;
   const {
     area,
+    connectNulls,
     filterState,
     seriesContexts = {},
     markerEnabled,
@@ -106,15 +179,16 @@ export function transformSeries(
     areaOpacity = 1,
     seriesType,
     stack,
+    stackIdSuffix,
     yAxisIndex = 0,
     showValue,
     onlyTotal,
     formatter,
+    legendState,
     totalStackedValues = [],
     showValueIndexes = [],
     thresholdValues = [],
     richTooltip,
-    seriesKey,
     sliceId,
     isHorizontal = false,
     queryIndex = 0,
@@ -151,6 +225,9 @@ export function transformSeries(
   } else if (stack && isTrend) {
     stackId = forecastSeries.type;
   }
+  if (stackId && stackIdSuffix) {
+    stackId += stackIdSuffix;
+  }
   let plotType;
   if (
     !isConfidenceBand &&
@@ -164,7 +241,7 @@ export function transformSeries(
   }
   // forcing the colorScale to return a different color for same metrics across different queries
   const itemStyle = {
-    color: colorScale(seriesKey || forecastSeries.name, sliceId),
+    color: colorScale(colorScaleKey, sliceId),
     opacity,
   };
   let emphasis = {};
@@ -190,11 +267,13 @@ export function transformSeries(
       showSymbol = true;
     }
   }
-  const lineStyle = isConfidenceBand
-    ? { ...opts.lineStyle, opacity: OpacityEnum.Transparent }
-    : { ...opts.lineStyle, opacity };
+  const lineStyle =
+    isConfidenceBand || (stack === StackControlsValue.Stream && area)
+      ? { ...opts.lineStyle, opacity: OpacityEnum.Transparent }
+      : { ...opts.lineStyle, opacity };
   return {
     ...series,
+    connectNulls,
     queryIndex,
     yAxisIndex,
     name: forecastSeries.name,
@@ -208,7 +287,10 @@ export function transformSeries(
       ? seriesType
       : undefined,
     stack: stackId,
-    stackStrategy: isConfidenceBand ? 'all' : 'samesign',
+    stackStrategy:
+      isConfidenceBand || stack === StackControlsValue.Stream
+        ? 'all'
+        : 'samesign',
     lineStyle,
     areaStyle:
       area || forecastSeries.type === ForecastSeriesEnum.ForecastUpper
@@ -233,10 +315,14 @@ export function transformSeries(
       formatter: (params: any) => {
         const { value, dataIndex, seriesIndex, seriesName } = params;
         const numericValue = isHorizontal ? value[0] : value[1];
-        const isSelectedLegend = currentSeries.legend === seriesName;
-        const isAreaExpand = stack === AreaChartExtraControlsValue.Expand;
-        if (!formatter) return numericValue;
-        if (!stack || isSelectedLegend) return formatter(numericValue);
+        const isSelectedLegend = !legendState || legendState[seriesName];
+        const isAreaExpand = stack === StackControlsValue.Expand;
+        if (!formatter) {
+          return numericValue;
+        }
+        if (!stack && isSelectedLegend) {
+          return formatter(numericValue);
+        }
         if (!onlyTotal) {
           if (
             numericValue >=
@@ -472,6 +558,7 @@ export function getPadding(
   yAxisTitlePosition?: string,
   yAxisTitleMargin?: number,
   xAxisTitleMargin?: number,
+  isHorizontal?: boolean,
 ): {
   bottom: number;
   left: number;
@@ -482,45 +569,30 @@ export function getPadding(
     ? TIMESERIES_CONSTANTS.yAxisLabelTopOffset
     : 0;
   const xAxisOffset = addXAxisTitleOffset ? Number(xAxisTitleMargin) || 0 : 0;
-  return getChartPadding(showLegend, legendOrientation, margin, {
-    top:
-      yAxisTitlePosition && yAxisTitlePosition === 'Top'
-        ? TIMESERIES_CONSTANTS.gridOffsetTop + (Number(yAxisTitleMargin) || 0)
-        : TIMESERIES_CONSTANTS.gridOffsetTop + yAxisOffset,
-    bottom: zoomable
-      ? TIMESERIES_CONSTANTS.gridOffsetBottomZoomable + xAxisOffset
-      : TIMESERIES_CONSTANTS.gridOffsetBottom + xAxisOffset,
-    left:
-      yAxisTitlePosition === 'Left'
-        ? TIMESERIES_CONSTANTS.gridOffsetLeft + (Number(yAxisTitleMargin) || 0)
-        : TIMESERIES_CONSTANTS.gridOffsetLeft,
-    right:
-      showLegend && legendOrientation === LegendOrientation.Right
-        ? 0
-        : TIMESERIES_CONSTANTS.gridOffsetRight,
-  });
-}
 
-export function getTooltipTimeFormatter(
-  format?: string,
-): TimeFormatter | StringConstructor {
-  if (format === smartDateFormatter.id) {
-    return smartDateDetailedFormatter;
-  }
-  if (format) {
-    return getTimeFormatter(format);
-  }
-  return String;
-}
-
-export function getXAxisFormatter(
-  format?: string,
-): TimeFormatter | StringConstructor | undefined {
-  if (format === smartDateFormatter.id || !format) {
-    return undefined;
-  }
-  if (format) {
-    return getTimeFormatter(format);
-  }
-  return String;
+  return getChartPadding(
+    showLegend,
+    legendOrientation,
+    margin,
+    {
+      top:
+        yAxisTitlePosition && yAxisTitlePosition === 'Top'
+          ? TIMESERIES_CONSTANTS.gridOffsetTop + (Number(yAxisTitleMargin) || 0)
+          : TIMESERIES_CONSTANTS.gridOffsetTop + yAxisOffset,
+      bottom:
+        zoomable && !isHorizontal
+          ? TIMESERIES_CONSTANTS.gridOffsetBottomZoomable + xAxisOffset
+          : TIMESERIES_CONSTANTS.gridOffsetBottom + xAxisOffset,
+      left:
+        yAxisTitlePosition === 'Left'
+          ? TIMESERIES_CONSTANTS.gridOffsetLeft +
+            (Number(yAxisTitleMargin) || 0)
+          : TIMESERIES_CONSTANTS.gridOffsetLeft,
+      right:
+        showLegend && legendOrientation === LegendOrientation.Right
+          ? 0
+          : TIMESERIES_CONSTANTS.gridOffsetRight,
+    },
+    isHorizontal,
+  );
 }
