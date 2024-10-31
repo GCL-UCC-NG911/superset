@@ -244,9 +244,21 @@ export const exportChart = ({
   let url;
   let payload;
   /* NGLS - BEGIN */
+  if(resultFormat !== 'custom'){
+    console.log('custom mode');
+    url = '/api/v1/chart/data';
+    payload = buildV1ChartDataPayload({
+      formData,
+      force,
+      resultFormat,
+      resultType,
+      ownState,
+    });
+  }
   if (resultFormat !== 'pdf' && shouldUseLegacyApi(formData)) {
-    alert('testing method!!!');
     /* NGLS - END */
+    alert('legacy mode');
+    console.log('legacy mode');
     const endpointType = getLegacyEndpointType({ resultFormat, resultType });
     url = getExploreUrl({
       formData,
@@ -254,8 +266,9 @@ export const exportChart = ({
       allowDomainSharding: false,
     });
     payload = formData;
-    alert('download test!!!');
   } else {
+    alert('no legacy mode');
+    console.log('no legacy mode');
     url = '/api/v1/chart/data';
     payload = buildV1ChartDataPayload({
       formData,
