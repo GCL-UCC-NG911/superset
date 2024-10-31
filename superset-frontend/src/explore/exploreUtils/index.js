@@ -253,6 +253,7 @@ export const exportChart = ({
       allowDomainSharding: false,
     });
     payload = formData;
+    alert('download test!!!');
   } else {
     url = '/api/v1/chart/data';
     payload = buildV1ChartDataPayload({
