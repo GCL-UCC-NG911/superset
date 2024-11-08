@@ -254,6 +254,9 @@ function ReportModal({
           <StyledRadio value={NOTIFICATION_FORMATS.PDF}>
             {t('Formatted PDF attached in email')}
           </StyledRadio>
+          <StyledRadio value={NOTIFICATION_FORMATS.CUSTOM_CSV}>
+            {t('Formatted Custom CSV attached in email')}
+          </StyledRadio>
         </StyledRadioGroup>
       </div>
     </>

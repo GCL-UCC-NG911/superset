@@ -244,7 +244,7 @@ export const exportChart = ({
   let url;
   let payload;
   /* NGLS - BEGIN */
-  if(resultFormat !== 'custom'){
+  if(resultFormat !== 'custom' && shouldUseLegacyApi(formData)){
     console.log('custom mode');
     url = '/api/v1/chart/data';
     payload = buildV1ChartDataPayload({

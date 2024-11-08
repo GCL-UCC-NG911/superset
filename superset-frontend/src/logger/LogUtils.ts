@@ -59,6 +59,7 @@ export const LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF =
 /* NGLS - END */
 export const LOG_ACTIONS_CHART_DOWNLOAD_AS_IMAGE = 'chart_download_as_image';
 /* NGLS - BEGIN */
+export const LOG_ACTIONS_CHART_DOWNLOAD_AS_CUSTOM_CSV = 'chart_download_as_custom_pdf';
 export const LOG_ACTIONS_CHART_DOWNLOAD_AS_PDF = 'chart_download_as_pdf';
 /* NGLS - END */
 export const LOG_ACTIONS_SQLLAB_WARN_LOCAL_STORAGE_USAGE =
@@ -92,6 +93,7 @@ export const LOG_EVENT_TYPE_USER = new Set([
   /* NGLS - END */
   LOG_ACTIONS_CHART_DOWNLOAD_AS_IMAGE,
   /* NGLS - BEGIN */
+  LOG_ACTIONS_CHART_DOWNLOAD_AS_CUSTOM_CSV,
   LOG_ACTIONS_CHART_DOWNLOAD_AS_PDF,
   /* NGLS - END */
 ]);

@@ -39,12 +39,12 @@ const MENU_KEYS = {
   DASHBOARDS_ADDED_TO: 'dashboards_added_to',
   DOWNLOAD_SUBMENU: 'download_submenu',
   EXPORT_TO_CSV: 'export_to_csv',
-  EXPORT_CUSTOM_CSV: 'export_custom_csv',
   EXPORT_TO_CSV_PIVOTED: 'export_to_csv_pivoted',
   EXPORT_TO_JSON: 'export_to_json',
   EXPORT_TO_XLSX: 'export_to_xlsx',
   /* NGLS - BEGIN */
   EXPORT_TO_PDF: 'export_to_pdf',
+  EXPORT_TO_CUSTOM_CSV: 'export_to_custom_csv',
   /* NGLS - END */
   DOWNLOAD_AS_IMAGE: 'download_as_image',
   SHARE_SUBMENU: 'share_submenu',
@@ -155,16 +155,6 @@ export const useExploreAdditionalActionsMenu = (
     [canDownloadCSV, latestQueryFormData],
   );
 
-  const exportCustomCSV = useCallback(
-    () =>
-      exportChart({
-        formData: latestQueryFormData,
-        resultType: 'full',
-        resultFormat: 'custom',
-      }),
-    [latestQueryFormData],
-  );
-
   const exportCSVPivoted = useCallback(
     () =>
       canDownloadCSV
@@ -207,6 +197,16 @@ export const useExploreAdditionalActionsMenu = (
       }),
     [latestQueryFormData],
   );
+
+  const exportCustomCSV = useCallback(
+    () =>
+      exportChart({
+        formData: latestQueryFormData,
+        resultType: 'full',
+        resultFormat: 'custom',
+      }),
+    [latestQueryFormData],
+  );
   /* NGLS - END */
 
   const copyLink = useCallback(async () => {
@@ -233,7 +233,7 @@ export const useExploreAdditionalActionsMenu = (
           setIsDropdownVisible(false);
           setOpenSubmenus([]);
           break;
-        case MENU_KEYS.EXPORT_CUSTOM_CSV:
+        case MENU_KEYS.EXPORT_TO_CUSTOM_CSV:
           exportCustomCSV();
           setIsDropdownVisible(false);
           setOpenSubmenus([]);
@@ -301,6 +301,7 @@ export const useExploreAdditionalActionsMenu = (
       exportCSVPivoted,
       exportJson,
       /* NGLS - BEGIN */
+      exportCustomCSV,
       exportPDF,
       /* NGLS - END */
       latestQueryFormData,
@@ -376,12 +377,6 @@ export const useExploreAdditionalActionsMenu = (
             {t('Export to Excel')}
           </Menu.Item>
           <Menu.Item
-              key={MENU_KEYS.EXPORT_CUSTOM_CSV}
-              icon={<Icons.FileOutlined css={iconReset} />}
-            >
-              {t('Export custom')}
-            </Menu.Item>
-          <Menu.Item
             key={MENU_KEYS.EXPORT_TO_JSON}
             icon={<Icons.FileOutlined css={iconReset} />}
           >
@@ -394,6 +389,12 @@ export const useExploreAdditionalActionsMenu = (
           >
             {t('Export to PDF')}
           </Menu.Item>
+          <Menu.Item
+              key={MENU_KEYS.EXPORT_CUSTOM_CSV}
+              icon={<Icons.FileOutlined css={iconReset} />}
+            >
+              {t('Export custom')}
+            </Menu.Item>
           {/* NGLS - END */}
         </Menu.SubMenu>
         <Menu.SubMenu title={t('Share')} key={MENU_KEYS.SHARE_SUBMENU}>
