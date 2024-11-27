@@ -485,7 +485,9 @@ class Superset(BaseSupersetView):  # pylint: disable=too-many-public-methods
     def generate_json(
         self, viz_obj: BaseViz, response_type: Optional[str] = None
     ) -> FlaskResponse:
-        if response_type == ChartDataResultFormat.CSV:
+        # NGLS - BEGIN #
+        if (response_type == ChartDataResultFormat.CSV or response_type == ChartDataResultFormat.CUSTOM_CSV):
+        # NGLS - END #
             return CsvResponse(
                 viz_obj.get_csv(), headers=generate_download_headers("csv")
             )

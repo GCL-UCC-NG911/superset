@@ -272,7 +272,7 @@ describe('Additional actions tests', () => {
     expect(await screen.findByText('Download as image')).toBeInTheDocument();
     /* NGLS - BEGIN */
     expect(await screen.findByText('Export to Excel')).toBeInTheDocument();
-    expect(await screen.findByText('Export to custom CSV')).not.toBeInTheDocument();
+    expect(await screen.findByText('Export to custom CSV')).toBeInTheDocument();
     expect(await screen.findByText('Export to PDF')).toBeInTheDocument();
     /* NGLS - END */
   });

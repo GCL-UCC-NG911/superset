@@ -755,6 +755,7 @@ CSV_EXPORT = {"encoding": "utf-8"}
 EXCEL_EXPORT = {"encoding": "utf-8"}
 
 # NGLS - BEGIN #
+CUSTOM_CSV = {"encoding": "utf-8"}
 # PDF Options: Options dictionary that will be passed as argument to pdfkit.
 PDF_EXPORT = {
     "page-size": "Letter",

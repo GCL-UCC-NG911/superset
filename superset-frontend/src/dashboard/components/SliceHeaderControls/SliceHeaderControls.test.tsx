@@ -45,6 +45,7 @@ const createProps = (viz_type = 'sunburst') =>
     exportCSV: jest.fn(),
     /* NGLS - BEGIN */
     exportPDF: jest.fn(),
+    exportCustomCSV: jest.fn(),
     /* NGLS - END */
     exportFullCSV: jest.fn(),
     forceRefresh: jest.fn(),
@@ -131,6 +132,8 @@ test('Should render default props', () => {
   /* NGLS - BEGIN */
   // @ts-ignore
   delete props.exportPDF;
+  // @ts-ignore
+  delete props.exportCustomCSV;
   /* NGLS - END */
   // @ts-ignore
   delete props.cachedDttm;

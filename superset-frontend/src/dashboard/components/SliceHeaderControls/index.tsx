@@ -64,6 +64,7 @@ const MENU_KEYS = {
   EXPORT_FULL_CSV: 'export_full_csv',
   /* NGLS - BEGIN */
   EXPORT_PDF: 'export_pdf',
+  EXPORT_CUSTOM_CSV: 'export_custom_csv',
   /* NGLS - END */
   FORCE_REFRESH: 'force_refresh',
   FULLSCREEN: 'fullscreen',
@@ -145,6 +146,7 @@ export interface SliceHeaderControlsProps {
   exportCSV?: (sliceId: number) => void;
   /* NGLS - BEGIN */
   exportPDF?: (sliceId: number) => void;
+  exportCustomCSV?: (sliceId: number) => void;
   /* NGLS - END */
   exportFullCSV?: (sliceId: number) => void;
   handleToggleFullSize: () => void;
@@ -312,6 +314,10 @@ class SliceHeaderControls extends React.PureComponent<
       case MENU_KEYS.EXPORT_PDF:
         // eslint-disable-next-line no-unused-expressions
         this.props.exportPDF?.(this.props.slice.slice_id);
+        break;
+      case MENU_KEYS.EXPORT_CUSTOM_CSV:
+        // eslint-disable-next-line no-unused-expressions
+        this.props.exportCustomCSV?.(this.props.slice.slice_id);
         break;
       /* NGLS - END */
       case MENU_KEYS.FULLSCREEN:
@@ -550,6 +556,12 @@ class SliceHeaderControls extends React.PureComponent<
                 icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
               >
                 {t('Export to PDF')}
+              </Menu.Item>
+              <Menu.Item
+                key={MENU_KEYS.EXPORT_CUSTOM_CSV}
+                icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
+              >
+                {t('Export to Custom CSV')}
               </Menu.Item>
               {/* NGLS - END */}
             </Menu.SubMenu>

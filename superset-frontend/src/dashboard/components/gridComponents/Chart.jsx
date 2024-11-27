@@ -37,6 +37,7 @@ import {
   LOG_ACTIONS_EXPORT_CSV_DASHBOARD_CHART,
   /* NGLS - BEGIN */
   LOG_ACTIONS_EXPORT_PDF_DASHBOARD_CHART,
+  LOG_ACTIONS_CHART_DOWNLOAD_AS_CUSTOM_CSV,
   /* NGLS - END */
   LOG_ACTIONS_FORCE_REFRESH_CHART,
 } from 'src/logger/LogUtils';
@@ -160,6 +161,7 @@ class Chart extends React.Component {
     this.exportCSV = this.exportCSV.bind(this);
     /* NGLS - BEGIN */
     this.exportPDF = this.exportPDF.bind(this);
+    this.exportCustomCSV = this.exportCustomCSV.bind(this);
     /* NGLS - END */
     this.exportFullCSV = this.exportFullCSV.bind(this);
     this.forceRefresh = this.forceRefresh.bind(this);
@@ -388,6 +390,23 @@ class Chart extends React.Component {
       force: true,
     });
   }
+
+  exportCustomCSV() {
+    this.props.logEvent(LOG_ACTIONS_CHART_DOWNLOAD_AS_CUSTOM_CSV, {
+      slice_id: this.props.slice.slice_id,
+      is_cached: this.props.isCached,
+    });
+    const formData = {
+      ...this.props.formData,
+      chart_name: this.props.slice.slice_name,
+    };
+    exportChart({
+      formData,
+      resultType: 'full',
+      resultFormat: 'custom',
+      force: true,
+    });
+  }
   /* NGLS - END */
 
   exportFullCSV() {
@@ -496,6 +515,7 @@ class Chart extends React.Component {
           exportCSV={this.exportCSV}
           /* NGLS - BEGIN */
           exportPDF={this.exportPDF}
+          exportCustomCSV={this.exportCustomCSV}
           /* NGLS - END */
           exportFullCSV={this.exportFullCSV}
           updateSliceName={updateSliceName}

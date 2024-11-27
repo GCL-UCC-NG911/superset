@@ -244,17 +244,6 @@ export const exportChart = ({
   let url;
   let payload;
   /* NGLS - BEGIN */
-  if(resultFormat !== 'custom' && shouldUseLegacyApi(formData)){
-    console.log('custom mode');
-    url = '/api/v1/chart/data';
-    payload = buildV1ChartDataPayload({
-      formData,
-      force,
-      resultFormat,
-      resultType,
-      ownState,
-    });
-  }
   if (resultFormat !== 'pdf' && shouldUseLegacyApi(formData)) {
     /* NGLS - END */
     alert('legacy mode');

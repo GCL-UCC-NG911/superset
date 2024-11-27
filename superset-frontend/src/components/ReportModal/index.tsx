@@ -243,6 +243,9 @@ function ReportModal({
               {t('Text embedded in email')}
             </StyledRadio>
           )}
+          <StyledRadio value={NOTIFICATION_FORMATS.CUSTOM_CSV}>
+            {t('Formatted Custom CSV attached in email')}
+          </StyledRadio>
           <StyledRadio value={NOTIFICATION_FORMATS.PNG}>
             {t('Image (PNG) embedded in email')}
           </StyledRadio>
@@ -253,9 +256,6 @@ function ReportModal({
           )}
           <StyledRadio value={NOTIFICATION_FORMATS.PDF}>
             {t('Formatted PDF attached in email')}
-          </StyledRadio>
-          <StyledRadio value={NOTIFICATION_FORMATS.CUSTOM_CSV}>
-            {t('Formatted Custom CSV attached in email')}
           </StyledRadio>
         </StyledRadioGroup>
       </div>
