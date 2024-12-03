@@ -48,7 +48,7 @@ from superset.models.helpers import QueryResult
 from superset.models.sql_lab import Query
 
 # NGLS - BEGIN #
-from superset.utils import csv, custom, excel, pdf
+from superset.utils import csv, excel, pdf
 
 # NGLS - END #
 from superset.utils.cache import generate_cache_key, set_and_log_cache
