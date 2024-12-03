@@ -400,7 +400,9 @@ describe('Additional actions tests', () => {
       });
       userEvent.click(screen.getByLabelText('Menu actions trigger'));
       userEvent.hover(screen.getByText('Download'));
-      const exportCustomCSVElement = await screen.findByText('Export to custom CSV');
+      const exportCustomCSVElement = await screen.findByText(
+        'Export to custom CSV',
+      );
       userEvent.click(exportCustomCSVElement);
       expect(spyExportChart.callCount).toBe(0);
       spyExportChart.restore();

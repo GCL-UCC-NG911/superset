@@ -390,10 +390,10 @@ export const useExploreAdditionalActionsMenu = (
             {t('Export to PDF')}
           </Menu.Item>
           <Menu.Item
-              key={MENU_KEYS.EXPORT_CUSTOM_CSV}
-              icon={<Icons.FileOutlined css={iconReset} />}
-            >
-              {t('Export custom')}
+            key={MENU_KEYS.EXPORT_CUSTOM_CSV}
+            icon={<Icons.FileOutlined css={iconReset} />}
+          >
+            {t('Export custom')}
           </Menu.Item>
           {/* NGLS - END */}
         </Menu.SubMenu>
