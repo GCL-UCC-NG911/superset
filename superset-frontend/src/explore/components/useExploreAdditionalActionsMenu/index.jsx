@@ -31,6 +31,9 @@ import copyTextToClipboard from 'src/utils/copy';
 import HeaderReportDropDown from 'src/components/ReportModal/HeaderReportDropdown';
 import { isFeatureEnabled, FeatureFlag } from 'src/featureFlags';
 import ViewQueryModal from '../controls/ViewQueryModal';
+/* NGLS - BEGIN */
+import CustomCSVModal from '../controls/CustomCSVModal';
+/* NGLS - END */
 import EmbedCodeContent from '../EmbedCodeContent';
 import DashboardsSubMenu from './DashboardsSubMenu';
 
@@ -393,6 +396,18 @@ export const useExploreAdditionalActionsMenu = (
             key={MENU_KEYS.EXPORT_CUSTOM_CSV}
             icon={<Icons.FileOutlined css={iconReset} />}
           >
+            <ModalTrigger
+              triggerNode={
+                <span data-test="view-query-menu-item">{t('Export custom CSV')}</span>
+              }
+              modalTitle={t('Export custom CSV')}
+              modalBody={
+                <CustomCSVModal latestQueryFormData={latestQueryFormData} />
+              }
+              draggable
+              resizable
+              responsive
+            />
             {t('Export custom')}
           </Menu.Item>
           {/* NGLS - END */}
