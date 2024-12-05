@@ -36,6 +36,7 @@ import CustomCSVModal from '../controls/CustomCSVModal';
 /* NGLS - END */
 import EmbedCodeContent from '../EmbedCodeContent';
 import DashboardsSubMenu from './DashboardsSubMenu';
+import CustomCSVModalFooter from '../controls/CustomCSVModalFooter';
 
 const MENU_KEYS = {
   EDIT_PROPERTIES: 'edit_properties',
@@ -398,11 +399,19 @@ export const useExploreAdditionalActionsMenu = (
           >
             <ModalTrigger
               triggerNode={
-                <span data-test="view-query-menu-item">{t('Export custom CSV')}</span>
+                <span data-test="view-query-menu-item">
+                  {t('Export custom CSV')}
+                </span>
               }
               modalTitle={t('Export custom CSV')}
               modalBody={
                 <CustomCSVModal latestQueryFormData={latestQueryFormData} />
+              }
+              modalFooter={
+                <CustomCSVModalFooter
+                  changeDatasource={this.toggleSaveDatasetModal}
+                  datasource={datasource}
+                />
               }
               draggable
               resizable

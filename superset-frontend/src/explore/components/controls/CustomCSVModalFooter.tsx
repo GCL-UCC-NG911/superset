@@ -23,21 +23,20 @@ import Button from 'src/components/Button';
 
 interface SimpleDataSource {
   id: string;
-  sql: string;
+  columns: string;
   type: string;
 }
 
-interface ViewQueryModalFooterProps {
+interface CustomCSVModalFooterProps {
   closeModal?: Function;
   changeDatasource?: Function;
   datasource?: SimpleDataSource;
 }
 
 const CLOSE = t('Close');
-const SAVE_AS_DATASET = t('Save as Dataset');
-const OPEN_IN_SQL_LAB = t('Open in SQL Lab');
+const EXPORT_CHART = t('Download CSV');
 
-const ViewQueryModalFooter: React.FC<ViewQueryModalFooterProps> = (props: {
+const CustomCSVModalFooter: React.FC<CustomCSVModalFooterProps> = (props: {
   closeModal: () => void;
   changeDatasource: () => void;
   datasource: SimpleDataSource;
@@ -53,8 +52,8 @@ const ViewQueryModalFooter: React.FC<ViewQueryModalFooterProps> = (props: {
   const openSQL = () => {
     const { datasource } = props;
     if (isObject(datasource)) {
-      const { id, type, sql } = datasource;
-      viewInSQLLab(id, type, sql);
+      const { id, type, columns } = datasource;
+      viewInSQLLab(id, type, columns);
     }
   };
   return (
@@ -65,9 +64,9 @@ const ViewQueryModalFooter: React.FC<ViewQueryModalFooterProps> = (props: {
           props?.changeDatasource?.();
         }}
       >
-        {SAVE_AS_DATASET}
+        {EXPORT_CHART}
       </Button>
-      <Button onClick={() => openSQL()}>{OPEN_IN_SQL_LAB}</Button>
+      <Button onClick={() => openSQL()}>{CLOSE}</Button>
       <Button
         buttonStyle="primary"
         onClick={() => {
@@ -80,4 +79,4 @@ const ViewQueryModalFooter: React.FC<ViewQueryModalFooterProps> = (props: {
   );
 };
 
-export default ViewQueryModalFooter;
+export default CustomCSVModalFooter;

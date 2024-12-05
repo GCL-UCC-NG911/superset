@@ -108,6 +108,7 @@ export function useListViewResource<D extends object = any>(
         ),
       ),
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function hasPerm(perm: string) {

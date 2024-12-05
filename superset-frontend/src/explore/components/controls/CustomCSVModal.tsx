@@ -19,9 +19,9 @@
 import React, { useEffect, useState } from 'react';
 import { styled, ensureIsArray, t } from '@superset-ui/core';
 import Loading from 'src/components/Loading';
+// eslint-disable-next-line import/no-unresolved
 import { getClientErrorObject } from 'src/utils/getClientErrorObject';
 import { getChartDataRequest } from 'src/components/Chart/chartAction';
-import ViewQuery from 'src/explore/components/controls/ViewQuery';
 
 interface Props {
   latestQueryFormData: object;
@@ -32,13 +32,15 @@ type Result = {
   language: string;
 };
 
-const ViewQueryModalContainer = styled.div`
+const TEST = t('Test');
+
+const CustomCSVModalContainer = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
 `;
 
-const ViewQueryModal: React.FC<Props> = props => {
+const CustomCSVModal: React.FC<Props> = props => {
   const [result, setResult] = useState<Result[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +71,7 @@ const ViewQueryModal: React.FC<Props> = props => {
   };
   useEffect(() => {
     loadChartData('query');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(props.latestQueryFormData)]);
 
   if (isLoading) {
@@ -78,15 +81,10 @@ const ViewQueryModal: React.FC<Props> = props => {
     return <pre>{error}</pre>;
   }
 
+  // eslint-disable-next-line prettier/prettier
   return (
-    <ViewQueryModalContainer>
-      {result.map(item =>
-        item.query ? (
-          <ViewQuery sql={item.query} language={item.language || undefined} />
-        ) : null,
-      )}
-    </ViewQueryModalContainer>
+    <CustomCSVModalContainer>{TEST}</CustomCSVModalContainer>
   );
 };
 
-export default ViewQueryModal;
+export default CustomCSVModal;
