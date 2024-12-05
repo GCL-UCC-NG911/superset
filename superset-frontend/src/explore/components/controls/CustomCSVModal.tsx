@@ -17,20 +17,20 @@
  * under the License.
  */
 import React, { useEffect, useState } from 'react';
-import { styled, ensureIsArray, t } from '@superset-ui/core';
+import { styled, t } from '@superset-ui/core';
 import Loading from 'src/components/Loading';
 // eslint-disable-next-line import/no-unresolved
-import { getClientErrorObject } from 'src/utils/getClientErrorObject';
+// import { getClientErrorObject } from 'src/utils/getClientErrorObject';
 import { getChartDataRequest } from 'src/components/Chart/chartAction';
 
 interface Props {
   latestQueryFormData: object;
 }
 
-type Result = {
-  query: string;
-  language: string;
-};
+// type Result = {
+//   query: string;
+//   language: string;
+// };
 
 const TEST = t('Test');
 
@@ -41,9 +41,9 @@ const CustomCSVModalContainer = styled.div`
 `;
 
 const CustomCSVModal: React.FC<Props> = props => {
-  const [result, setResult] = useState<Result[]>([]);
+  // const [setResult] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const error = useState<string | null>(null);
 
   const loadChartData = (resultType: string) => {
     setIsLoading(true);
@@ -51,23 +51,23 @@ const CustomCSVModal: React.FC<Props> = props => {
       formData: props.latestQueryFormData,
       resultFormat: 'json',
       resultType,
-    })
-      .then(({ json }) => {
-        setResult(ensureIsArray(json.result));
-        setIsLoading(false);
-        setError(null);
-      })
-      .catch(response => {
-        getClientErrorObject(response).then(({ error, message }) => {
-          setError(
-            error ||
-              message ||
-              response.statusText ||
-              t('Sorry, An error occurred'),
-          );
-          setIsLoading(false);
-        });
-      });
+    });
+    // .then(({ json }) => {
+    //   setResult(ensureIsArray(json.result));
+    //   setIsLoading(false);
+    //   setError(null);
+    // })
+    // .catch(response => {
+    //   getClientErrorObject(response).then(({ error, message }) => {
+    //     setError(
+    //       error ||
+    //         message ||
+    //         response.statusText ||
+    //         t('Sorry, An error occurred'),
+    //     );
+    //     setIsLoading(false);
+    //   });
+    // });
   };
   useEffect(() => {
     loadChartData('query');
