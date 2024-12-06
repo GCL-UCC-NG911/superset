@@ -397,7 +397,7 @@ export const useExploreAdditionalActionsMenu = (
             key={MENU_KEYS.EXPORT_CUSTOM_CSV}
             icon={<Icons.FileOutlined css={iconReset} />}
           >
-            <ModalTrigger
+            {/* <ModalTrigger
               triggerNode={
                 <span data-test="view-query-menu-item">
                   {t('Export custom CSV')}
@@ -412,6 +412,18 @@ export const useExploreAdditionalActionsMenu = (
                   changeDatasource={this.toggleSaveDatasetModal}
                   datasource={datasource}
                 />
+              }
+              draggable
+              resizable
+              responsive
+            /> */}
+            <ModalTrigger
+              triggerNode={
+                <span data-test="view-query-menu-item">{t('Export custom')}</span>
+              }
+              modalTitle={t('Export custom')}
+              modalBody={
+                <ViewQueryModal latestQueryFormData={latestQueryFormData} />
               }
               draggable
               resizable
