@@ -32,11 +32,11 @@ import HeaderReportDropDown from 'src/components/ReportModal/HeaderReportDropdow
 import { isFeatureEnabled, FeatureFlag } from 'src/featureFlags';
 import ViewQueryModal from '../controls/ViewQueryModal';
 /* NGLS - BEGIN */
-import CustomCSVModal from '../controls/CustomCSVModal';
+// import CustomCSVModal from '../controls/CustomCSVModal';
+// import CustomCSVModalFooter from '../controls/CustomCSVModalFooter';
 /* NGLS - END */
 import EmbedCodeContent from '../EmbedCodeContent';
 import DashboardsSubMenu from './DashboardsSubMenu';
-import CustomCSVModalFooter from '../controls/CustomCSVModalFooter';
 
 const MENU_KEYS = {
   EDIT_PROPERTIES: 'edit_properties',
