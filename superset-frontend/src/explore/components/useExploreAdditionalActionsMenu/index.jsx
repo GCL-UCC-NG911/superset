@@ -419,7 +419,9 @@ export const useExploreAdditionalActionsMenu = (
             /> */}
             <ModalTrigger
               triggerNode={
-                <span data-test="view-query-menu-item">{t('Export custom')}</span>
+                <span data-test="view-query-menu-item">
+                  {t('Export custom')}
+                </span>
               }
               modalTitle={t('Export custom')}
               modalBody={
