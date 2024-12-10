@@ -431,7 +431,6 @@ export const useExploreAdditionalActionsMenu = (
               resizable
               responsive
             />
-            {t('Export custom')}
           </Menu.Item>
           {/* NGLS - END */}
         </Menu.SubMenu>
