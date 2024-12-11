@@ -318,10 +318,10 @@ class SliceHeaderControls extends React.PureComponent<
         // eslint-disable-next-line no-unused-expressions
         this.props.exportPDF?.(this.props.slice.slice_id);
         break;
-      case MENU_KEYS.EXPORT_CUSTOM_CSV:
-        // eslint-disable-next-line no-unused-expressions
-        this.props.exportCustomCSV?.(this.props.slice.slice_id);
-        break;
+      // case MENU_KEYS.EXPORT_CUSTOM_CSV:
+      //   // eslint-disable-next-line no-unused-expressions
+      //   this.props.exportCustomCSV?.(this.props.slice.slice_id);
+      //   break;
       /* NGLS - END */
       case MENU_KEYS.FULLSCREEN:
         this.props.handleToggleFullSize();
@@ -572,7 +572,17 @@ class SliceHeaderControls extends React.PureComponent<
                     </span>
                   }
                   modalTitle={t('Chart Data: %s', slice.slice_name)}
-                  modalBody={<span>{t('Modal body test')}</span>}
+                  modalBody={
+                    <span>
+                      {t('Modal body test')}
+                      <input
+                        className="form-control input-sm"
+                        placeholder={t('Discrepancy ID')}
+                        // value={value}
+                        // onChange={onChange}
+                      />
+                    </span>
+                  }
                 />
               </Menu.Item>
               {/* NGLS - END */}
