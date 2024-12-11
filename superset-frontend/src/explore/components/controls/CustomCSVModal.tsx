@@ -16,75 +16,96 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { useEffect, useState } from 'react';
-import { styled, t } from '@superset-ui/core';
-import Loading from 'src/components/Loading';
-// eslint-disable-next-line import/no-unresolved
-// import { getClientErrorObject } from 'src/utils/getClientErrorObject';
-import { getChartDataRequest } from 'src/components/Chart/chartAction';
+import React, { useCallback, ReactChild, useState } from 'react';
+import Modal from 'src/components/Modal';
+import { exportChart } from 'src/explore/exploreUtils';
+import { useHistory } from 'react-router-dom';
+import Button from 'src/components/Button';
+import { css, t, useTheme } from '@superset-ui/core';
 
-interface Props {
-  latestQueryFormData: object;
-}
+const CustomCSVModalTrigger = ({
+  latestQueryFormData,
+  triggerNode,
+  modalTitle,
+  modalBody,
+}: {
+  latestQueryFormData: string;
+  triggerNode: ReactChild;
+  modalTitle: ReactChild;
+  modalBody: ReactChild;
+}) => {
+  const [showModal, setShowModal] = useState(false);
+  const openModal = useCallback(() => setShowModal(true), []);
+  const closeModal = useCallback(() => setShowModal(false), []);
+  //  const history = useHistory();
+  const exploreChart = useCallback(
+    () =>
+      exportChart({
+        formData: latestQueryFormData,
+        resultType: 'full',
+        resultFormat: 'custom',
+      }),
+    [latestQueryFormData],
+  );
+  const theme = useTheme();
 
-// type Result = {
-//   query: string;
-//   language: string;
-// };
-
-const TEST = t('Test');
-
-const CustomCSVModalContainer = styled.div`
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-`;
-
-const CustomCSVModal: React.FC<Props> = props => {
-  // const [setResult] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const error = useState<string | null>(null);
-
-  const loadChartData = (resultType: string) => {
-    setIsLoading(true);
-    getChartDataRequest({
-      formData: props.latestQueryFormData,
-      resultFormat: 'json',
-      resultType,
-    });
-    // .then(({ json }) => {
-    //   setResult(ensureIsArray(json.result));
-    //   setIsLoading(false);
-    //   setError(null);
-    // })
-    // .catch(response => {
-    //   getClientErrorObject(response).then(({ error, message }) => {
-    //     setError(
-    //       error ||
-    //         message ||
-    //         response.statusText ||
-    //         t('Sorry, An error occurred'),
-    //     );
-    //     setIsLoading(false);
-    //   });
-    // });
-  };
-  useEffect(() => {
-    loadChartData('query');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(props.latestQueryFormData)]);
-
-  if (isLoading) {
-    return <Loading />;
-  }
-  if (error) {
-    return <pre>{error}</pre>;
-  }
-
-  // eslint-disable-next-line prettier/prettier
   return (
-    <CustomCSVModalContainer>{TEST}</CustomCSVModalContainer>
+    <>
+      <span
+        data-test="span-modal-trigger"
+        onClick={openModal}
+        role="button"
+        tabIndex={0}
+      >
+        {triggerNode}
+      </span>
+      {(() => (
+        <Modal
+          css={css`
+            .ant-modal-body {
+              display: flex;
+              flex-direction: column;
+            }
+          `}
+          show={showModal}
+          onHide={closeModal}
+          title={modalTitle}
+          footer={
+            <>
+              <Button
+                buttonStyle="primary"
+                buttonSize="small"
+                onClick={exploreChart}
+              >
+                {t('Dowload chart')}
+              </Button>
+              <Button
+                buttonStyle="primary"
+                buttonSize="small"
+                onClick={closeModal}
+              >
+                {t('Close')}
+              </Button>
+            </>
+          }
+          responsive
+          resizable
+          resizableConfig={{
+            minHeight: theme.gridUnit * 128,
+            minWidth: theme.gridUnit * 128,
+            defaultSize: {
+              width: 'auto',
+              height: '75vh',
+            },
+          }}
+          draggable
+          destroyOnClose
+        >
+          {modalBody}
+        </Modal>
+      ))()}
+    </>
   );
 };
 
-export default CustomCSVModal;
+export default CustomCSVModalTrigger;

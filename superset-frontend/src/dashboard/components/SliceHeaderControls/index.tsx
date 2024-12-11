@@ -55,6 +55,9 @@ import { ResultsPaneOnDashboard } from 'src/explore/components/DataTablesPane';
 import Modal from 'src/components/Modal';
 import { DrillDetailMenuItems } from 'src/components/Chart/DrillDetail';
 import { LOG_ACTIONS_CHART_DOWNLOAD_AS_IMAGE } from 'src/logger/LogUtils';
+/* NGLS - BEGIN */
+import CustomCSVModal from '../controls/CustomCSVModal';
+/* NGLS - END */
 
 const MENU_KEYS = {
   CROSS_FILTER_SCOPING: 'cross_filter_scoping',
@@ -561,19 +564,15 @@ class SliceHeaderControls extends React.PureComponent<
                 key={MENU_KEYS.EXPORT_CUSTOM_CSV}
                 icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
               >
-                <ModalTrigger
+                <CustomCSVModal
+                  latestQueryFormData={this.props.formData}
                   triggerNode={
                     <span data-test="view-query-menu-item">
                       {t('Export custom test')}
                     </span>
                   }
-                  modalTitle={t('View query')}
-                  modalBody={
-                    <ViewQueryModal latestQueryFormData={this.props.formData} />
-                  }
-                  draggable
-                  resizable
-                  responsive
+                  modalTitle={t('Chart Data: %s', slice.slice_name)}
+                  modalBody={<span>{t('Modal body test')}</span>}
                 />
               </Menu.Item>
               {/* NGLS - END */}

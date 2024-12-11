@@ -32,8 +32,7 @@ import HeaderReportDropDown from 'src/components/ReportModal/HeaderReportDropdow
 import { isFeatureEnabled, FeatureFlag } from 'src/featureFlags';
 import ViewQueryModal from '../controls/ViewQueryModal';
 /* NGLS - BEGIN */
-// import CustomCSVModal from '../controls/CustomCSVModal';
-// import CustomCSVModalFooter from '../controls/CustomCSVModalFooter';
+import CustomCSVModal from '../controls/CustomCSVModal';
 /* NGLS - END */
 import EmbedCodeContent from '../EmbedCodeContent';
 import DashboardsSubMenu from './DashboardsSubMenu';
@@ -201,16 +200,6 @@ export const useExploreAdditionalActionsMenu = (
       }),
     [latestQueryFormData],
   );
-
-  const exportCustomCSV = useCallback(
-    () =>
-      exportChart({
-        formData: latestQueryFormData,
-        resultType: 'full',
-        resultFormat: 'custom',
-      }),
-    [latestQueryFormData],
-  );
   /* NGLS - END */
 
   const copyLink = useCallback(async () => {
@@ -238,7 +227,7 @@ export const useExploreAdditionalActionsMenu = (
           setOpenSubmenus([]);
           break;
         case MENU_KEYS.EXPORT_TO_CUSTOM_CSV:
-          exportCustomCSV();
+          //exportCustomCSV();
           setIsDropdownVisible(false);
           setOpenSubmenus([]);
           break;
@@ -397,39 +386,19 @@ export const useExploreAdditionalActionsMenu = (
             key={MENU_KEYS.EXPORT_CUSTOM_CSV}
             icon={<Icons.FileOutlined css={iconReset} />}
           >
-            {/* <ModalTrigger
+            <CustomCSVModal
+              latestQueryFormData={latestQueryFormData}
               triggerNode={
                 <span data-test="view-query-menu-item">
-                  {t('Export custom CSV')}
+                  {t('Export custom test')}
                 </span>
               }
-              modalTitle={t('Export custom CSV')}
+              modalTitle={t('Chart Data: %s', slice.slice_name)}
               modalBody={
-                <CustomCSVModal latestQueryFormData={latestQueryFormData} />
-              }
-              modalFooter={
-                <CustomCSVModalFooter
-                  changeDatasource={this.toggleSaveDatasetModal}
-                  datasource={datasource}
-                />
-              }
-              draggable
-              resizable
-              responsive
-            /> */}
-            <ModalTrigger
-              triggerNode={
-                <span data-test="view-query-menu-item">
-                  {t('Export custom')}
+                <span>
+                  {t('Modal body test')}
                 </span>
               }
-              modalTitle={t('Export custom')}
-              modalBody={
-                <ViewQueryModal latestQueryFormData={latestQueryFormData} />
-              }
-              draggable
-              resizable
-              responsive
             />
           </Menu.Item>
           {/* NGLS - END */}
