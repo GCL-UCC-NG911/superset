@@ -29,7 +29,7 @@ const CustomCSVModalTrigger = ({
   modalTitle,
   modalBody,
 }: {
-  latestQueryFormData: string;
+  latestQueryFormData: object;
   triggerNode: ReactChild;
   modalTitle: ReactChild;
   modalBody: ReactChild;
