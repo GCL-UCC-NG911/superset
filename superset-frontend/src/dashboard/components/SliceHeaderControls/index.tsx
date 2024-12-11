@@ -561,7 +561,20 @@ class SliceHeaderControls extends React.PureComponent<
                 key={MENU_KEYS.EXPORT_CUSTOM_CSV}
                 icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
               >
-                {t('Export to Custom CSV')}
+                <ModalTrigger
+                  triggerNode={
+                    <span data-test="view-query-menu-item">
+                      {t('Export custom test')}
+                    </span>
+                  }
+                  modalTitle={t('View query')}
+                  modalBody={
+                    <ViewQueryModal latestQueryFormData={this.props.formData} />
+                  }
+                  draggable
+                  resizable
+                  responsive
+                />
               </Menu.Item>
               {/* NGLS - END */}
             </Menu.SubMenu>
