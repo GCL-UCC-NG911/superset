@@ -56,7 +56,7 @@ import Modal from 'src/components/Modal';
 import { DrillDetailMenuItems } from 'src/components/Chart/DrillDetail';
 import { LOG_ACTIONS_CHART_DOWNLOAD_AS_IMAGE } from 'src/logger/LogUtils';
 /* NGLS - BEGIN */
-import CustomCSVModal from '../controls/CustomCSVModal';
+import CustomCSVModal from 'src/explore/components/controls/CustomCSVModal';
 /* NGLS - END */
 
 const MENU_KEYS = {

@@ -227,7 +227,7 @@ export const useExploreAdditionalActionsMenu = (
           setOpenSubmenus([]);
           break;
         case MENU_KEYS.EXPORT_TO_CUSTOM_CSV:
-          //exportCustomCSV();
+          //  exportCustomCSV();
           setIsDropdownVisible(false);
           setOpenSubmenus([]);
           break;
@@ -294,7 +294,6 @@ export const useExploreAdditionalActionsMenu = (
       exportCSVPivoted,
       exportJson,
       /* NGLS - BEGIN */
-      exportCustomCSV,
       exportPDF,
       /* NGLS - END */
       latestQueryFormData,
@@ -394,11 +393,7 @@ export const useExploreAdditionalActionsMenu = (
                 </span>
               }
               modalTitle={t('Chart Data: %s', slice.slice_name)}
-              modalBody={
-                <span>
-                  {t('Modal body test')}
-                </span>
-              }
+              modalBody={<span>{t('Modal body test')}</span>}
             />
           </Menu.Item>
           {/* NGLS - END */}

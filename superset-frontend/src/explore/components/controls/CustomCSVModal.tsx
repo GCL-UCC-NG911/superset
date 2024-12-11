@@ -19,7 +19,7 @@
 import React, { useCallback, ReactChild, useState } from 'react';
 import Modal from 'src/components/Modal';
 import { exportChart } from 'src/explore/exploreUtils';
-import { useHistory } from 'react-router-dom';
+//  import { useHistory } from 'react-router-dom';
 import Button from 'src/components/Button';
 import { css, t, useTheme } from '@superset-ui/core';
 
