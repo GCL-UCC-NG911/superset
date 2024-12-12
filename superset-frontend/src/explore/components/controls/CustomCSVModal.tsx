@@ -95,7 +95,7 @@ const CustomCSVModalTrigger = ({
             minWidth: theme.gridUnit * 128,
             defaultSize: {
               width: 'auto',
-              height: '45vh',
+              height: 'auto',
             },
           }}
           draggable

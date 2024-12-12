@@ -556,31 +556,31 @@ class SliceHeaderControls extends React.PureComponent<
               >
                 {t('Export to PDF')}
               </Menu.Item>
-              {/* {slice.slice_name === 'Discrepancy details - table' ? ( */}
-              <Menu.Item
-                key={MENU_KEYS.EXPORT_CUSTOM_CSV}
-                icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
-              >
-                <CustomCSVModal
-                  latestQueryFormData={this.props.formData}
-                  triggerNode={
-                    <span data-test="view-query-menu-item">
-                      {t('Export custom CSV')}
-                    </span>
-                  }
-                  modalTitle={t('Chart Data: %s', slice.slice_name)}
-                  modalBody={
-                    <span>
-                      {t('Insert the transitional ID')}
-                      <input
-                        className="form-control input-sm"
-                        placeholder={t('Discrepancy ID')}
-                      />
-                    </span>
-                  }
-                />
-              </Menu.Item>
-              {/* ) : null} */}
+              {slice.slice_name === 'Discrepancy details - table' ? (
+                <Menu.Item
+                  key={MENU_KEYS.EXPORT_CUSTOM_CSV}
+                  icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
+                >
+                  <CustomCSVModal
+                    latestQueryFormData={this.props.formData}
+                    triggerNode={
+                      <span data-test="view-query-menu-item">
+                        {t('Export custom CSV')}
+                      </span>
+                    }
+                    modalTitle={t('Chart Data: %s', slice.slice_name)}
+                    modalBody={
+                      <span>
+                        {t('Insert the transitional ID')}
+                        <input
+                          className="form-control input-sm"
+                          placeholder={t('Discrepancy ID')}
+                        />
+                      </span>
+                    }
+                  />
+                </Menu.Item>
+              ) : null}
               {/* NGLS - END */}
             </Menu.SubMenu>
           )}
