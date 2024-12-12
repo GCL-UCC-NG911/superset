@@ -406,7 +406,7 @@ export const useExploreAdditionalActionsMenu = (
                 }
               />
             </Menu.Item>
-          ): null}
+          ) : null}
           {/* NGLS - END */}
         </Menu.SubMenu>
         <Menu.SubMenu title={t('Share')} key={MENU_KEYS.SHARE_SUBMENU}>
