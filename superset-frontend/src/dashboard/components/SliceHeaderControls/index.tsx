@@ -149,7 +149,6 @@ export interface SliceHeaderControlsProps {
   exportCSV?: (sliceId: number) => void;
   /* NGLS - BEGIN */
   exportPDF?: (sliceId: number) => void;
-  exportCustomCSV?: (sliceId: number) => void;
   /* NGLS - END */
   exportFullCSV?: (sliceId: number) => void;
   handleToggleFullSize: () => void;

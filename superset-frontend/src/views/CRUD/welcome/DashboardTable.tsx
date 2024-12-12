@@ -119,7 +119,6 @@ function DashboardTable({
       getData(activeTab);
     }
     setLoaded(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const handleBulkDashboardExport = (dashboardsToExport: Dashboard[]) => {

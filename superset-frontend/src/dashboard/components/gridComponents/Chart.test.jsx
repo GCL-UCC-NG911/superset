@@ -62,7 +62,6 @@ describe('Chart', () => {
     addDangerToast() {},
     exportCSV() {},
     exportPDF() {},
-    exportCustomCSV() {},
     exportFullCSV() {},
     componentId: 'test',
     dashboardId: 111,
@@ -150,22 +149,6 @@ describe('Chart', () => {
         formData: expect.anything(),
         resultType: 'full',
         resultFormat: 'pdf',
-      }),
-    );
-    exploreUtils.exportChart.restore();
-  });
-  it('should call exportChart when exportCustomCVS is clicked', () => {
-    const stubbedExportCustomCSV = sinon
-      .stub(exploreUtils, 'exportChart')
-      .returns(() => {});
-    const wrapper = setup();
-    wrapper.instance().exportCustomCSV(props.slice.sliceId);
-    expect(stubbedExportCustomCSV.calledOnce).toBe(true);
-    expect(stubbedExportCustomCSV.lastCall.args[0]).toEqual(
-      expect.objectContaining({
-        formData: expect.anything(),
-        resultType: 'full',
-        resultFormat: 'custom',
       }),
     );
     exploreUtils.exportChart.restore();

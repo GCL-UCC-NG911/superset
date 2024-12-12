@@ -145,7 +145,6 @@ export default function ActivityTable({
     if (activeChild === TableTab.Edited) {
       getEditedCards();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChild]);
 
   const tabs = [
