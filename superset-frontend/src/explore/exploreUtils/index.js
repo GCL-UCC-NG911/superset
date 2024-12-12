@@ -246,8 +246,6 @@ export const exportChart = ({
   /* NGLS - BEGIN */
   if (resultFormat !== 'pdf' && shouldUseLegacyApi(formData)) {
     /* NGLS - END */
-    alert('legacy mode');
-    console.log('legacy mode');
     const endpointType = getLegacyEndpointType({ resultFormat, resultType });
     url = getExploreUrl({
       formData,
@@ -256,8 +254,6 @@ export const exportChart = ({
     });
     payload = formData;
   } else {
-    alert('no legacy mode');
-    console.log('no legacy mode');
     url = '/api/v1/chart/data';
     payload = buildV1ChartDataPayload({
       formData,

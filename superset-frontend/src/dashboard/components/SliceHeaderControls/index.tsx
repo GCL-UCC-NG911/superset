@@ -318,10 +318,6 @@ class SliceHeaderControls extends React.PureComponent<
         // eslint-disable-next-line no-unused-expressions
         this.props.exportPDF?.(this.props.slice.slice_id);
         break;
-      // case MENU_KEYS.EXPORT_CUSTOM_CSV:
-      //   // eslint-disable-next-line no-unused-expressions
-      //   this.props.exportCustomCSV?.(this.props.slice.slice_id);
-      //   break;
       /* NGLS - END */
       case MENU_KEYS.FULLSCREEN:
         this.props.handleToggleFullSize();
@@ -560,31 +556,31 @@ class SliceHeaderControls extends React.PureComponent<
               >
                 {t('Export to PDF')}
               </Menu.Item>
-              <Menu.Item
-                key={MENU_KEYS.EXPORT_CUSTOM_CSV}
-                icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
-              >
-                <CustomCSVModal
-                  latestQueryFormData={this.props.formData}
-                  triggerNode={
-                    <span data-test="view-query-menu-item">
-                      {t('Export custom test')}
-                    </span>
-                  }
-                  modalTitle={t('Chart Data: %s', slice.slice_name)}
-                  modalBody={
-                    <span>
-                      {t('Modal body test')}
-                      <input
-                        className="form-control input-sm"
-                        placeholder={t('Discrepancy ID')}
-                        // value={value}
-                        // onChange={onChange}
-                      />
-                    </span>
-                  }
-                />
-              </Menu.Item>
+              {slice.slice_name === 'Discrepancy details - table' ? (
+                <Menu.Item
+                  key={MENU_KEYS.EXPORT_CUSTOM_CSV}
+                  icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
+                >
+                  <CustomCSVModal
+                    latestQueryFormData={this.props.formData}
+                    triggerNode={
+                      <span data-test="view-query-menu-item">
+                        {t('Export custom CSV')}
+                      </span>
+                    }
+                    modalTitle={t('Chart Data: %s', slice.slice_name)}
+                    modalBody={
+                      <span>
+                        {t('Insert the transitional ID')}
+                        <input
+                          className="form-control input-sm"
+                          placeholder={t('Discrepancy ID')}
+                        />
+                      </span>
+                    }
+                  />
+                </Menu.Item>
+              ) : null}
               {/* NGLS - END */}
             </Menu.SubMenu>
           )}
