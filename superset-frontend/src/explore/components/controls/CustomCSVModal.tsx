@@ -77,7 +77,7 @@ const CustomCSVModalTrigger = ({
                 buttonSize="small"
                 onClick={exploreChart}
               >
-                {t('Dowload chart')}
+                {t('Download chart')}
               </Button>
               <Button
                 buttonStyle="primary"
