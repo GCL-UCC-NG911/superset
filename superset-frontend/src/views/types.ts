@@ -24,6 +24,7 @@ export enum NOTIFICATION_FORMATS {
   PNG = 'PNG',
   CSV = 'CSV',
   PDF = 'PDF',
+  CUSTOM_CSV = 'CUSTOM_CSV',
 }
 /* NGLS - END */
 

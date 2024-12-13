@@ -380,6 +380,11 @@ class ChartDataRestApi(ChartRestApi):
                         headers=generate_download_headers("csv", filename=filename),
                     )
                 # NGLS - BEGIN #
+                if result_format == ChartDataResultFormat.CUSTOM_CSV:
+                    return CsvResponse(
+                        data,
+                        headers=generate_download_headers("csv", filename=filename),
+                    )
                 if result_format == ChartDataResultFormat.PDF:
                     return PdfResponse(
                         data,

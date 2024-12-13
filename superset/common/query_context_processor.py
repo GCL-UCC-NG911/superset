@@ -467,6 +467,10 @@ class QueryContextProcessor:
             elif self._query_context.result_format == ChartDataResultFormat.XLSX:
                 result = excel.df_to_excel(df, **config["EXCEL_EXPORT"])
             # NGLS - BEGIN #
+            elif self._query_context.result_format == ChartDataResultFormat.CUSTOM_CSV:
+                result = csv.df_to_escaped_csv(
+                    df, index=include_index, **config["CUSTOM_CSV"]
+                )
             elif self._query_context.result_format == ChartDataResultFormat.PDF:
                 if self._query_context.form_data:
                     title = self._query_context.form_data.get("chart_name")

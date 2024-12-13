@@ -55,6 +55,9 @@ import { ResultsPaneOnDashboard } from 'src/explore/components/DataTablesPane';
 import Modal from 'src/components/Modal';
 import { DrillDetailMenuItems } from 'src/components/Chart/DrillDetail';
 import { LOG_ACTIONS_CHART_DOWNLOAD_AS_IMAGE } from 'src/logger/LogUtils';
+/* NGLS - BEGIN */
+import CustomCSVModal from 'src/explore/components/controls/CustomCSVModal';
+/* NGLS - END */
 
 const MENU_KEYS = {
   CROSS_FILTER_SCOPING: 'cross_filter_scoping',
@@ -64,6 +67,7 @@ const MENU_KEYS = {
   EXPORT_FULL_CSV: 'export_full_csv',
   /* NGLS - BEGIN */
   EXPORT_PDF: 'export_pdf',
+  EXPORT_CUSTOM_CSV: 'export_custom_csv',
   /* NGLS - END */
   FORCE_REFRESH: 'force_refresh',
   FULLSCREEN: 'fullscreen',
@@ -145,6 +149,7 @@ export interface SliceHeaderControlsProps {
   exportCSV?: (sliceId: number) => void;
   /* NGLS - BEGIN */
   exportPDF?: (sliceId: number) => void;
+  exportCustomCSV?: (sliceId: number) => void;
   /* NGLS - END */
   exportFullCSV?: (sliceId: number) => void;
   handleToggleFullSize: () => void;
@@ -551,6 +556,31 @@ class SliceHeaderControls extends React.PureComponent<
               >
                 {t('Export to PDF')}
               </Menu.Item>
+              {slice.slice_name === 'Discrepancy details - table' ? (
+                <Menu.Item
+                  key={MENU_KEYS.EXPORT_CUSTOM_CSV}
+                  icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
+                >
+                  <CustomCSVModal
+                    latestQueryFormData={this.props.formData}
+                    triggerNode={
+                      <span data-test="view-query-menu-item">
+                        {t('Export custom CSV')}
+                      </span>
+                    }
+                    modalTitle={t('Chart Data: %s', slice.slice_name)}
+                    modalBody={
+                      <span>
+                        {t('Insert the transitional ID')}
+                        <input
+                          className="form-control input-sm"
+                          placeholder={t('Discrepancy ID')}
+                        />
+                      </span>
+                    }
+                  />
+                </Menu.Item>
+              ) : null}
               {/* NGLS - END */}
             </Menu.SubMenu>
           )}

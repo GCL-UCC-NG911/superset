@@ -31,6 +31,9 @@ import copyTextToClipboard from 'src/utils/copy';
 import HeaderReportDropDown from 'src/components/ReportModal/HeaderReportDropdown';
 import { isFeatureEnabled, FeatureFlag } from 'src/featureFlags';
 import ViewQueryModal from '../controls/ViewQueryModal';
+/* NGLS - BEGIN */
+import CustomCSVModal from '../controls/CustomCSVModal';
+/* NGLS - END */
 import EmbedCodeContent from '../EmbedCodeContent';
 import DashboardsSubMenu from './DashboardsSubMenu';
 
@@ -44,6 +47,7 @@ const MENU_KEYS = {
   EXPORT_TO_XLSX: 'export_to_xlsx',
   /* NGLS - BEGIN */
   EXPORT_TO_PDF: 'export_to_pdf',
+  EXPORT_TO_CUSTOM_CSV: 'export_to_custom_csv',
   /* NGLS - END */
   DOWNLOAD_AS_IMAGE: 'download_as_image',
   SHARE_SUBMENU: 'share_submenu',
@@ -222,6 +226,12 @@ export const useExploreAdditionalActionsMenu = (
           setIsDropdownVisible(false);
           setOpenSubmenus([]);
           break;
+        /* NGLS - BEGIN */
+        case MENU_KEYS.EXPORT_TO_CUSTOM_CSV:
+          setIsDropdownVisible(false);
+          setOpenSubmenus([]);
+          break;
+        /* NGLS - END */
         case MENU_KEYS.EXPORT_TO_CSV_PIVOTED:
           exportCSVPivoted();
           setIsDropdownVisible(false);
@@ -372,6 +382,31 @@ export const useExploreAdditionalActionsMenu = (
           >
             {t('Export to PDF')}
           </Menu.Item>
+          {slice.slice_name === 'Discrepancy details - table' ? (
+            <Menu.Item
+              key={MENU_KEYS.EXPORT_CUSTOM_CSV}
+              icon={<Icons.FileOutlined css={iconReset} />}
+            >
+              <CustomCSVModal
+                latestQueryFormData={latestQueryFormData}
+                triggerNode={
+                  <span data-test="view-query-menu-item">
+                    {t('Export custom CSV')}
+                  </span>
+                }
+                modalTitle={t('Chart Data: %s', slice.slice_name)}
+                modalBody={
+                  <span>
+                    {t('Insert the transitional ID')}
+                    <input
+                      className="form-control input-sm"
+                      placeholder={t('Discrepancy ID')}
+                    />
+                  </span>
+                }
+              />
+            </Menu.Item>
+          ) : null}
           {/* NGLS - END */}
         </Menu.SubMenu>
         <Menu.SubMenu title={t('Share')} key={MENU_KEYS.SHARE_SUBMENU}>
