@@ -31,19 +31,6 @@ say() {
   fi
 }
 
-# default command to run when the `run` input is empty
-default-setup-command() {
-  apt-get-install
-  pip-upgrade
-}
-
-apt-get-install() {
-  say "::group::apt-get install dependencies"
-  sudo apt-get update && sudo apt-get install --yes \
-    libsasl2-dev
-  say "::endgroup::"
-}
-
 pip-upgrade() {
   say "::group::Upgrade pip"
   pip install --upgrade pip
@@ -102,6 +89,8 @@ EOF
 setup-mysql() {
   say "::group::Initialize database"
   mysql -h 127.0.0.1 -P 13306 -u root --password=root <<-EOF
+    SET GLOBAL transaction_isolation='READ-COMMITTED';
+    SET GLOBAL TRANSACTION ISOLATION LEVEL READ COMMITTED;
     DROP DATABASE IF EXISTS superset;
     CREATE DATABASE superset DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
     DROP DATABASE IF EXISTS sqllab_test_db;
@@ -128,9 +117,17 @@ testdata() {
   say "::endgroup::"
 }
 
-codecov() {
-  say "::group::Upload code coverage"
-  bash ".github/workflows/codecov.sh" "$@"
+celery-worker() {
+  cd "$GITHUB_WORKSPACE"
+  say "::group::Start Celery worker"
+  # must specify PYTHONPATH to make `tests.superset_test_config` importable
+  export PYTHONPATH="$GITHUB_WORKSPACE"
+  celery \
+    --app=superset.tasks.celery_app:app \
+    worker \
+      --concurrency=2 \
+      --detach \
+      --optimization=fair
   say "::endgroup::"
 }
 
@@ -144,32 +141,6 @@ cypress-install() {
   say "::endgroup::"
 
   cache-save cypress
-}
-
-# Run Cypress and upload coverage reports
-cypress-run() {
-  cd "$GITHUB_WORKSPACE/superset-frontend/cypress-base"
-
-  local page=$1
-  local group=${2:-Default}
-  local cypress="./node_modules/.bin/cypress run"
-  local browser=${CYPRESS_BROWSER:-chrome}
-
-  export TERM="xterm"
-
-  say "::group::Run Cypress for [$page]"
-  if [[ -z $CYPRESS_KEY ]]; then
-    $cypress --spec "cypress/integration/$page" --browser "$browser"
-  else
-    export CYPRESS_RECORD_KEY=$(echo $CYPRESS_KEY | base64 --decode)
-    # additional flags for Cypress dashboard recording
-    $cypress --spec "cypress/integration/$page" --browser "$browser" \
-      --record --group "$group" --tag "${GITHUB_REPOSITORY},${GITHUB_EVENT_NAME}" \
-      --parallel --ci-build-id "${GITHUB_SHA:0:8}-${NONCE}"
-  fi
-
-  # don't add quotes to $record because we do want word splitting
-  say "::endgroup::"
 }
 
 cypress-run-all() {
@@ -191,7 +162,11 @@ cypress-run-all() {
     USE_DASHBOARD_FLAG='--use-dashboard'
   fi
 
-  python ../../scripts/cypress_run.py --parallelism $PARALLELISM --parallelism-id $PARALLEL_ID $USE_DASHBOARD_FLAG
+  # UNCOMMENT the next few commands to monitor memory usage
+  # monitor_memory &  # Start memory monitoring in the background
+  # memoryMonitorPid=$!
+  python ../../scripts/cypress_run.py --parallelism $PARALLELISM --parallelism-id $PARALLEL_ID --group $PARALLEL_ID --retries 5 $USE_DASHBOARD_FLAG
+  # kill $memoryMonitorPid
 
   # After job is done, print out Flask log for debugging
   echo "::group::Flask log for default run"
@@ -207,6 +182,21 @@ eyes-storybook-dependencies() {
   say "::endgroup::"
 }
 
+monitor_memory() {
+  # This is a small utility to monitor memory usage. Useful for debugging memory in GHA.
+  # To use wrap your command as follows
+  #
+  # monitor_memory &  # Start memory monitoring in the background
+  # memoryMonitorPid=$!
+  # YOUR_COMMAND_HERE
+  # kill $memoryMonitorPid
+  while true; do
+    echo "$(date) - Top 5 memory-consuming processes:"
+    ps -eo pid,comm,%mem --sort=-%mem | head -n 6  # First line is the header, next 5 are top processes
+    sleep 2
+  done
+}
+
 cypress-run-applitools() {
   cd "$GITHUB_WORKSPACE/superset-frontend/cypress-base"
 
@@ -220,9 +210,7 @@ cypress-run-applitools() {
   nohup flask run --no-debugger -p $port >"$flasklog" 2>&1 </dev/null &
   local flaskProcessId=$!
 
-  $cypress --spec "cypress/integration/*/**/*.applitools.test.ts" --browser "$browser" --headless --config ignoreTestFiles="[]"
-
-  codecov -c -F "cypress" || true
+  $cypress --spec "cypress/applitools/**/*" --browser "$browser" --headless
 
   say "::group::Flask log for default run"
   cat "$flasklog"
