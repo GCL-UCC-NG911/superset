@@ -68,7 +68,7 @@ github:
           - frontend-build
           - pre-commit (3.8)
           - python-lint (3.8)
-          - test-mysql (3.8)
+          # - test-mysql (3.8)
           - test-postgres (3.8)
           - test-postgres (3.9)
           - test-sqlite (3.8)

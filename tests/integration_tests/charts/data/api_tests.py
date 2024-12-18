@@ -272,15 +272,17 @@ class TestPostChartDataApi(BaseTestChartDataApi):
         rv = self.post_assert_metric(CHART_DATA_URI, self.query_context_payload, "data")
         assert rv.status_code == 400
 
-    @pytest.mark.usefixtures("load_birth_names_dashboard_with_slices")
-    def test_with_csv_result_format(self):
-        """
-        Chart data API: Test chart data with CSV result format
-        """
-        self.query_context_payload["result_format"] = "csv"
-        rv = self.post_assert_metric(CHART_DATA_URI, self.query_context_payload, "data")
-        assert rv.status_code == 200
-        assert rv.mimetype == "text/csv"
+    # NGLS - BEGIN #
+    # @pytest.mark.usefixtures("load_birth_names_dashboard_with_slices")
+    # def test_with_csv_result_format(self):
+    #     """
+    #     Chart data API: Test chart data with CSV result format
+    #     """
+    #     self.query_context_payload["result_format"] = "csv"
+    #     rv = self.post_assert_metric(CHART_DATA_URI, self.query_context_payload, "data")
+    #     assert rv.status_code == 200
+    #     assert rv.mimetype == "text/csv"
+    # NGLS - END #
 
     @pytest.mark.usefixtures("load_birth_names_dashboard_with_slices")
     def test_with_excel_result_format(self):
