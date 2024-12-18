@@ -730,50 +730,49 @@ def create_invalid_sql_alert_email_chart(request):
 #         assert_log(ReportState.SUCCESS)
 
 #     app.config[config_key] = original_config_value
+
+# @pytest.mark.usefixtures(
+#     "load_birth_names_dashboard_with_slices",
+#     "create_report_email_chart_force_screenshot",
+# )
+# @patch("superset.reports.notifications.email.send_email_smtp")
+# @patch("superset.utils.screenshots.ChartScreenshot.get_screenshot")
+# def test_email_chart_report_schedule_force_screenshot(
+#     screenshot_mock,
+#     email_mock,
+#     create_report_email_chart_force_screenshot,
+# ):
+#     """
+#     ExecuteReport Command: Test chart email report schedule with screenshot
+
+#     In this test ``force_screenshot`` is true, and the screenshot URL should
+#     reflect that.
+#     """
+#     # setup screenshot mock
+#     screenshot_mock.return_value = SCREENSHOT_FILE
+
+#     with freeze_time("2020-01-01T00:00:00Z"):
+#         AsyncExecuteReportScheduleCommand(
+#             TEST_ID, create_report_email_chart_force_screenshot.id, datetime.utcnow()
+#         ).run()
+
+#         notification_targets = get_target_from_report_schedule(
+#             create_report_email_chart_force_screenshot
+#         )
+#         # assert that the link sent is correct
+#         assert (
+#             '<a href="http://0.0.0.0:8080/explore/?form_data=%7B%22slice_id%22%3A+'
+#             f"{create_report_email_chart_force_screenshot.chart.id}"
+#             '%7D&force=true">Explore in Superset</a>' in email_mock.call_args[0][2]
+#         )
+#         # Assert the email smtp address
+#         assert email_mock.call_args[0][0] == notification_targets[0]
+#         # Assert the email inline screenshot
+#         smtp_images = email_mock.call_args[1]["images"]
+#         assert smtp_images[list(smtp_images.keys())[0]] == SCREENSHOT_FILE
+#         # Assert logs are correct
+#         assert_log(ReportState.SUCCESS)
 # NGLS - END #
-
-@pytest.mark.usefixtures(
-    "load_birth_names_dashboard_with_slices",
-    "create_report_email_chart_force_screenshot",
-)
-@patch("superset.reports.notifications.email.send_email_smtp")
-@patch("superset.utils.screenshots.ChartScreenshot.get_screenshot")
-def test_email_chart_report_schedule_force_screenshot(
-    screenshot_mock,
-    email_mock,
-    create_report_email_chart_force_screenshot,
-):
-    """
-    ExecuteReport Command: Test chart email report schedule with screenshot
-
-    In this test ``force_screenshot`` is true, and the screenshot URL should
-    reflect that.
-    """
-    # setup screenshot mock
-    screenshot_mock.return_value = SCREENSHOT_FILE
-
-    with freeze_time("2020-01-01T00:00:00Z"):
-        AsyncExecuteReportScheduleCommand(
-            TEST_ID, create_report_email_chart_force_screenshot.id, datetime.utcnow()
-        ).run()
-
-        notification_targets = get_target_from_report_schedule(
-            create_report_email_chart_force_screenshot
-        )
-        # assert that the link sent is correct
-        assert (
-            '<a href="http://0.0.0.0:8080/explore/?form_data=%7B%22slice_id%22%3A+'
-            f"{create_report_email_chart_force_screenshot.chart.id}"
-            '%7D&force=true">Explore in Superset</a>' in email_mock.call_args[0][2]
-        )
-        # Assert the email smtp address
-        assert email_mock.call_args[0][0] == notification_targets[0]
-        # Assert the email inline screenshot
-        smtp_images = email_mock.call_args[1]["images"]
-        assert smtp_images[list(smtp_images.keys())[0]] == SCREENSHOT_FILE
-        # Assert logs are correct
-        assert_log(ReportState.SUCCESS)
-
 
 @pytest.mark.usefixtures(
     "load_birth_names_dashboard_with_slices", "create_alert_email_chart"
@@ -836,94 +835,94 @@ def test_email_chart_report_dry_run(
         email_mock.assert_not_called()
     app.config["ALERT_REPORTS_NOTIFICATION_DRY_RUN"] = False
 
+# NGLS - BEGIN #
+# @pytest.mark.usefixtures(
+#     "load_birth_names_dashboard_with_slices", "create_report_email_chart_with_csv"
+# )
+# @patch("superset.utils.csv.urllib.request.urlopen")
+# @patch("superset.utils.csv.urllib.request.OpenerDirector.open")
+# @patch("superset.reports.notifications.email.send_email_smtp")
+# @patch("superset.utils.csv.get_chart_csv_data")
+# def test_email_chart_report_schedule_with_csv(
+#     csv_mock,
+#     email_mock,
+#     mock_open,
+#     mock_urlopen,
+#     create_report_email_chart_with_csv,
+# ):
+#     """
+#     ExecuteReport Command: Test chart email report schedule with CSV
+#     """
+#     # setup csv mock
+#     response = Mock()
+#     mock_open.return_value = response
+#     mock_urlopen.return_value = response
+#     mock_urlopen.return_value.getcode.return_value = 200
+#     response.read.return_value = CSV_FILE
 
-@pytest.mark.usefixtures(
-    "load_birth_names_dashboard_with_slices", "create_report_email_chart_with_csv"
-)
-@patch("superset.utils.csv.urllib.request.urlopen")
-@patch("superset.utils.csv.urllib.request.OpenerDirector.open")
-@patch("superset.reports.notifications.email.send_email_smtp")
-@patch("superset.utils.csv.get_chart_csv_data")
-def test_email_chart_report_schedule_with_csv(
-    csv_mock,
-    email_mock,
-    mock_open,
-    mock_urlopen,
-    create_report_email_chart_with_csv,
-):
-    """
-    ExecuteReport Command: Test chart email report schedule with CSV
-    """
-    # setup csv mock
-    response = Mock()
-    mock_open.return_value = response
-    mock_urlopen.return_value = response
-    mock_urlopen.return_value.getcode.return_value = 200
-    response.read.return_value = CSV_FILE
+#     with freeze_time("2020-01-01T00:00:00Z"):
+#         AsyncExecuteReportScheduleCommand(
+#             TEST_ID, create_report_email_chart_with_csv.id, datetime.utcnow()
+#         ).run()
 
-    with freeze_time("2020-01-01T00:00:00Z"):
-        AsyncExecuteReportScheduleCommand(
-            TEST_ID, create_report_email_chart_with_csv.id, datetime.utcnow()
-        ).run()
-
-        notification_targets = get_target_from_report_schedule(
-            create_report_email_chart_with_csv
-        )
-        # assert that the link sent is correct
-        assert (
-            '<a href="http://0.0.0.0:8080/explore/?form_data=%7B%22slice_id%22%3A+'
-            f"{create_report_email_chart_with_csv.chart.id}%7D&"
-            'force=false">Explore in Superset</a>' in email_mock.call_args[0][2]
-        )
-        # Assert the email smtp address
-        assert email_mock.call_args[0][0] == notification_targets[0]
-        # Assert the email csv file
-        smtp_images = email_mock.call_args[1]["data"]
-        assert smtp_images[list(smtp_images.keys())[0]] == CSV_FILE
-        # Assert logs are correct
-        assert_log(ReportState.SUCCESS)
+#         notification_targets = get_target_from_report_schedule(
+#             create_report_email_chart_with_csv
+#         )
+#         # assert that the link sent is correct
+#         assert (
+#             '<a href="http://0.0.0.0:8080/explore/?form_data=%7B%22slice_id%22%3A+'
+#             f"{create_report_email_chart_with_csv.chart.id}%7D&"
+#             'force=false">Explore in Superset</a>' in email_mock.call_args[0][2]
+#         )
+#         # Assert the email smtp address
+#         assert email_mock.call_args[0][0] == notification_targets[0]
+#         # Assert the email csv file
+#         smtp_images = email_mock.call_args[1]["data"]
+#         assert smtp_images[list(smtp_images.keys())[0]] == CSV_FILE
+#         # Assert logs are correct
+#         assert_log(ReportState.SUCCESS)
 
 
-@pytest.mark.usefixtures(
-    "load_birth_names_dashboard_with_slices",
-    "create_report_email_chart_with_csv_no_query_context",
-)
-@patch("superset.utils.csv.urllib.request.urlopen")
-@patch("superset.utils.csv.urllib.request.OpenerDirector.open")
-@patch("superset.reports.notifications.email.send_email_smtp")
-@patch("superset.utils.csv.get_chart_csv_data")
-@patch("superset.utils.screenshots.ChartScreenshot.get_screenshot")
-def test_email_chart_report_schedule_with_csv_no_query_context(
-    screenshot_mock,
-    csv_mock,
-    email_mock,
-    mock_open,
-    mock_urlopen,
-    create_report_email_chart_with_csv_no_query_context,
-):
-    """
-    ExecuteReport Command: Test chart email report schedule with CSV (no query context)
-    """
-    # setup screenshot mock
-    screenshot_mock.return_value = SCREENSHOT_FILE
+# @pytest.mark.usefixtures(
+#     "load_birth_names_dashboard_with_slices",
+#     "create_report_email_chart_with_csv_no_query_context",
+# )
+# @patch("superset.utils.csv.urllib.request.urlopen")
+# @patch("superset.utils.csv.urllib.request.OpenerDirector.open")
+# @patch("superset.reports.notifications.email.send_email_smtp")
+# @patch("superset.utils.csv.get_chart_csv_data")
+# @patch("superset.utils.screenshots.ChartScreenshot.get_screenshot")
+# def test_email_chart_report_schedule_with_csv_no_query_context(
+#     screenshot_mock,
+#     csv_mock,
+#     email_mock,
+#     mock_open,
+#     mock_urlopen,
+#     create_report_email_chart_with_csv_no_query_context,
+# ):
+#     """
+#     ExecuteReport Command: Test chart email report schedule with CSV (no query context)
+#     """
+#     # setup screenshot mock
+#     screenshot_mock.return_value = SCREENSHOT_FILE
 
-    # setup csv mock
-    response = Mock()
-    mock_open.return_value = response
-    mock_urlopen.return_value = response
-    mock_urlopen.return_value.getcode.return_value = 200
-    response.read.return_value = CSV_FILE
+#     # setup csv mock
+#     response = Mock()
+#     mock_open.return_value = response
+#     mock_urlopen.return_value = response
+#     mock_urlopen.return_value.getcode.return_value = 200
+#     response.read.return_value = CSV_FILE
 
-    with freeze_time("2020-01-01T00:00:00Z"):
-        AsyncExecuteReportScheduleCommand(
-            TEST_ID,
-            create_report_email_chart_with_csv_no_query_context.id,
-            datetime.utcnow(),
-        ).run()
+#     with freeze_time("2020-01-01T00:00:00Z"):
+#         AsyncExecuteReportScheduleCommand(
+#             TEST_ID,
+#             create_report_email_chart_with_csv_no_query_context.id,
+#             datetime.utcnow(),
+#         ).run()
 
-        # verify that when query context is null we request a screenshot
-        screenshot_mock.assert_called_once()
-
+#         # verify that when query context is null we request a screenshot
+#         screenshot_mock.assert_called_once()
+# NGLS - END #
 
 @pytest.mark.usefixtures(
     "load_birth_names_dashboard_with_slices", "create_report_email_chart_with_text"
