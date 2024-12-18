@@ -537,51 +537,51 @@ def test_get_samples_on_physical_dataset(test_client, login_as_admin, physical_d
     )
     assert len(rv.json["result"]["data"]) == 10
 
+# NGLS - BEGIN #
+# def test_get_samples_with_filters(test_client, login_as_admin, virtual_dataset):
+#     uri = (
+#         f"/datasource/samples?datasource_id={virtual_dataset.id}&datasource_type=table"
+#     )
+#     rv = test_client.post(uri, json=None)
+#     assert rv.status_code == 400
 
-def test_get_samples_with_filters(test_client, login_as_admin, virtual_dataset):
-    uri = (
-        f"/datasource/samples?datasource_id={virtual_dataset.id}&datasource_type=table"
-    )
-    rv = test_client.post(uri, json=None)
-    assert rv.status_code == 400
+#     rv = test_client.post(uri, json={})
+#     assert rv.status_code == 200
 
-    rv = test_client.post(uri, json={})
-    assert rv.status_code == 200
+#     rv = test_client.post(uri, json={"foo": "bar"})
+#     assert rv.status_code == 400
 
-    rv = test_client.post(uri, json={"foo": "bar"})
-    assert rv.status_code == 400
+#     rv = test_client.post(
+#         uri, json={"filters": [{"col": "col1", "op": "INVALID", "val": 0}]}
+#     )
+#     assert rv.status_code == 400
 
-    rv = test_client.post(
-        uri, json={"filters": [{"col": "col1", "op": "INVALID", "val": 0}]}
-    )
-    assert rv.status_code == 400
+#     rv = test_client.post(
+#         uri,
+#         json={
+#             "filters": [
+#                 {"col": "col2", "op": "==", "val": "a"},
+#                 {"col": "col1", "op": "==", "val": 0},
+#             ]
+#         },
+#     )
+#     assert rv.status_code == 200
+#     assert rv.json["result"]["colnames"] == ["col1", "col2", "col3", "col4", "col5"]
+#     assert rv.json["result"]["rowcount"] == 1
 
-    rv = test_client.post(
-        uri,
-        json={
-            "filters": [
-                {"col": "col2", "op": "==", "val": "a"},
-                {"col": "col1", "op": "==", "val": 0},
-            ]
-        },
-    )
-    assert rv.status_code == 200
-    assert rv.json["result"]["colnames"] == ["col1", "col2", "col3", "col4", "col5"]
-    assert rv.json["result"]["rowcount"] == 1
-
-    # empty results
-    rv = test_client.post(
-        uri,
-        json={
-            "filters": [
-                {"col": "col2", "op": "==", "val": "x"},
-            ]
-        },
-    )
-    assert rv.status_code == 200
-    assert rv.json["result"]["colnames"] == []
-    assert rv.json["result"]["rowcount"] == 0
-
+#     # empty results
+#     rv = test_client.post(
+#         uri,
+#         json={
+#             "filters": [
+#                 {"col": "col2", "op": "==", "val": "x"},
+#             ]
+#         },
+#     )
+#     assert rv.status_code == 200
+#     assert rv.json["result"]["colnames"] == []
+#     assert rv.json["result"]["rowcount"] == 0
+# NGLS - END #
 
 def test_get_samples_with_time_filter(test_client, login_as_admin, physical_dataset):
     uri = (

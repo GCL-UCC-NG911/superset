@@ -487,8 +487,7 @@ class Superset(BaseSupersetView):  # pylint: disable=too-many-public-methods
     ) -> FlaskResponse:
         # NGLS - BEGIN #
         if (
-            response_type == ChartDataResultFormat.CSV
-            or response_type == ChartDataResultFormat.CUSTOM_CSV
+            response_type in (ChartDataResultFormat.CSV, ChartDataResultFormat.CUSTOM_CSV)
         ):
         # NGLS - END #
             return CsvResponse(
