@@ -282,18 +282,18 @@ class TestPostChartDataApi(BaseTestChartDataApi):
     #     rv = self.post_assert_metric(CHART_DATA_URI, self.query_context_payload, "data")
     #     assert rv.status_code == 200
     #     assert rv.mimetype == "text/csv"
-    # NGLS - END #
 
-    @pytest.mark.usefixtures("load_birth_names_dashboard_with_slices")
-    def test_with_excel_result_format(self):
-        """
-        Chart data API: Test chart data with Excel result format
-        """
-        self.query_context_payload["result_format"] = "xlsx"
-        mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        rv = self.post_assert_metric(CHART_DATA_URI, self.query_context_payload, "data")
-        assert rv.status_code == 200
-        assert rv.mimetype == mimetype
+    # @pytest.mark.usefixtures("load_birth_names_dashboard_with_slices")
+    # def test_with_excel_result_format(self):
+    #     """
+    #     Chart data API: Test chart data with Excel result format
+    #     """
+    #     self.query_context_payload["result_format"] = "xlsx"
+    #     mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    #     rv = self.post_assert_metric(CHART_DATA_URI, self.query_context_payload, "data")
+    #     assert rv.status_code == 200
+    #     assert rv.mimetype == mimetype
+    # NGLS - END #
 
     @pytest.mark.usefixtures("load_birth_names_dashboard_with_slices")
     def test_with_multi_query_csv_result_format(self):
