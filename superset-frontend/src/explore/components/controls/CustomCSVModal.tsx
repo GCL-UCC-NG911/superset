@@ -33,6 +33,7 @@ const CustomCSVModalTrigger = ({
   modalTitle: ReactChild;
   modalBody: ReactChild;
 }) => {
+  const [inputValue, setInputValue] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
   const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
@@ -42,10 +43,15 @@ const CustomCSVModalTrigger = ({
         formData: latestQueryFormData,
         resultType: 'full',
         resultFormat: 'custom',
+        title: inputValue,
       }),
-    [latestQueryFormData],
+    [latestQueryFormData, inputValue],
   );
   const theme = useTheme();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
 
   return (
     <>
@@ -100,6 +106,12 @@ const CustomCSVModalTrigger = ({
           destroyOnClose
         >
           {modalBody}
+          <input
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            placeholder="test"
+          />
         </Modal>
       ))()}
     </>

@@ -568,10 +568,10 @@ class SliceHeaderControls extends React.PureComponent<
                         {t('Export custom CSV')}
                       </span>
                     }
-                    modalTitle={t('Chart Data: %s', slice.slice_name)}
+                    modalTitle={t(slice.slice_name)}
                     modalBody={
                       <span>
-                        {t('Insert the transitional ID')}
+                        {t('Insert the Discrepancy ID')}
                         <input
                           className="form-control input-sm"
                           placeholder={t('Discrepancy ID')}
