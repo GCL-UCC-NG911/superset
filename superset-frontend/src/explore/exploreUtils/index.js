@@ -240,7 +240,6 @@ export const exportChart = ({
   resultType = 'full',
   force = false,
   ownState = {},
-  title = {},
 }) => {
   let url;
   let payload;
