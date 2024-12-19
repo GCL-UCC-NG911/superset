@@ -255,8 +255,6 @@ export const exportChart = ({
     });
     payload = formData;
   } else {
-    // eslint-disable-next-line no-alert
-    alert(title);
     url = '/api/v1/chart/data';
     payload = buildV1ChartDataPayload({
       formData,

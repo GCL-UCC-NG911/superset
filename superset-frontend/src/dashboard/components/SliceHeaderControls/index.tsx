@@ -569,15 +569,6 @@ class SliceHeaderControls extends React.PureComponent<
                       </span>
                     }
                     modalTitle={t(slice.slice_name)}
-                    modalBody={
-                      <span>
-                        {t('Insert the Discrepancy ID')}
-                        <input
-                          className="form-control input-sm"
-                          placeholder={t('Discrepancy ID')}
-                        />
-                      </span>
-                    }
                   />
                 </Menu.Item>
               ) : null}

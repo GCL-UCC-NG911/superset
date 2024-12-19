@@ -26,12 +26,10 @@ const CustomCSVModalTrigger = ({
   latestQueryFormData,
   triggerNode,
   modalTitle,
-  modalBody,
 }: {
   latestQueryFormData: object;
   triggerNode: ReactChild;
   modalTitle: ReactChild;
-  modalBody: ReactChild;
 }) => {
   const [inputValue, setInputValue] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
@@ -105,8 +103,8 @@ const CustomCSVModalTrigger = ({
           draggable
           destroyOnClose
         >
-          {modalBody}
           <input
+            className="form-control input-sm"
             type="text"
             value={inputValue}
             onChange={handleInputChange}
