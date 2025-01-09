@@ -200,6 +200,9 @@ export interface SqlaFormData extends BaseFormData {
   granularity_sqla?: string;
   time_grain_sqla?: TimeGranularity;
   having?: string;
+  /* NGLS - BEGIN */
+  filename?: string | null;
+  /* NGLS - BEGIN */
 }
 
 export type QueryFormData = SqlaFormData;

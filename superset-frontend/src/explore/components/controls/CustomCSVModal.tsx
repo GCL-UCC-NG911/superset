@@ -20,14 +20,14 @@ import React, { useCallback, ReactChild, useState } from 'react';
 import Modal from 'src/components/Modal';
 import { exportChart } from 'src/explore/exploreUtils';
 import Button from 'src/components/Button';
-import { css, t, useTheme, QueryFormData } from '@superset-ui/core';
+import { css, t, useTheme } from '@superset-ui/core';
 
 const CustomCSVModalTrigger = ({
   latestQueryFormData,
   triggerNode,
   modalTitle,
 }: {
-  latestQueryFormData: QueryFormData;
+  latestQueryFormData: object;
   triggerNode: ReactChild;
   modalTitle: ReactChild;
 }) => {
@@ -35,15 +35,14 @@ const CustomCSVModalTrigger = ({
   const [showModal, setShowModal] = useState(false);
   const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
-  latestQueryFormData.append('filename', inputValue);
   const exploreChart = useCallback(
     () =>
       exportChart({
-        formData: latestQueryFormData,
+        formData: { ...latestQueryFormData, ...{ filename: inputValue } },
         resultType: 'full',
         resultFormat: 'custom',
       }),
-    [latestQueryFormData],
+    [latestQueryFormData, inputValue],
   );
   const theme = useTheme();
 
