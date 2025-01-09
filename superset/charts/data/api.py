@@ -381,9 +381,11 @@ class ChartDataRestApi(ChartRestApi):
                     )
                 # NGLS - BEGIN #
                 if result_format == ChartDataResultFormat.CUSTOM_CSV:
+                    custom_title = form_data.get("filename", "Untitled"),
+                    custom_filename = generate_filename(custom_title) if custom_title else None
                     return CsvResponse(
-                        data,
-                        headers=generate_download_headers("csv", filename=filename),
+                        data,                        
+                        headers=generate_download_headers("csv", filename=custom_filename),
                     )
                 if result_format == ChartDataResultFormat.PDF:
                     return PdfResponse(
