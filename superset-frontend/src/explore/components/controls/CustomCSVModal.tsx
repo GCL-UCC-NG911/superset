@@ -18,17 +18,16 @@
  */
 import React, { useCallback, ReactChild, useState } from 'react';
 import Modal from 'src/components/Modal';
-import { safeStringify } from 'src/utils/safeStringify';
 import { exportChart } from 'src/explore/exploreUtils';
 import Button from 'src/components/Button';
-import { css, t, useTheme } from '@superset-ui/core';
+import { css, t, useTheme, QueryFormData } from '@superset-ui/core';
 
 const CustomCSVModalTrigger = ({
   latestQueryFormData,
   triggerNode,
   modalTitle,
 }: {
-  latestQueryFormData: object;
+  latestQueryFormData: QueryFormData;
   triggerNode: ReactChild;
   modalTitle: ReactChild;
 }) => {
@@ -36,11 +35,20 @@ const CustomCSVModalTrigger = ({
   const [showModal, setShowModal] = useState(false);
   const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
-  const form_data = { ...latestQueryFormData, ...{ filename: inputValue } };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const form_data: QueryFormData = {
+    granularity: latestQueryFormData.granularity,
+    granularity_sqla: latestQueryFormData.granularity_sqla,
+    time_grain_sqla: latestQueryFormData.time_grain_sqla,
+    having: latestQueryFormData.having,
+    datasource: latestQueryFormData.datasource,
+    viz_type: latestQueryFormData.viz_type,
+    filename: inputValue,
+  };
   const exploreChart = useCallback(
     () =>
       exportChart({
-        formData: safeStringify(form_data),
+        formData: form_data,
         resultType: 'full',
         resultFormat: 'custom',
       }),
