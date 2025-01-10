@@ -18,6 +18,7 @@
  */
 import React, { useCallback, ReactChild, useState } from 'react';
 import Modal from 'src/components/Modal';
+import { safeStringify } from 'src/utils/safeStringify';
 import { exportChart } from 'src/explore/exploreUtils';
 import Button from 'src/components/Button';
 import { css, t, useTheme } from '@superset-ui/core';
@@ -35,14 +36,15 @@ const CustomCSVModalTrigger = ({
   const [showModal, setShowModal] = useState(false);
   const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
+  const form_data = { ...latestQueryFormData, ...{ filename: inputValue } };
   const exploreChart = useCallback(
     () =>
       exportChart({
-        formData: { ...latestQueryFormData, ...{ filename: inputValue } },
+        formData: safeStringify(form_data),
         resultType: 'full',
         resultFormat: 'custom',
       }),
-    [latestQueryFormData, inputValue],
+    [form_data],
   );
   const theme = useTheme();
 
