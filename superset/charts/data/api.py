@@ -383,6 +383,7 @@ class ChartDataRestApi(ChartRestApi):
                 if result_format == ChartDataResultFormat.CUSTOM_CSV:
                     custom_title = form_data.get("filename", "Untitled"),
                     custom_filename = generate_filename(custom_title) if custom_title else None
+                    logger.info(f"TEST {form_data.values()} TEST2 {form_data}")
                     return CsvResponse(
                         data,                        
                         headers=generate_download_headers("csv", filename=custom_filename),

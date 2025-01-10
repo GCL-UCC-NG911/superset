@@ -36,23 +36,16 @@ const CustomCSVModalTrigger = ({
   const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const form_data: QueryFormData = {
-    granularity: latestQueryFormData.granularity,
-    granularity_sqla: latestQueryFormData.granularity_sqla,
-    time_grain_sqla: latestQueryFormData.time_grain_sqla,
-    having: latestQueryFormData.having,
-    datasource: latestQueryFormData.datasource,
-    viz_type: latestQueryFormData.viz_type,
-    filename: inputValue,
-  };
+  /* eslint-disable no-param-reassign */
+  latestQueryFormData.filename = inputValue;
   const exploreChart = useCallback(
     () =>
       exportChart({
-        formData: form_data,
+        formData: latestQueryFormData,
         resultType: 'full',
         resultFormat: 'custom',
       }),
-    [form_data],
+    [latestQueryFormData],
   );
   const theme = useTheme();
 
