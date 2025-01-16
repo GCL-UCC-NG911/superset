@@ -20,6 +20,7 @@ import React, { useCallback, ReactChild, useState } from 'react';
 import Modal from 'src/components/Modal';
 import Button from 'src/components/Button';
 import { css, t, useTheme } from '@superset-ui/core';
+import { safeStringify } from 'src/utils/safeStringify';
 
 const CustomCSVModalTrigger = ({
   latestQueryFormData,
@@ -55,7 +56,7 @@ const CustomCSVModalTrigger = ({
 
   const handleExport = () => {
     const sanitizedFilename = filename.trim() || 'custom_report_test';
-    downloadCSV(latestQueryFormData, sanitizedFilename);
+    downloadCSV(safeStringify(latestQueryFormData), sanitizedFilename);
   };
 
   return (
