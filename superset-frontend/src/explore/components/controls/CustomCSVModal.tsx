@@ -18,39 +18,44 @@
  */
 import React, { useCallback, ReactChild, useState } from 'react';
 import Modal from 'src/components/Modal';
-import { exportChart } from 'src/explore/exploreUtils';
 import Button from 'src/components/Button';
-import { css, t, useTheme, QueryFormData } from '@superset-ui/core';
+import { css, t, useTheme } from '@superset-ui/core';
 
 const CustomCSVModalTrigger = ({
   latestQueryFormData,
   triggerNode,
   modalTitle,
 }: {
-  latestQueryFormData: QueryFormData;
+  latestQueryFormData: any;
   triggerNode: ReactChild;
   modalTitle: ReactChild;
 }) => {
-  const [inputValue, setInputValue] = useState<string>('');
+  const [filename, setFilename] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
   const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  /* eslint-disable no-param-reassign */
-  latestQueryFormData.filename = inputValue;
-  const exploreChart = useCallback(
-    () =>
-      exportChart({
-        formData: latestQueryFormData,
-        resultType: 'full',
-        resultFormat: 'custom',
-      }),
-    [latestQueryFormData],
-  );
   const theme = useTheme();
 
+  const downloadCSV = (data: BlobPart, customFilename: any) => {
+    const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.href = url;
+    link.setAttribute('download', `${customFilename}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
+    setFilename(e.target.value);
+  };
+
+  const handleExport = () => {
+    const sanitizedFilename = filename.trim() || 'custom_report_test';
+    downloadCSV(latestQueryFormData, sanitizedFilename);
   };
 
   return (
@@ -79,7 +84,7 @@ const CustomCSVModalTrigger = ({
               <Button
                 buttonStyle="primary"
                 buttonSize="small"
-                onClick={exploreChart}
+                onClick={handleExport}
               >
                 {t('Download chart')}
               </Button>
@@ -108,9 +113,9 @@ const CustomCSVModalTrigger = ({
           <input
             className="form-control input-sm"
             type="text"
-            value={inputValue}
+            value={filename}
             onChange={handleInputChange}
-            placeholder="test"
+            placeholder="Discrepancy ID"
           />
         </Modal>
       ))()}
