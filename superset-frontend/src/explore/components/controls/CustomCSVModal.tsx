@@ -20,7 +20,7 @@ import React, { useCallback, ReactChild, useState } from 'react';
 import Modal from 'src/components/Modal';
 import Button from 'src/components/Button';
 import { css, t, useTheme } from '@superset-ui/core';
-import { safeStringify } from 'src/utils/safeStringify';
+//import { safeStringify } from 'src/utils/safeStringify';
 
 const CustomCSVModalTrigger = ({
   latestQueryFormData,
