@@ -20,6 +20,7 @@ import React, { useCallback, ReactChild, useState } from 'react';
 import Modal from 'src/components/Modal';
 import Button from 'src/components/Button';
 import { css, t, useTheme } from '@superset-ui/core';
+import { exportChart } from 'src/explore/exploreUtils';
 
 const CustomCSVModalTrigger = ({
   latestQueryFormData,
@@ -36,55 +37,17 @@ const CustomCSVModalTrigger = ({
   const closeModal = useCallback(() => setShowModal(false), []);
   const theme = useTheme();
 
-  const fetchQueryResults = async () => {
-    const response = await fetch('/api/v1/chart/data', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        body: JSON.stringify(latestQueryFormData),
-      },
-    });
-    const result = await response.json();
-    return result.result[0].data;
-  };
-
-  const formatDataAsCSV = (data: any) => {
-    if (!Array.isArray(data) || data.length === 0) {
-      return '';
-    }
-    const headers = Object.keys(data[0].join(','));
-    const rows = data.map(row =>
-      Object.values(row)
-        // eslint-disable-next-line prettier/prettier
-        .map((value) => (typeof value === 'string' ? `'${value}` : value))
-        .join(','),
-    );
-    return [headers, ...rows].join('\n');
-  };
-
-  const downloadCSV = (data: BlobPart, customFilename: any) => {
-    const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-
-    link.href = url;
-    link.setAttribute('download', `${customFilename}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilename(e.target.value);
   };
 
   const handleExport = async () => {
-    const data = await fetchQueryResults();
-    const csvData = formatDataAsCSV(data);
-
     const sanitizedFilename = filename.trim() || 'custom_report_test';
-    downloadCSV(csvData, sanitizedFilename);
+    const updatedFormData = {
+      ...latestQueryFormData,
+      custom_file_name: sanitizedFilename,
+    };
+    exportChart(updatedFormData);
   };
 
   return (
