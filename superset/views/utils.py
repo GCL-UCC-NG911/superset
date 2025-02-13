@@ -51,8 +51,6 @@ from superset.utils.core import DatasourceType
 from superset.utils.decorators import stats_timing
 from superset.viz import BaseViz
 
-import win32api
-
 logger = logging.getLogger(__name__)
 stats_logger = app.config["STATS_LOGGER"]
 
@@ -134,7 +132,6 @@ def get_viz(
         DatasourceType(datasource_type),
         datasource_id,
     )
-    win32api.MessageBox(0, 'AAAAAAAAAAAAAAAAAAAA', form_data)
     #file_name = form_data.custom_file_name if form_data.custom_file_name else None
     # if file_name:
     #     viz_obj = viz.viz_types[viz_type](

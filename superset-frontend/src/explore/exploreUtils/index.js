@@ -263,7 +263,8 @@ export const exportChart = ({
       ownState,
     });
   }
-
+  // eslint-disable-next-line no-alert
+  alert(payload);
   SupersetClient.postForm(url, { form_data: safeStringify(payload) });
 };
 
