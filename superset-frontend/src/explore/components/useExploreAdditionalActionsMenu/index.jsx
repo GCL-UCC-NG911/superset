@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { useCallback, useMemo, useState, ReactChild } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { css, styled, t, useTheme } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
@@ -31,9 +31,6 @@ import copyTextToClipboard from 'src/utils/copy';
 import HeaderReportDropDown from 'src/components/ReportModal/HeaderReportDropdown';
 import { isFeatureEnabled, FeatureFlag } from 'src/featureFlags';
 import ViewQueryModal from '../controls/ViewQueryModal';
-/* NGLS - BEGIN */
-import CustomCSVModal from '../controls/CustomCSVModal';
-/* NGLS - END */
 import EmbedCodeContent from '../EmbedCodeContent';
 import DashboardsSubMenu from './DashboardsSubMenu';
 
@@ -305,13 +302,13 @@ export const useExploreAdditionalActionsMenu = (
     ],
   );
 
-  const slice_name_store = '';
-  const handleInputChange = (event) => {
+  const sliceNameStored = '';
+  const handleInputChange = event => {
     alert(event.target);
-    slice.slice_name(e.target.value);
+    slice.slice_name(event.target.value);
   };
   const [showModal, setShowModal] = useState(false);
-  //const openModal = useCallback(() => setShowModal(true), []);
+  // const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
 
   const menu = useMemo(
@@ -403,11 +400,11 @@ export const useExploreAdditionalActionsMenu = (
                 modalTitle={t('Test')}
                 modalBody={
                   <input
-                  className="form-control input-sm"
-                  type="text"
-                  value= {slice_name_store}
-                  onChange={handleInputChange}
-                  placeholder="Discrepancy ID"
+                    className="form-control input-sm"
+                    type="text"
+                    value= {sliceNameStored}
+                    onChange={handleInputChange}
+                    placeholder="Discrepancy ID"
                   />
                 }
                 maxWidth={`${theme.gridUnit * 100}px`}
