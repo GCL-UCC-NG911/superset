@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, ReactChild } from 'react';
 import { useSelector } from 'react-redux';
 import { css, styled, t, useTheme } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
@@ -305,6 +305,15 @@ export const useExploreAdditionalActionsMenu = (
     ],
   );
 
+  const slice_name_store = '';
+  const handleInputChange = (event) => {
+    alert(event.target);
+    slice.slice_name(e.target.value);
+  };
+  const [showModal, setShowModal] = useState(false);
+  //const openModal = useCallback(() => setShowModal(true), []);
+  const closeModal = useCallback(() => setShowModal(false), []);
+
   const menu = useMemo(
     () => (
       <Menu
@@ -387,7 +396,37 @@ export const useExploreAdditionalActionsMenu = (
               key={MENU_KEYS.EXPORT_CUSTOM_CSV}
               icon={<Icons.FileOutlined css={iconReset} />}
             >
-              <CustomCSVModal
+              <ModalTrigger
+                triggerNode={
+                  <span data-test="embed-code-button">{t('Test')}</span>
+                }
+                modalTitle={t('Test')}
+                modalBody={
+                  <input
+                  className="form-control input-sm"
+                  type="text"
+                  value= {slice_name_store}
+                  onChange={handleInputChange}
+                  placeholder="Discrepancy ID"
+                  />
+                }
+                maxWidth={`${theme.gridUnit * 100}px`}
+                destroyOnClose
+                responsive
+                onHide={closeModal}
+                modalFooter={
+                  <>
+                    <Button
+                      buttonStyle="primary"
+                      buttonSize="small"
+                      onClick={closeModal}
+                    >
+                      {t('Close')}
+                    </Button>
+                  </>
+                }
+              />
+              {/* <CustomCSVModal 
                 latestQueryFormData={latestQueryFormData}
                 triggerNode={
                   <span data-test="view-query-menu-item">
@@ -395,7 +434,7 @@ export const useExploreAdditionalActionsMenu = (
                   </span>
                 }
                 modalTitle={t(slice.slice_name)}
-              />
+              /> */}
             </Menu.Item>
           ) : null}
           {/* NGLS - END */}
