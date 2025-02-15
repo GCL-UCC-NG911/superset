@@ -307,7 +307,7 @@ export const useExploreAdditionalActionsMenu = (
     alert(event.target);
     slice.slice_name(event.target.value);
   };
-  const [showModal, setShowModal] = useState(false);
+  const setShowModal = useState(false);
   // const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
 
@@ -402,7 +402,7 @@ export const useExploreAdditionalActionsMenu = (
                   <input
                     className="form-control input-sm"
                     type="text"
-                    value= {sliceNameStored}
+                    value={sliceNameStored}
                     onChange={handleInputChange}
                     placeholder="Discrepancy ID"
                   />
