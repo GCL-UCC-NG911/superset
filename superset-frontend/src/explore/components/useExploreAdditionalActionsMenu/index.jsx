@@ -305,7 +305,10 @@ export const useExploreAdditionalActionsMenu = (
   const sliceNameStored = '';
   const handleInputChange = event => {
     alert(event.target.value);
-    slice.slice_name = event.target.value;
+    if (slice?.slice_name) {
+      // eslint-disable-next-line no-param-reassign
+      slice.slice_name = event.target.value;
+    }
   };
   const handleExport = async () => {
     exportChart(latestQueryFormData);
