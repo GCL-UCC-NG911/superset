@@ -304,15 +304,21 @@ export const useExploreAdditionalActionsMenu = (
 
   const sliceNameStored = '';
   const handleInputChange = event => {
-    alert(event.target.value);
     if (slice?.slice_name) {
       // eslint-disable-next-line no-param-reassign
       slice.slice_name = event.target.value;
     }
   };
-  const handleExport = async () => {
-    exportChart(latestQueryFormData);
-  };
+
+  const exportCustom = useCallback(
+    () =>
+      exportChart({
+        formData: latestQueryFormData,
+        resultType: 'results',
+        resultFormat: 'csv',
+      }),
+    [latestQueryFormData],
+  );
   const setShowModal = useState(false);
   // const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
@@ -422,7 +428,7 @@ export const useExploreAdditionalActionsMenu = (
                     <Button
                       buttonStyle="primary"
                       buttonSize="small"
-                      onClick={handleExport}
+                      onClick={exportCustom()}
                     >
                       {t('Download chart')}
                     </Button>
