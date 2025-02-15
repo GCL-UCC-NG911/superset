@@ -304,8 +304,11 @@ export const useExploreAdditionalActionsMenu = (
 
   const sliceNameStored = '';
   const handleInputChange = event => {
-    alert(event.target);
-    slice.slice_name(event.target.value);
+    alert(event.target.value);
+    slice.slice_name = event.target.value;
+  };
+  const handleExport = async () => {
+    exportChart(latestQueryFormData);
   };
   const setShowModal = useState(false);
   // const openModal = useCallback(() => setShowModal(true), []);
@@ -416,6 +419,13 @@ export const useExploreAdditionalActionsMenu = (
                     <Button
                       buttonStyle="primary"
                       buttonSize="small"
+                      onClick={handleExport}
+                    >
+                      {t('Download chart')}
+                    </Button>
+                    <Button
+                      buttonStyle="primary"
+                      buttonSize="small"
                       onClick={closeModal}
                     >
                       {t('Close')}
@@ -423,15 +433,6 @@ export const useExploreAdditionalActionsMenu = (
                   </>
                 }
               />
-              {/* <CustomCSVModal 
-                latestQueryFormData={latestQueryFormData}
-                triggerNode={
-                  <span data-test="view-query-menu-item">
-                    {t('Export custom CSV')}
-                  </span>
-                }
-                modalTitle={t(slice.slice_name)}
-              /> */}
             </Menu.Item>
           ) : null}
           {/* NGLS - END */}
