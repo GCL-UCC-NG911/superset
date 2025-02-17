@@ -311,15 +311,25 @@ export const useExploreAdditionalActionsMenu = (
     }
   };
 
-  const handleExport = async () => {
-    exportChart({
-      formData: latestQueryFormData,
-      resultType: 'results',
-      resultFormat: 'csv',
-    });
-    // eslint-disable-next-line no-param-reassign
-    slice.slice_name = sliceStored;
-  };
+  // const handleExport = async () => {
+  //   exportChart({
+  //     formData: latestQueryFormData,
+  //     resultType: 'results',
+  //     resultFormat: 'csv',
+  //   });
+  //   // eslint-disable-next-line no-param-reassign
+  //   slice.slice_name = sliceStored;
+  // };
+
+  const handleExport = useCallback(
+    () =>
+      exportChart({
+        formData: latestQueryFormData,
+        resultType: 'results',
+        resultFormat: 'csv',
+      }),
+    [latestQueryFormData],
+  );
 
   const [showModal, setShowModal] = useState(false);
   const closeModal = () => {
