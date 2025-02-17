@@ -303,7 +303,7 @@ export const useExploreAdditionalActionsMenu = (
   );
 
   const [sliceName, setSliceName] = useState('');
-  const sliceStored = slice.slice_name;
+  // const sliceStored = slice.slice_name;
   const handleInputChange = event => {
     if (slice?.slice_name) {
       // eslint-disable-next-line no-param-reassign
