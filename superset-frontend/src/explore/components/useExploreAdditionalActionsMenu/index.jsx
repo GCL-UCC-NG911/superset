@@ -21,7 +21,7 @@ import { useSelector } from 'react-redux';
 import { css, styled, t, useTheme } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
 import { Menu } from 'src/components/Menu';
-import ModalTrigger from 'src/components/ModalTrigger';
+import { ModalTrigger } from 'src/components/ModalTrigger';
 import Button from 'src/components/Button';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { exportChart, getChartKey } from 'src/explore/exploreUtils';
@@ -302,26 +302,33 @@ export const useExploreAdditionalActionsMenu = (
     ],
   );
 
-  const sliceNameStored = '';
+  const [sliceName, setSliceName] = useState('');
+  const sliceStored = slice.slice_name;
   const handleInputChange = event => {
     if (slice?.slice_name) {
       // eslint-disable-next-line no-param-reassign
-      slice.slice_name = event.target.value;
+      slice.slice_name = setSliceName(event.target.value);
     }
   };
 
-  const exportCustom = useCallback(
-    () =>
-      exportChart({
-        formData: latestQueryFormData,
-        resultType: 'results',
-        resultFormat: 'csv',
-      }),
-    [latestQueryFormData],
-  );
-  const setShowModal = useState(false);
-  // const openModal = useCallback(() => setShowModal(true), []);
-  const closeModal = useCallback(() => setShowModal(false), []);
+  function exportCustom() {
+    useCallback(
+      () =>
+        exportChart({
+          formData: latestQueryFormData,
+          resultType: 'results',
+          resultFormat: 'csv',
+        }),
+      [latestQueryFormData],
+    );
+    // eslint-disable-next-line no-param-reassign
+    slice.slice_name = sliceStored;
+  }
+  const [showModal, setShowModal] = useState(false);
+  const close = () => {
+    setShowModal(false);
+    onExit?.();
+  };
 
   const menu = useMemo(
     () => (
@@ -406,6 +413,7 @@ export const useExploreAdditionalActionsMenu = (
               icon={<Icons.FileOutlined css={iconReset} />}
             >
               <ModalTrigger
+                show={showModal}
                 triggerNode={
                   <span data-test="embed-code-button">{t('Test')}</span>
                 }
@@ -414,7 +422,7 @@ export const useExploreAdditionalActionsMenu = (
                   <input
                     className="form-control input-sm"
                     type="text"
-                    value={sliceNameStored}
+                    value={sliceName}
                     onChange={handleInputChange}
                     placeholder="Discrepancy ID"
                   />
@@ -422,7 +430,7 @@ export const useExploreAdditionalActionsMenu = (
                 maxWidth={`${theme.gridUnit * 100}px`}
                 destroyOnClose
                 responsive
-                onHide={closeModal}
+                onHide={close}
                 modalFooter={
                   <>
                     <Button
@@ -435,7 +443,7 @@ export const useExploreAdditionalActionsMenu = (
                     <Button
                       buttonStyle="primary"
                       buttonSize="small"
-                      onClick={closeModal}
+                      onClick={close}
                     >
                       {t('Close')}
                     </Button>
