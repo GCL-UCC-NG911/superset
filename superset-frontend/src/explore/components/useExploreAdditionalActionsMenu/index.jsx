@@ -320,7 +320,7 @@ export const useExploreAdditionalActionsMenu = (
     // eslint-disable-next-line no-param-reassign
     slice.slice_name = sliceStored;
   };
-  
+
   const [showModal, setShowModal] = useState(false);
   const closeModal = () => {
     setShowModal(false);
