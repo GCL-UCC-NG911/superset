@@ -311,23 +311,18 @@ export const useExploreAdditionalActionsMenu = (
     }
   };
 
-  function exportCustom() {
-    useCallback(
-      () =>
-        exportChart({
-          formData: latestQueryFormData,
-          resultType: 'results',
-          resultFormat: 'csv',
-        }),
-      [latestQueryFormData],
-    );
+  const handleExport = async () => {
+    exportChart({
+      formData: latestQueryFormData,
+      resultType: 'results',
+      resultFormat: 'csv',
+    });
     // eslint-disable-next-line no-param-reassign
     slice.slice_name = sliceStored;
-  }
+  };
   const [showModal, setShowModal] = useState(false);
   const close = () => {
     setShowModal(false);
-    onExit?.();
   };
 
   const menu = useMemo(
@@ -436,7 +431,7 @@ export const useExploreAdditionalActionsMenu = (
                     <Button
                       buttonStyle="primary"
                       buttonSize="small"
-                      onClick={exportCustom}
+                      onClick={handleExport}
                     >
                       {t('Download chart')}
                     </Button>
