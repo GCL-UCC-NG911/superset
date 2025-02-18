@@ -30,10 +30,10 @@ import { getChartPermalink } from 'src/utils/urlUtils';
 import copyTextToClipboard from 'src/utils/copy';
 import HeaderReportDropDown from 'src/components/ReportModal/HeaderReportDropdown';
 import { isFeatureEnabled, FeatureFlag } from 'src/featureFlags';
+import Modal from 'src/components/Modal';
 import ViewQueryModal from '../controls/ViewQueryModal';
 import EmbedCodeContent from '../EmbedCodeContent';
 import DashboardsSubMenu from './DashboardsSubMenu';
-import Modal from 'src/components/Modal';
 // import Input from 'src/components/Input';
 // import { updateSliceName } from 'src/explore/actions/saveModalActions';
 
@@ -124,7 +124,6 @@ export const useExploreAdditionalActionsMenu = (
   /* NGLS - BEGIN */
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customFileName, setCustomFileName] = useState('');
-  const [tempSliceName, settempSliceName] = useState(slice?.slice_name);
   const handleCustomDownload = useCallback(() => {
     const originalSliceName = slice?.slice_name;
     // eslint-disable-next-line no-param-reassign
@@ -188,11 +187,11 @@ export const useExploreAdditionalActionsMenu = (
         className="form-control input-sm"
         type="text"
         value={customFileName}
-        onChange={(e) => setCustomFileName(e.target.value)}
+        onChange={e => setCustomFileName(e.target.value)}
         placeholder="Discrepancy ID"
       />
     </Modal>
-  )
+  );
 
   const chart = useSelector(
     state => state.charts?.[getChartKey(state.explore)],
