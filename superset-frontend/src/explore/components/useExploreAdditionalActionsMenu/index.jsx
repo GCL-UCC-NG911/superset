@@ -33,6 +33,9 @@ import { isFeatureEnabled, FeatureFlag } from 'src/featureFlags';
 import ViewQueryModal from '../controls/ViewQueryModal';
 import EmbedCodeContent from '../EmbedCodeContent';
 import DashboardsSubMenu from './DashboardsSubMenu';
+import Modal from 'src/components/Modal';
+// import Input from 'src/components/Input';
+// import { updateSliceName } from 'src/explore/actions/saveModalActions';
 
 const MENU_KEYS = {
   EDIT_PROPERTIES: 'edit_properties',
@@ -118,6 +121,79 @@ export const useExploreAdditionalActionsMenu = (
   const [showReportSubMenu, setShowReportSubMenu] = useState(null);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [openSubmenus, setOpenSubmenus] = useState([]);
+  /* NGLS - BEGIN */
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [customFileName, setCustomFileName] = useState('');
+  const [tempSliceName, settempSliceName] = useState(slice?.slice_name);
+  const handleCustomDownload = useCallback(() => {
+    const originalSliceName = slice?.slice_name;
+    // eslint-disable-next-line no-param-reassign
+    slice.slice_name = customFileName;
+    exportChart({
+      formData: latestQueryFormData,
+      resultType: 'results',
+      resultFormat: 'json',
+    }).finally(() => {
+      // eslint-disable-next-line no-param-reassign
+      slice.slice_name = originalSliceName;
+      setIsModalOpen(false);
+      setCustomFileName('');
+    });
+  }, [customFileName, exportChart, latestQueryFormData, slice.slice_name]);
+
+  const customModal = () => (
+    <Modal
+      css={css`
+        .ant-modal-body {
+          display: flex;
+          flex-direction: column;
+        }
+      `}
+      show={isModalOpen}
+      onHide={() => setIsModalOpen(false)}
+      title={t('Discrepancy ID')}
+      footer={
+        <>
+          <Button
+            buttonStyle="primary"
+            buttonSize="small"
+            onClick={handleCustomDownload}
+            disabled={!customFileName}
+          >
+            {t('Download chart')}
+          </Button>
+          <Button
+            buttonStyle="primary"
+            buttonSize="small"
+            onClick={() => setIsModalOpen(false)}
+          >
+            {t('Close')}
+          </Button>
+        </>
+      }
+      responsive
+      resizable
+      resizableConfig={{
+        minHeight: theme.gridUnit * 128,
+        minWidth: theme.gridUnit * 128,
+        defaultSize: {
+          width: 'auto',
+          height: 'auto',
+        },
+      }}
+      draggable
+      destroyOnClose
+    >
+      <input
+        className="form-control input-sm"
+        type="text"
+        value={customFileName}
+        onChange={(e) => setCustomFileName(e.target.value)}
+        placeholder="Discrepancy ID"
+      />
+    </Modal>
+  )
+
   const chart = useSelector(
     state => state.charts?.[getChartKey(state.explore)],
   );
@@ -225,6 +301,7 @@ export const useExploreAdditionalActionsMenu = (
           break;
         /* NGLS - BEGIN */
         case MENU_KEYS.EXPORT_TO_CUSTOM_CSV:
+          customModal();
           setIsDropdownVisible(false);
           setOpenSubmenus([]);
           break;
@@ -301,41 +378,6 @@ export const useExploreAdditionalActionsMenu = (
       slice?.slice_name,
     ],
   );
-
-  // const [sliceName, setSliceName] = useState('');
-  // const sliceStored = slice.slice_name;
-  const sliceName = '';
-  const handleInputChange = event => {
-    if (slice?.slice_name) {
-      // eslint-disable-next-line no-param-reassign
-      slice.slice_name = event.target.value;
-    }
-  };
-
-  // const handleExport = async () => {
-  //   exportChart({
-  //     formData: latestQueryFormData,
-  //     resultType: 'results',
-  //     resultFormat: 'csv',
-  //   });
-  //   // eslint-disable-next-line no-param-reassign
-  //   slice.slice_name = sliceStored;
-  // };
-
-  const handleExport = useCallback(
-    () =>
-      exportChart({
-        formData: latestQueryFormData,
-        resultType: 'results',
-        resultFormat: 'csv',
-      }),
-    [latestQueryFormData],
-  );
-
-  // const [showModal, setShowModal] = useState(false);
-  // const closeModal = () => {
-  //   setShowModal(false);
-  // };
 
   const menu = useMemo(
     () => (
@@ -414,51 +456,6 @@ export const useExploreAdditionalActionsMenu = (
           >
             {t('Export to PDF')}
           </Menu.Item>
-          {slice.slice_name === 'Discrepancy details - table' ? (
-            <Menu.Item
-              key={MENU_KEYS.EXPORT_CUSTOM_CSV}
-              icon={<Icons.FileOutlined css={iconReset} />}
-            >
-              <ModalTrigger
-                // show={showModal}
-                triggerNode={
-                  <span data-test="embed-code-button">{t('Test')}</span>
-                }
-                modalTitle={t('Test')}
-                modalBody={
-                  <input
-                    className="form-control input-sm"
-                    type="text"
-                    value={sliceName}
-                    onChange={handleInputChange}
-                    placeholder="Discrepancy ID"
-                  />
-                }
-                maxWidth={`${theme.gridUnit * 100}px`}
-                destroyOnClose
-                responsive
-                modalFooter={
-                  <>
-                    <Button
-                      buttonStyle="primary"
-                      buttonSize="small"
-                      onClick={handleExport}
-                    >
-                      {t('Download chart')}
-                    </Button>
-                    {/* <Button
-                      buttonStyle="primary"
-                      buttonSize="small"
-                      onClick={closeModal}
-                    >
-                      {t('Close')}
-                    </Button> */}
-                  </>
-                }
-              />
-            </Menu.Item>
-          ) : null}
-          {/* NGLS - END */}
         </Menu.SubMenu>
         <Menu.SubMenu title={t('Share')} key={MENU_KEYS.SHARE_SUBMENU}>
           <Menu.Item key={MENU_KEYS.COPY_PERMALINK}>
