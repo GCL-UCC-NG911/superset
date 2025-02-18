@@ -420,7 +420,7 @@ export const useExploreAdditionalActionsMenu = (
               icon={<Icons.FileOutlined css={iconReset} />}
             >
               <ModalTrigger
-                show={showModal}
+                // show={showModal}
                 triggerNode={
                   <span data-test="embed-code-button">{t('Test')}</span>
                 }
