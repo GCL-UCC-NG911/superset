@@ -302,12 +302,13 @@ export const useExploreAdditionalActionsMenu = (
     ],
   );
 
-  const [sliceName, setSliceName] = useState('');
+  // const [sliceName, setSliceName] = useState('');
   // const sliceStored = slice.slice_name;
+  const sliceName = '';
   const handleInputChange = event => {
     if (slice?.slice_name) {
       // eslint-disable-next-line no-param-reassign
-      slice.slice_name = setSliceName(event.target.value);
+      slice.slice_name = event.target.value;
     }
   };
 
@@ -331,10 +332,10 @@ export const useExploreAdditionalActionsMenu = (
     [latestQueryFormData],
   );
 
-  const [showModal, setShowModal] = useState(false);
-  const closeModal = () => {
-    setShowModal(false);
-  };
+  // const [showModal, setShowModal] = useState(false);
+  // const closeModal = () => {
+  //   setShowModal(false);
+  // };
 
   const menu = useMemo(
     () => (
@@ -445,13 +446,13 @@ export const useExploreAdditionalActionsMenu = (
                     >
                       {t('Download chart')}
                     </Button>
-                    <Button
+                    {/* <Button
                       buttonStyle="primary"
                       buttonSize="small"
                       onClick={closeModal}
                     >
                       {t('Close')}
-                    </Button>
+                    </Button> */}
                   </>
                 }
               />
