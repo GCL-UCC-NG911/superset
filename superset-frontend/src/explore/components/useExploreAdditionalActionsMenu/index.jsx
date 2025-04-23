@@ -320,7 +320,7 @@ export const useExploreAdditionalActionsMenu = (
     // eslint-disable-next-line no-param-reassign
     slice.slice_name = sliceStored;
   };
-  
+
   const [showModal, setShowModal] = useState(false);
   const closeModal = () => {
     setShowModal(false);
@@ -426,7 +426,6 @@ export const useExploreAdditionalActionsMenu = (
                 maxWidth={`${theme.gridUnit * 100}px`}
                 destroyOnClose
                 responsive
-
                 modalFooter={
                   <>
                     <Button
