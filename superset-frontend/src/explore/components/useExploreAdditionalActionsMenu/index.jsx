@@ -307,20 +307,24 @@ export const useExploreAdditionalActionsMenu = (
     sliceNameStored = event.target.value;
   };
 
+  const test = useCallback(
+    () =>
+      exportChart({
+        formData: latestQueryFormData,
+        resultType: 'results',
+        resultFormat: 'csv',
+      }),
+    [latestQueryFormData],
+  );
+
   function exportCustom() {
+    alert(slice.slice_name)
     if (slice?.slice_name) {
       // eslint-disable-next-line no-param-reassign
-      slice.slice_name = sliceName;
+      slice.slice_name = sliceNameStored;
     }
-    return useCallback(
-      () =>
-        exportChart({
-          formData: latestQueryFormData,
-          resultType: 'results',
-          resultFormat: 'csv',
-        }),
-      [latestQueryFormData],
-    );
+    alert(slice.slice_name)
+    return test
   }
 
   const setShowModal = useState(false);
