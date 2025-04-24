@@ -302,31 +302,31 @@ export const useExploreAdditionalActionsMenu = (
     ],
   );
 
-  const [sliceName, setSliceName] = useState('');
-  const sliceStored = slice.slice_name;
-  const handleInputChange = event => {
-    if (slice?.slice_name) {
-      alert(event.target.value);
-      // eslint-disable-next-line no-param-reassign
-      slice.slice_name = setSliceName(event.target.value);
-    }
-  };
+  // const [sliceName, setSliceName] = useState('');
+  // const sliceStored = slice.slice_name;
+  // const handleInputChange = event => {
+  //   if (slice?.slice_name) {
+  //     alert(event.target.value);
+  //     // eslint-disable-next-line no-param-reassign
+  //     slice.slice_name = setSliceName(event.target.value);
+  //   }
+  // };
 
-  const handleExport = async () => {
-    exportChart({
-      formData: latestQueryFormData,
-      resultType: 'results',
-      resultFormat: 'csv',
-    });
-    alert(sliceStored);
-    // eslint-disable-next-line no-param-reassign
-    slice.slice_name = sliceStored;
-  };
+  // const handleExport = async () => {
+  //   exportChart({
+  //     formData: latestQueryFormData,
+  //     resultType: 'results',
+  //     resultFormat: 'csv',
+  //   });
+  //   alert(sliceStored);
+  //   // eslint-disable-next-line no-param-reassign
+  //   slice.slice_name = sliceStored;
+  // };
 
-  const [showModal, setShowModal] = useState(false);
-  const closeModal = () => {
-    setShowModal(false);
-  };
+  // const [showModal, setShowModal] = useState(false);
+  // const closeModal = () => {
+  //   setShowModal(false);
+  // };
 
   const menu = useMemo(
     () => (
