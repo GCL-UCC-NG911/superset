@@ -42,6 +42,10 @@ const CustomCSVModalTrigger = ({
   };
 
   const handleExport = async () => {
+    // eslint-disable-next-line no-alert
+    alert(filename);
+    // eslint-disable-next-line no-alert
+    alert(latestQueryFormData.chart_name);
     const sanitizedFilename = filename.trim() || 'custom_report_test';
     const updatedFormData = {
       ...latestQueryFormData,
