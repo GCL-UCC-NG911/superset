@@ -306,7 +306,7 @@ export const useExploreAdditionalActionsMenu = (
   const sliceStored = slice.slice_name;
   const handleInputChange = event => {
     if (slice?.slice_name) {
-      alert(event.target.value)
+      alert(event.target.value);
       // eslint-disable-next-line no-param-reassign
       slice.slice_name = setSliceName(event.target.value);
     }
@@ -318,7 +318,7 @@ export const useExploreAdditionalActionsMenu = (
       resultType: 'results',
       resultFormat: 'csv',
     });
-    alert(sliceStored)
+    alert(sliceStored);
     // eslint-disable-next-line no-param-reassign
     slice.slice_name = sliceStored;
   };
