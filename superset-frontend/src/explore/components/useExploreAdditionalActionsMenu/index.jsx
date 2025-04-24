@@ -432,7 +432,7 @@ export const useExploreAdditionalActionsMenu = (
                     <Button
                       buttonStyle="primary"
                       buttonSize="small"
-                      onClick={exportCustom(sliceNameStored)}
+                      onClick={exportCustom}
                     >
                       {t('Download chart')}
                     </Button>
