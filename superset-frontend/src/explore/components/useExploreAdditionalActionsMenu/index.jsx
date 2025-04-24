@@ -306,6 +306,7 @@ export const useExploreAdditionalActionsMenu = (
   const sliceStored = slice.slice_name;
   const handleInputChange = event => {
     if (slice?.slice_name) {
+      alert(event.target.value)
       // eslint-disable-next-line no-param-reassign
       slice.slice_name = setSliceName(event.target.value);
     }
@@ -317,6 +318,7 @@ export const useExploreAdditionalActionsMenu = (
       resultType: 'results',
       resultFormat: 'csv',
     });
+    alert(sliceStored)
     // eslint-disable-next-line no-param-reassign
     slice.slice_name = sliceStored;
   };
@@ -405,7 +407,7 @@ export const useExploreAdditionalActionsMenu = (
           </Menu.Item>
           {slice.slice_name === 'Discrepancy details - table' ? (
             <Menu.Item
-              key={MENU_KEYS.EXPORT_CUSTOM_CSV}
+              key={MENU_KEYS.EXPORT_TO_CUSTOM_CSV}
               icon={<Icons.FileOutlined css={iconReset} />}
             >
               <ModalTrigger
