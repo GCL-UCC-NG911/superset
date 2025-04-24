@@ -405,7 +405,7 @@ export const useExploreAdditionalActionsMenu = (
           >
             {t('Export to PDF')}
           </Menu.Item>
-          {slice.slice_name === 'Discrepancy details - table' ? (
+          {/* {slice.slice_name === 'Discrepancy details - table' ? (
             <Menu.Item
               key={MENU_KEYS.EXPORT_TO_CUSTOM_CSV}
               icon={<Icons.FileOutlined css={iconReset} />}
@@ -448,7 +448,7 @@ export const useExploreAdditionalActionsMenu = (
                 }
               />
             </Menu.Item>
-          ) : null}
+          ) : null} */}
           {/* NGLS - END */}
         </Menu.SubMenu>
         <Menu.SubMenu title={t('Share')} key={MENU_KEYS.SHARE_SUBMENU}>
