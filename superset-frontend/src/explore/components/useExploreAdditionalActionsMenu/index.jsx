@@ -302,17 +302,17 @@ export const useExploreAdditionalActionsMenu = (
     ],
   );
 
-  const sliceNameStored = '';
+  let sliceNameStored = '';
   const handleInputChange = event => {
     sliceNameStored = event.target.value;
   };
 
-  const exportCustom = (sliceName) => {
+  function exportCustom() {
     if (slice?.slice_name) {
       // eslint-disable-next-line no-param-reassign
       slice.slice_name = sliceName;
     }
-    useCallback(
+    return useCallback(
       () =>
         exportChart({
           formData: latestQueryFormData,
@@ -322,6 +322,7 @@ export const useExploreAdditionalActionsMenu = (
       [latestQueryFormData],
     );
   }
+
   const setShowModal = useState(false);
   // const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
