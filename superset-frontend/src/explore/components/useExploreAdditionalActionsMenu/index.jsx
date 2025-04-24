@@ -304,21 +304,24 @@ export const useExploreAdditionalActionsMenu = (
 
   const sliceNameStored = '';
   const handleInputChange = event => {
-    if (slice?.slice_name) {
-      // eslint-disable-next-line no-param-reassign
-      slice.slice_name = event.target.value;
-    }
+    sliceNameStored = event.target.value;
   };
 
-  const exportCustom = useCallback(
-    () =>
-      exportChart({
-        formData: latestQueryFormData,
-        resultType: 'results',
-        resultFormat: 'csv',
-      }),
-    [latestQueryFormData],
-  );
+  const exportCustom = (sliceName) => {
+    if (slice?.slice_name) {
+      // eslint-disable-next-line no-param-reassign
+      slice.slice_name = sliceName;
+    }
+    useCallback(
+      () =>
+        exportChart({
+          formData: latestQueryFormData,
+          resultType: 'results',
+          resultFormat: 'csv',
+        }),
+      [latestQueryFormData],
+    );
+  }
   const setShowModal = useState(false);
   // const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
@@ -428,7 +431,7 @@ export const useExploreAdditionalActionsMenu = (
                     <Button
                       buttonStyle="primary"
                       buttonSize="small"
-                      onClick={exportCustom}
+                      onClick={exportCustom(sliceNameStored)}
                     >
                       {t('Download chart')}
                     </Button>
