@@ -303,33 +303,43 @@ export const useExploreAdditionalActionsMenu = (
   );
 
   let sliceNameStored = '';
-  const handleInputChange = event => {
-    sliceNameStored = event.target.value;
-  };
+  // const handleInputChange = event => {
+  //   sliceNameStored = event.target.value;
+  // };
 
-  const test = useCallback(
-    () =>
-      exportChart({
-        formData: latestQueryFormData,
-        resultType: 'results',
-        resultFormat: 'csv',
-      }),
-    [latestQueryFormData],
-  );
+  // const test = useCallback(
+  //   () =>
+  //     exportChart({
+  //       formData: latestQueryFormData,
+  //       resultType: 'results',
+  //       resultFormat: 'csv',
+  //     }),
+  //   [latestQueryFormData],
+  // );
+
+  
+  const [sliceName, setSliceName] = useState('');
+  const setShowModal = useState(false);
+  // const openModal = useCallback(() => setShowModal(true), []);
+  const closeModal = useCallback(() => setShowModal(false), []);
 
   function exportCustom() {
     alert(slice.slice_name);
     if (slice?.slice_name) {
+      sliceNameStored = slice.slice_name;
       // eslint-disable-next-line no-param-reassign
-      slice.slice_name = sliceNameStored;
+      slice.slice_name = sliceName;
     }
     alert(slice.slice_name);
+    const test = exportChart({
+      formData: latestQueryFormData,
+      resultType: 'results',
+      resultFormat: 'csv',
+    });
+    // eslint-disable-next-line no-param-reassign
+    slice.slice_name = sliceNameStored;
     return test;
   }
-
-  const setShowModal = useState(false);
-  // const openModal = useCallback(() => setShowModal(true), []);
-  const closeModal = useCallback(() => setShowModal(false), []);
 
   const menu = useMemo(
     () => (
@@ -422,8 +432,8 @@ export const useExploreAdditionalActionsMenu = (
                   <input
                     className="form-control input-sm"
                     type="text"
-                    value={sliceNameStored}
-                    onChange={handleInputChange}
+                    value={sliceName}
+                    onChange={e => setSliceName(e.target.value)}
                     placeholder="Discrepancy ID"
                   />
                 }
