@@ -302,7 +302,7 @@ export const useExploreAdditionalActionsMenu = (
     ],
   );
 
-  let sliceNameStored = '';
+  // let sliceNameStored = '';
   // const handleInputChange = event => {
   //   sliceNameStored = event.target.value;
   // };
