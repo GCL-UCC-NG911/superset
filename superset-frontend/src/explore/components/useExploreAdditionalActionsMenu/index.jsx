@@ -317,7 +317,6 @@ export const useExploreAdditionalActionsMenu = (
   //   [latestQueryFormData],
   // );
 
-  
   const [sliceName, setSliceName] = useState('');
   const setShowModal = useState(false);
   // const openModal = useCallback(() => setShowModal(true), []);
