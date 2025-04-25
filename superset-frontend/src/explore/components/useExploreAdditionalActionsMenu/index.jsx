@@ -318,13 +318,13 @@ export const useExploreAdditionalActionsMenu = (
   );
 
   function exportCustom() {
-    alert(slice.slice_name)
+    alert(slice.slice_name);
     if (slice?.slice_name) {
       // eslint-disable-next-line no-param-reassign
       slice.slice_name = sliceNameStored;
     }
-    alert(slice.slice_name)
-    return test
+    alert(slice.slice_name);
+    return test;
   }
 
   const setShowModal = useState(false);
