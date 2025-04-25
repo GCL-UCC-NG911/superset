@@ -323,20 +323,22 @@ export const useExploreAdditionalActionsMenu = (
   const closeModal = useCallback(() => setShowModal(false), []);
 
   function exportCustom() {
-    alert(slice.slice_name);
-    if (slice?.slice_name) {
-      sliceNameStored = slice.slice_name;
-      // eslint-disable-next-line no-param-reassign
-      slice.slice_name = sliceName;
-    }
-    alert(slice.slice_name);
+    alert(latestQueryFormData.chart_name);
+    // if (slice?.slice_name) {
+    //   sliceNameStored = slice.slice_name;
+    //   // eslint-disable-next-line no-param-reassign
+    //   slice.slice_name = sliceName;
+    // }
+    // eslint-disable-next-line no-param-reassign
+    latestQueryFormData.chart_name = sliceName;
+    alert(latestQueryFormData.chart_name);
     const test = exportChart({
       formData: latestQueryFormData,
       resultType: 'results',
       resultFormat: 'csv',
     });
     // eslint-disable-next-line no-param-reassign
-    slice.slice_name = sliceNameStored;
+    latestQueryFormData.chart_name = slice.slice_name;
     return test;
   }
 
