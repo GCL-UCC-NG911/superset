@@ -302,36 +302,14 @@ export const useExploreAdditionalActionsMenu = (
     ],
   );
 
-  // let sliceNameStored = '';
-  // const handleInputChange = event => {
-  //   sliceNameStored = event.target.value;
-  // };
-
-  // const test = useCallback(
-  //   () =>
-  //     exportChart({
-  //       formData: latestQueryFormData,
-  //       resultType: 'results',
-  //       resultFormat: 'csv',
-  //     }),
-  //   [latestQueryFormData],
-  // );
-
   const [sliceName, setSliceName] = useState('');
   const setShowModal = useState(false);
   // const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
 
   function exportCustom() {
-    alert(latestQueryFormData.chart_name);
-    // if (slice?.slice_name) {
-    //   sliceNameStored = slice.slice_name;
-    //   // eslint-disable-next-line no-param-reassign
-    //   slice.slice_name = sliceName;
-    // }
     // eslint-disable-next-line no-param-reassign
     latestQueryFormData.chart_name = sliceName;
-    alert(latestQueryFormData.chart_name);
     const test = exportChart({
       formData: latestQueryFormData,
       resultType: 'results',
