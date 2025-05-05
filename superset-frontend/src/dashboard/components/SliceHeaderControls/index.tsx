@@ -309,8 +309,12 @@ class SliceHeaderControls extends React.PureComponent<
     const handleExport = async () => {
       // eslint-disable-next-line no-param-reassign
       this.props.slice.slice_name = filename;
+      // eslint-disable-next-line no-param-reassign
+      latestQueryFormData.slice_name = filename;
       // eslint-disable-next-line no-alert
       alert(latestQueryFormData.filename);
+      // eslint-disable-next-line no-alert
+      alert(this.props.slice.slice_name);
       exportChart({
         formData: latestQueryFormData,
         resultType: 'results',
