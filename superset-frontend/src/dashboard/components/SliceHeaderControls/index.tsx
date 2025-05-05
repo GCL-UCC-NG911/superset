@@ -48,7 +48,6 @@ import CrossFilterScopingModal from 'src/dashboard/components/CrossFilterScoping
 import { getSliceHeaderTooltip } from 'src/dashboard/util/getSliceHeaderTooltip';
 import { Tooltip } from 'src/components/Tooltip';
 import Icons from 'src/components/Icons';
-import ModalTrigger from 'src/components/ModalTrigger';
 import Button from 'src/components/Button';
 import ViewQueryModal from 'src/explore/components/controls/ViewQueryModal';
 import { ResultsPaneOnDashboard } from 'src/explore/components/DataTablesPane';
@@ -57,6 +56,8 @@ import { DrillDetailMenuItems } from 'src/components/Chart/DrillDetail';
 import { LOG_ACTIONS_CHART_DOWNLOAD_AS_IMAGE } from 'src/logger/LogUtils';
 /* NGLS - BEGIN */
 import CustomCSVModal from 'src/explore/components/controls/CustomCSVModal';
+import ModalTrigger from 'src/components/ModalTrigger';
+import { exportChart } from 'src/explore/exploreUtils';
 /* NGLS - END */
 
 const MENU_KEYS = {
@@ -285,6 +286,102 @@ class SliceHeaderControls extends React.PureComponent<
       showControls: !prevState.showControls,
     }));
   }
+
+  CustomCSVModalTrigger = ({
+    latestQueryFormData,
+    triggerNode,
+    modalTitle,
+  }: {
+    latestQueryFormData: any;
+    triggerNode: ReactChild;
+    modalTitle: ReactChild;
+  }) => {
+    const [filename, setFilename] = useState<string>('');
+    const [showModal, setShowModal] = useState(false);
+    const openModal = useCallback(() => setShowModal(true), []);
+    const closeModal = useCallback(() => setShowModal(false), []);
+    const theme = useTheme();
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFilename(e.target.value);
+    };
+
+    const handleExport = async () => {
+      // eslint-disable-next-line no-param-reassign
+      this.props.slice.slice_name = filename;
+      // eslint-disable-next-line no-alert
+      alert(latestQueryFormData.filename);
+      exportChart({
+        formData: latestQueryFormData,
+        resultType: 'results',
+        resultFormat: 'csv',
+      });
+    };
+
+    return (
+      <>
+        <span
+          data-test="span-modal-trigger"
+          onClick={openModal}
+          role="button"
+          tabIndex={0}
+        >
+          {triggerNode}
+        </span>
+        {(() => (
+          <Modal
+            css={css`
+              .ant-modal-body {
+                display: flex;
+                flex-direction: column;
+              }
+            `}
+            show={showModal}
+            onHide={closeModal}
+            title={modalTitle}
+            footer={
+              <>
+                <Button
+                  buttonStyle="primary"
+                  buttonSize="small"
+                  onClick={handleExport}
+                >
+                  {t('Download chart')}
+                </Button>
+                <Button
+                  buttonStyle="primary"
+                  buttonSize="small"
+                  onClick={closeModal}
+                >
+                  {t('Close')}
+                </Button>
+              </>
+            }
+            responsive
+            resizable
+            resizableConfig={{
+              minHeight: theme.gridUnit * 128,
+              minWidth: theme.gridUnit * 128,
+              defaultSize: {
+                width: 'auto',
+                height: 'auto',
+              },
+            }}
+            draggable
+            destroyOnClose
+          >
+            <input
+              className="form-control input-sm"
+              type="text"
+              value={filename}
+              onChange={handleInputChange}
+              placeholder="Discrepancy ID"
+            />
+          </Modal>
+        ))()}
+      </>
+    );
+  };
 
   handleMenuClick({
     key,
@@ -561,7 +658,7 @@ class SliceHeaderControls extends React.PureComponent<
                   key={MENU_KEYS.EXPORT_CUSTOM_CSV}
                   icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
                 >
-                  <CustomCSVModal
+                  <this.CustomCSVModalTrigger
                     latestQueryFormData={this.props.formData}
                     triggerNode={
                       <span data-test="view-query-menu-item">
