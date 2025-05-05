@@ -55,7 +55,7 @@ import Modal from 'src/components/Modal';
 import { DrillDetailMenuItems } from 'src/components/Chart/DrillDetail';
 import { LOG_ACTIONS_CHART_DOWNLOAD_AS_IMAGE } from 'src/logger/LogUtils';
 /* NGLS - BEGIN */
-// import CustomCSVModal from 'src/explore/components/controls/CustomCSVModal';
+import CustomCSVModal from 'src/explore/components/controls/CustomCSVModal';
 import ModalTrigger from 'src/components/ModalTrigger';
 import { exportChart } from 'src/explore/exploreUtils';
 /* NGLS - END */
@@ -308,16 +308,14 @@ class SliceHeaderControls extends React.PureComponent<
 
     const handleExport = async () => {
       // eslint-disable-next-line no-param-reassign
-      this.props.slice.slice_name = filename;
-      // eslint-disable-next-line no-param-reassign
-      latestQueryFormData.filename = filename;
-      // eslint-disable-next-line no-param-reassign
       latestQueryFormData.chart_name = filename;
       exportChart({
         formData: latestQueryFormData,
         resultType: 'results',
         resultFormat: 'csv',
       });
+      // eslint-disable-next-line no-param-reassign
+      latestQueryFormData.chart_name = this.props.slice.slice_name;
     };
 
     return (
@@ -660,7 +658,8 @@ class SliceHeaderControls extends React.PureComponent<
                   key={MENU_KEYS.EXPORT_CUSTOM_CSV}
                   icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
                 >
-                  <this.CustomCSVModalTrigger
+                  {/* <this.CustomCSVModalTrigger */}
+                  <CustomCSVModal
                     latestQueryFormData={this.props.formData}
                     triggerNode={
                       <span data-test="view-query-menu-item">

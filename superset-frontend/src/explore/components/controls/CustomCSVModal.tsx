@@ -42,20 +42,10 @@ const CustomCSVModalTrigger = ({
   };
 
   const handleExport = async () => {
-    // eslint-disable-next-line no-alert
-    alert(filename);
-    // eslint-disable-next-line no-alert, dot-notation
-    alert(latestQueryFormData.filename);
     // eslint-disable-next-line no-param-reassign
-    latestQueryFormData.filename = filename;
+    latestQueryFormData.chart_name = filename;
     // eslint-disable-next-line no-alert
     alert(latestQueryFormData.filename);
-    // const sanitizedFilename = filename.trim() || 'custom_report_test';
-    // const updatedFormData = {
-    //   ...latestQueryFormData,
-    //   custom_file_name: sanitizedFilename,
-    // };
-    // exportChart(updatedFormData);
     exportChart({
       formData: latestQueryFormData,
       resultType: 'results',
