@@ -310,7 +310,7 @@ class SliceHeaderControls extends React.PureComponent<
       // eslint-disable-next-line no-param-reassign
       this.props.slice.slice_name = filename;
       // eslint-disable-next-line no-param-reassign
-      latestQueryFormData.slice_name = filename;
+      latestQueryFormData.filename = filename;
       // eslint-disable-next-line no-alert
       alert(latestQueryFormData.filename);
       // eslint-disable-next-line no-alert
