@@ -34,6 +34,10 @@ import ViewQueryModal from '../controls/ViewQueryModal';
 import EmbedCodeContent from '../EmbedCodeContent';
 import DashboardsSubMenu from './DashboardsSubMenu';
 
+/* NGLS - BEGIN */
+import CustomCSVModal from 'src/explore/components/controls/CustomCSVModal';
+/* NGLS - END */
+
 const MENU_KEYS = {
   EDIT_PROPERTIES: 'edit_properties',
   DASHBOARDS_ADDED_TO: 'dashboards_added_to',
@@ -402,42 +406,14 @@ export const useExploreAdditionalActionsMenu = (
               key={MENU_KEYS.EXPORT_CUSTOM_CSV}
               icon={<Icons.FileOutlined css={iconReset} />}
             >
-              <ModalTrigger
+              <CustomCSVModal
+                latestQueryFormData={latestQueryFormData}
                 triggerNode={
-                  <span data-test="embed-code-button">{t('Test')}</span>
+                  <span data-test="view-query-menu-item">
+                    {t('Export discrepancy')}
+                  </span>
                 }
-                modalTitle={t('Test')}
-                modalBody={
-                  <input
-                    className="form-control input-sm"
-                    type="text"
-                    value={sliceName}
-                    onChange={e => setSliceName(e.target.value)}
-                    placeholder="Discrepancy ID"
-                  />
-                }
-                maxWidth={`${theme.gridUnit * 100}px`}
-                destroyOnClose
-                responsive
-                onHide={closeModal}
-                modalFooter={
-                  <>
-                    <Button
-                      buttonStyle="primary"
-                      buttonSize="small"
-                      onClick={exportCustom}
-                    >
-                      {t('Download chart')}
-                    </Button>
-                    <Button
-                      buttonStyle="primary"
-                      buttonSize="small"
-                      onClick={closeModal}
-                    >
-                      {t('Close')}
-                    </Button>
-                  </>
-                }
+                modalTitle={t(slice.slice_name)}
               />
             </Menu.Item>
           ) : null}
