@@ -35,7 +35,7 @@ import EmbedCodeContent from '../EmbedCodeContent';
 import DashboardsSubMenu from './DashboardsSubMenu';
 
 /* NGLS - BEGIN */
-import CustomCSVModal from 'src/explore/components/controls/CustomCSVModal';
+import CustomCSVModal from '../controls/CustomCSVModal';
 /* NGLS - END */
 
 const MENU_KEYS = {
@@ -306,23 +306,23 @@ export const useExploreAdditionalActionsMenu = (
     ],
   );
 
-  const [sliceName, setSliceName] = useState('');
-  const setShowModal = useState(false);
-  // const openModal = useCallback(() => setShowModal(true), []);
-  const closeModal = useCallback(() => setShowModal(false), []);
+  // const [sliceName, setSliceName] = useState('');
+  // const setShowModal = useState(false);
+  // // const openModal = useCallback(() => setShowModal(true), []);
+  // const closeModal = useCallback(() => setShowModal(false), []);
 
-  function exportCustom() {
-    // eslint-disable-next-line no-param-reassign
-    latestQueryFormData.chart_name = sliceName;
-    const test = exportChart({
-      formData: latestQueryFormData,
-      resultType: 'results',
-      resultFormat: 'csv',
-    });
-    // eslint-disable-next-line no-param-reassign
-    latestQueryFormData.chart_name = slice.slice_name;
-    return test;
-  }
+  // function exportCustom() {
+  //   // eslint-disable-next-line no-param-reassign
+  //   latestQueryFormData.chart_name = sliceName;
+  //   const test = exportChart({
+  //     formData: latestQueryFormData,
+  //     resultType: 'results',
+  //     resultFormat: 'csv',
+  //   });
+  //   // eslint-disable-next-line no-param-reassign
+  //   latestQueryFormData.chart_name = slice.slice_name;
+  //   return test;
+  // }
 
   const menu = useMemo(
     () => (
@@ -410,10 +410,19 @@ export const useExploreAdditionalActionsMenu = (
                 latestQueryFormData={latestQueryFormData}
                 triggerNode={
                   <span data-test="view-query-menu-item">
-                    {t('Export discrepancy')}
+                    {t('Export custom CSV')}
                   </span>
                 }
-                modalTitle={t(slice.slice_name)}
+                modalTitle={t('Chart Data: %s', slice.slice_name)}
+                modalBody={
+                  <span>
+                    {t('Insert the transitional ID')}
+                    <input
+                      className="form-control input-sm"
+                      placeholder={t('Discrepancy ID')}
+                    />
+                  </span>
+                }
               />
             </Menu.Item>
           ) : null}
