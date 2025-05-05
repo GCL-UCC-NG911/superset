@@ -306,24 +306,6 @@ export const useExploreAdditionalActionsMenu = (
     ],
   );
 
-  // const [sliceName, setSliceName] = useState('');
-  // const setShowModal = useState(false);
-  // // const openModal = useCallback(() => setShowModal(true), []);
-  // const closeModal = useCallback(() => setShowModal(false), []);
-
-  // function exportCustom() {
-  //   // eslint-disable-next-line no-param-reassign
-  //   latestQueryFormData.chart_name = sliceName;
-  //   const test = exportChart({
-  //     formData: latestQueryFormData,
-  //     resultType: 'results',
-  //     resultFormat: 'csv',
-  //   });
-  //   // eslint-disable-next-line no-param-reassign
-  //   latestQueryFormData.chart_name = slice.slice_name;
-  //   return test;
-  // }
-
   const menu = useMemo(
     () => (
       <Menu
@@ -413,10 +395,9 @@ export const useExploreAdditionalActionsMenu = (
                     {t('Export custom CSV')}
                   </span>
                 }
-                modalTitle={t('Chart Data: %s', slice.slice_name)}
+                modalTitle={t(slice.slice_name)}
                 modalBody={
                   <span>
-                    {t('Insert the transitional ID')}
                     <input
                       className="form-control input-sm"
                       placeholder={t('Discrepancy ID')}

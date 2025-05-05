@@ -658,7 +658,6 @@ class SliceHeaderControls extends React.PureComponent<
                   key={MENU_KEYS.EXPORT_CUSTOM_CSV}
                   icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
                 >
-                  {/* <this.CustomCSVModalTrigger */}
                   <CustomCSVModal
                     latestQueryFormData={this.props.formData}
                     triggerNode={
