@@ -31,9 +31,6 @@ import copyTextToClipboard from 'src/utils/copy';
 import HeaderReportDropDown from 'src/components/ReportModal/HeaderReportDropdown';
 import { isFeatureEnabled, FeatureFlag } from 'src/featureFlags';
 import ViewQueryModal from '../controls/ViewQueryModal';
-import EmbedCodeContent from '../EmbedCodeContent';
-import DashboardsSubMenu from './DashboardsSubMenu';
-
 /* NGLS - BEGIN */
 import CustomCSVModal from '../controls/CustomCSVModal';
 /* NGLS - END */
@@ -396,14 +393,6 @@ export const useExploreAdditionalActionsMenu = (
                   </span>
                 }
                 modalTitle={t(slice.slice_name)}
-                modalBody={
-                  <span>
-                    <input
-                      className="form-control input-sm"
-                      placeholder={t('Discrepancy ID')}
-                    />
-                  </span>
-                }
               />
             </Menu.Item>
           ) : null}

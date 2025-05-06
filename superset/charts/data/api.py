@@ -382,7 +382,7 @@ class ChartDataRestApi(ChartRestApi):
                 # NGLS - BEGIN #
                 if result_format == ChartDataResultFormat.CUSTOM_CSV:
                     return CsvResponse(
-                        data,                        
+                        data,
                         headers=generate_download_headers("csv", filename=filename),
                     )
                 if result_format == ChartDataResultFormat.PDF:

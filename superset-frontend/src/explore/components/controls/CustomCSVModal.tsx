@@ -18,9 +18,9 @@
  */
 import React, { useCallback, ReactChild, useState } from 'react';
 import Modal from 'src/components/Modal';
+import { exportChart } from 'src/explore/exploreUtils';
 import Button from 'src/components/Button';
 import { css, t, useTheme } from '@superset-ui/core';
-import { exportChart } from 'src/explore/exploreUtils';
 
 const CustomCSVModalTrigger = ({
   latestQueryFormData,

@@ -132,18 +132,9 @@ def get_viz(
         DatasourceType(datasource_type),
         datasource_id,
     )
-    #file_name = form_data.custom_file_name if form_data.custom_file_name else None
-    # if file_name:
-    #     viz_obj = viz.viz_types[viz_type](
-    #         datasource, form_data=form_data, force=force, force_cached=force_cached, filename=file_name,
-    #     )
-    # else:
-    #    viz_obj = viz.viz_types[viz_type](
-    #         datasource, form_data=form_data, force=force, force_cached=force_cached
-    #     )
     viz_obj = viz.viz_types[viz_type](
         datasource, form_data=form_data, force=force, force_cached=force_cached
-    ) 
+    )
     return viz_obj
 
 

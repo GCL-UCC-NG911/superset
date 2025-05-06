@@ -263,6 +263,7 @@ export const exportChart = ({
       ownState,
     });
   }
+
   SupersetClient.postForm(url, { form_data: safeStringify(payload) });
 };
 
