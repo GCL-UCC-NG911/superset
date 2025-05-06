@@ -34,6 +34,8 @@ import ViewQueryModal from '../controls/ViewQueryModal';
 /* NGLS - BEGIN */
 import CustomCSVModal from '../controls/CustomCSVModal';
 /* NGLS - END */
+import EmbedCodeContent from '../EmbedCodeContent';
+import DashboardsSubMenu from './DashboardsSubMenu';
 
 const MENU_KEYS = {
   EDIT_PROPERTIES: 'edit_properties',
