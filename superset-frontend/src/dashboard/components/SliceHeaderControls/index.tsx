@@ -565,19 +565,10 @@ class SliceHeaderControls extends React.PureComponent<
                     latestQueryFormData={this.props.formData}
                     triggerNode={
                       <span data-test="view-query-menu-item">
-                        {t('Export custom CSV')}
+                        {t('Export discrepancy')}
                       </span>
                     }
-                    modalTitle={t('Chart Data: %s', slice.slice_name)}
-                    modalBody={
-                      <span>
-                        {t('Insert the transitional ID')}
-                        <input
-                          className="form-control input-sm"
-                          placeholder={t('Discrepancy ID')}
-                        />
-                      </span>
-                    }
+                    modalTitle={t(slice.slice_name)}
                   />
                 </Menu.Item>
               ) : null}

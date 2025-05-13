@@ -394,16 +394,7 @@ export const useExploreAdditionalActionsMenu = (
                     {t('Export custom CSV')}
                   </span>
                 }
-                modalTitle={t('Chart Data: %s', slice.slice_name)}
-                modalBody={
-                  <span>
-                    {t('Insert the transitional ID')}
-                    <input
-                      className="form-control input-sm"
-                      placeholder={t('Discrepancy ID')}
-                    />
-                  </span>
-                }
+                modalTitle={t(slice.slice_name)}
               />
             </Menu.Item>
           ) : null}

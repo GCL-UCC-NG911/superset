@@ -26,26 +26,30 @@ const CustomCSVModalTrigger = ({
   latestQueryFormData,
   triggerNode,
   modalTitle,
-  modalBody,
 }: {
-  latestQueryFormData: object;
+  latestQueryFormData: any;
   triggerNode: ReactChild;
   modalTitle: ReactChild;
-  modalBody: ReactChild;
 }) => {
+  const [filename, setFilename] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
   const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
-  const exploreChart = useCallback(
-    () =>
-      exportChart({
-        formData: latestQueryFormData,
-        resultType: 'full',
-        resultFormat: 'custom',
-      }),
-    [latestQueryFormData],
-  );
   const theme = useTheme();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilename(e.target.value);
+  };
+
+  const handleExport = async () => {
+    // eslint-disable-next-line no-param-reassign
+    latestQueryFormData.chart_name = filename;
+    exportChart({
+      formData: latestQueryFormData,
+      resultType: 'results',
+      resultFormat: 'csv',
+    });
+  };
 
   return (
     <>
@@ -73,7 +77,7 @@ const CustomCSVModalTrigger = ({
               <Button
                 buttonStyle="primary"
                 buttonSize="small"
-                onClick={exploreChart}
+                onClick={handleExport}
               >
                 {t('Download chart')}
               </Button>
@@ -99,7 +103,13 @@ const CustomCSVModalTrigger = ({
           draggable
           destroyOnClose
         >
-          {modalBody}
+          <input
+            className="form-control input-sm"
+            type="text"
+            value={filename}
+            onChange={handleInputChange}
+            placeholder="Discrepancy ID"
+          />
         </Modal>
       ))()}
     </>
