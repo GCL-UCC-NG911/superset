@@ -556,7 +556,7 @@ class SliceHeaderControls extends React.PureComponent<
               >
                 {t('Export to PDF')}
               </Menu.Item>
-              {slice.slice_name === 'Discrepancy details - table' ? (
+              {slice?.slice_name === 'Discrepancy details - table' ? (
                 <Menu.Item
                   key={MENU_KEYS.EXPORT_CUSTOM_CSV}
                   icon={<Icons.FileOutlined css={dropdownIconsStyles} />}
@@ -568,7 +568,7 @@ class SliceHeaderControls extends React.PureComponent<
                         {t('Export discrepancy')}
                       </span>
                     }
-                    modalTitle={t(slice.slice_name)}
+                    modalTitle={t(slice?.slice_name)}
                   />
                 </Menu.Item>
               ) : null}
