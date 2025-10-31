@@ -345,6 +345,12 @@ humanize==4.11.0
     # via
     #   -c requirements/base.txt
     #   apache-superset
+httplib2==0.22.0
+    # via
+    #   google-api-python-client
+    #   google-auth-httplib2
+    #   google-oauth2-tool
+    #   oauth2client
 identify==2.5.36
     # via pre-commit
 idna==3.10
