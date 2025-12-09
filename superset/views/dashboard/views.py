@@ -122,7 +122,7 @@ class Dashboard(BaseSupersetView):
             }
 
         new_dashboard = DashboardModel(
-            dashboard_title="[ untitled dashboard ]",
+            dashboard_title="[ batata ]",
             owners=[g.user],
             json_metadata=json.dumps(metadata, sort_keys=True),
         )
