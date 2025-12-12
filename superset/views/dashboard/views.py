@@ -39,6 +39,7 @@ from superset.views.base import (
     SupersetModelView,
 )
 from superset.views.dashboard.mixin import DashboardMixin
+import uuid
 
 
 class DashboardModelView(
