@@ -120,9 +120,13 @@ class Dashboard(BaseSupersetView):
                 "native_filter_configuration": [],
                 "show_native_filters": True,
             }
-
+        # NGLS: use uuid4 to ensure unique dashboard titles
+        title = g.user.username + "'s Dashboard - " + str(uuid.uuid4())
+        result = db.session.query(DashboardModel).filter_by(dashboard_title=title).all()
+        if result:
+            title = title + " (1)"
         new_dashboard = DashboardModel(
-            dashboard_title="[ batata ]",
+            dashboard_title=re.sub(r'^\{\s*"?([^"}]+)"?\s*\}$', r'\1', title),
             owners=[g.user],
             json_metadata=json.dumps(metadata, sort_keys=True),
         )
