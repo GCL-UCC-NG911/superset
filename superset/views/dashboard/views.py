@@ -135,7 +135,8 @@ class Dashboard(BaseSupersetView):
                 break
             increment += 1
         new_dashboard = DashboardModel(
-            # regex to strip surrounding {} and quotes if present - g.username could be JSON-like
+            # regex to strip surrounding {} and quotes if present:
+            # g.username could be JSON-like
             dashboard_title=re.sub(r'^\{\s*"?([^"}]+)"?\s*\}$', r'\1', title),
             owners=[g.user],
             json_metadata=json.dumps(metadata, sort_keys=True),
