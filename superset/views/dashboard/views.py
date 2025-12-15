@@ -120,9 +120,23 @@ class Dashboard(BaseSupersetView):
                 "native_filter_configuration": [],
                 "show_native_filters": True,
             }
-
+        title = g.user.username + "'s Dashboard"
+        result = db.session.query(DashboardModel).filter_by(dashboard_title=title).all()
+        increment = 1
+        while result:
+            new_title = f"{title} ({increment})"
+            result = (
+                db.session.query(DashboardModel)
+                .filter_by(dashboard_title=new_title)
+                .all()
+            )
+            if not result:
+                title = new_title
+                break
+            increment += 1
         new_dashboard = DashboardModel(
-            dashboard_title="[ untitled dashboard ]",
+            # regex to strip surrounding {} and quotes if present - g.username could be JSON-like
+            dashboard_title=re.sub(r'^\{\s*"?([^"}]+)"?\s*\}$', r'\1', title),
             owners=[g.user],
             json_metadata=json.dumps(metadata, sort_keys=True),
         )
