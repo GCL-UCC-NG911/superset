@@ -56,8 +56,14 @@ class LogDAO(BaseDAO):
                 .group_by(Log.dashboard_id, Log.slice_id, Log.action)
                 .filter(
                     and_(
-                        Log.action.in_(actions),
+                        Log.action == "log",
                         Log.user_id == user_id,
+                        or_(
+                            *{
+                                Log.json.contains(f'"event_name": "{action}"')
+                                for action in actions
+                            },
+                        ),
                         # limit to one year of data to improve performance
                         Log.dttm > one_year_ago,
                         or_(Log.dashboard_id.isnot(None), Log.slice_id.isnot(None)),
@@ -96,6 +102,16 @@ class LogDAO(BaseDAO):
                 .outerjoin(Dashboard, Dashboard.id == Log.dashboard_id)
                 .outerjoin(Slice, Slice.id == Log.slice_id)
                 .filter(has_subject_title)
+                .filter(
+                    Log.action == "log",
+                    Log.user_id == user_id,
+                    or_(
+                        *{
+                            Log.json.contains(f'"event_name": "{action}"')
+                            for action in actions
+                        },
+                    ),
+                )
                 .filter(Log.action.in_(actions), Log.user_id == user_id)
                 .order_by(Log.dttm.desc())
                 .limit(page_size)

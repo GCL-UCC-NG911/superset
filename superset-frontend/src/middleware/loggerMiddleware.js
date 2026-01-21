@@ -82,12 +82,14 @@ const loggerMiddleware = store => next => action => {
     logMetadata = {
       source: 'dashboard',
       source_id: dashboardInfo.id,
+      dashboard_id: dashboardInfo.id,
       ...logMetadata,
     };
   } else if (explore?.slice) {
     logMetadata = {
       source: 'explore',
       source_id: explore.slice ? explore.slice.slice_id : 0,
+      ...(explore.slice.slice_id && { slice_id: explore.slice.slice_id }),
       ...logMetadata,
     };
   } else if (sqlLab) {
