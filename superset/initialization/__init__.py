@@ -183,7 +183,14 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         )
         from superset.views.sqllab import SqllabView
         from superset.views.tags import TagModelView, TagView
-        from superset.views.users.api import CurrentUserRestApi, UserRestApi
+        from superset.views.users.api import CurrentUserRestApi, UserRestApi, UsersRestApi, SecurityRolesApi, SecurityPermissionResourcesApi
+        # CHANGE - START #
+        #from flask_appbuilder.security.sqla.apis.user.api import UserRestApi
+        # from flask_appbuilder.security.sqla.apis.role.api import RoleRestApi
+        # from flask_appbuilder.security.sqla.apis.permission.api import PermissionRestApi
+        # from flask_appbuilder.security.sqla.apis.view_menu.api import ViewMenuRestApi
+        # from flask_appbuilder.security.sqla.apis.permission_view_menu.api import PermissionViewMenuRestApi
+        # CHANGE - END #
 
         set_app_error_handlers(self.superset_app)
 
@@ -222,6 +229,13 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         appbuilder.add_api(TagRestApi)
         appbuilder.add_api(SqlLabRestApi)
         appbuilder.add_api(SqlLabPermalinkRestApi)
+        # CHANGE - START #
+        appbuilder.add_api(UsersRestApi)
+        appbuilder.add_api(SecurityRolesApi)
+        appbuilder.add_api(SecurityPermissionResourcesApi)
+        # appbuilder.add_api(ViewMenuRestApi)
+        # appbuilder.add_api(PermissionViewMenuRestApi)
+        # CHANGE -END #
         #
         # Setup regular views
         #

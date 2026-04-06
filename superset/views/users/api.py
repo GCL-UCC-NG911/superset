@@ -14,7 +14,11 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-from flask import g, redirect, Response
+import json
+from flask import g, redirect, Response, request
+from flask_appbuilder import ModelRestApi
+from flask_appbuilder.models.sqla.interface import SQLAInterface
+from flask_appbuilder.security.sqla.models import User, Role, PermissionView
 from flask_appbuilder.api import expose, safe
 from flask_jwt_extended.exceptions import NoAuthorizationError
 from sqlalchemy.orm.exc import NoResultFound
@@ -163,3 +167,159 @@ class UserRestApi(BaseSupersetApi):
 
         # No avatar found, return a "no-content" response
         return Response(status=204)
+
+
+
+def parse_legacy_q():
+    q = request.args.get("q")
+    if not q:
+        return {}
+
+    try:
+        return json.loads(q)
+    except Exception:
+        return {}
+
+class UsersRestApi(ModelRestApi):
+    resource_name = "security/users"
+    datamodel = SQLAInterface(User)
+
+    class_permission_name = "User"
+    method_permission_name = {
+        "get_list": "list",
+        "get": "show",
+    }
+
+    list_columns = [
+        "id",
+        "username",
+        "first_name",
+        "last_name",
+        "email",
+        "active",
+        "roles.name",
+    ]
+
+    show_columns = list_columns
+
+    search_columns = [
+        "username",
+        "first_name",
+        "last_name",
+        "email",
+    ]
+
+    order_columns = ["id", "username", "email"]
+
+    page_size = 25
+    max_page_size = 1000
+
+    @expose("/", methods=("GET",))
+    @safe
+    def get_list(self, **kwargs):
+
+        args = parse_legacy_q()
+
+        page = args.get("page", 0)
+        page_size = args.get("page_size", self.page_size)
+
+        query = self.datamodel.session.query(User)
+
+        query = self._apply_base_filters(query)
+
+        total = query.count()
+
+        results = (
+            query.offset(page * page_size)
+            .limit(page_size)
+            .all()
+        )
+
+        data = [
+            {
+                "id": u.id,
+                "username": u.username,
+                "first_name": u.first_name,
+                "last_name": u.last_name,
+                "email": u.email,
+                "active": u.active,
+                "roles": [{"name": r.name} for r in u.roles],
+            }
+            for u in results
+        ]
+
+        return self.response(
+            200,
+            count=total,
+            result=data,
+        )
+
+class SecurityRolesApi(ModelRestApi):
+    resource_name = "security/roles"
+    datamodel = SQLAInterface(Role)
+
+    class_permission_name = "Role"
+
+    @expose("/", methods=("GET",))
+    @safe
+    def get_list(self, **kwargs):
+        args = parse_legacy_q()
+
+        page = args.get("page", 0)
+        page_size = args.get("page_size", 25)
+
+        query = self.datamodel.session.query(Role)
+
+        total = query.count()
+
+        results = (
+            query.offset(page * page_size)
+            .limit(page_size)
+            .all()
+        )
+
+        data = [
+            {
+                "id": r.id,
+                "name": r.name,
+            }
+            for r in results
+        ]
+
+        return self.response(200, count=total, result=data)
+
+class SecurityPermissionResourcesApi(ModelRestApi):
+    resource_name = "security/permissions-resources"
+    datamodel = SQLAInterface(PermissionView)
+
+    class_permission_name = "PermissionView"
+
+    @expose("/", methods=("GET",))
+    @safe
+    def get_list(self, **kwargs):
+        args = parse_legacy_q()
+
+        page = args.get("page", 0)
+        page_size = args.get("page_size", 50)
+
+        query = self.datamodel.session.query(PermissionView)
+
+        total = query.count()
+
+        results = (
+            query.offset(page * page_size)
+            .limit(page_size)
+            .all()
+        )
+
+        data = [
+            {
+                "id": p.id,
+                "permission": p.permission.name,
+                "view_menu": p.view_menu.name,
+            }
+            for p in results
+        ]
+
+        return self.response(200, count=total, result=data)
+    
