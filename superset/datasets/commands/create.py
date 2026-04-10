@@ -63,7 +63,9 @@ class CreateDatasetCommand(CreateMixin, BaseCommand):
         owner_ids: Optional[List[int]] = self._properties.get("owners")
 
         # Validate uniqueness
-        if not DatasetDAO.validate_uniqueness(database_id, schema, table_name):
+        if not DatasetDAO.validate_uniqueness(
+            database_id, schema, table_name
+        ) or not DatasetDAO.validate_name_uniqueness(table_name):
             exceptions.append(DatasetExistsValidationError(table_name))
 
         # Validate/Populate database

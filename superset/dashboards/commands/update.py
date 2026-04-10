@@ -30,6 +30,7 @@ from superset.dashboards.commands.exceptions import (
     DashboardInvalidError,
     DashboardNotFoundError,
     DashboardSlugExistsValidationError,
+    DashboardTitleExistsValidationError,
     DashboardUpdateFailedError,
 )
 from superset.dashboards.dao import DashboardDAO
@@ -67,6 +68,7 @@ class UpdateDashboardCommand(UpdateMixin, BaseCommand):
         exceptions: List[ValidationError] = []
         owners_ids: Optional[List[int]] = self._properties.get("owners")
         roles_ids: Optional[List[int]] = self._properties.get("roles")
+        dashboard_title: Optional[str] = self._properties.get("dashboard_title")
         slug: Optional[str] = self._properties.get("slug")
 
         # Validate/populate model exists
@@ -82,6 +84,12 @@ class UpdateDashboardCommand(UpdateMixin, BaseCommand):
         # Validate slug uniqueness
         if not DashboardDAO.validate_update_slug_uniqueness(self._model_id, slug):
             exceptions.append(DashboardSlugExistsValidationError())
+
+        # Validate title uniqueness
+        if not DashboardDAO.validate_title_uniqueness(
+            dashboard_title, self._model_id
+        ):
+            exceptions.append(DashboardTitleExistsValidationError())
 
         # Validate/Populate owner
         if owners_ids is None:

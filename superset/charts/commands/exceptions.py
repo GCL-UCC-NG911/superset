@@ -91,6 +91,15 @@ class DashboardsNotFoundValidationError(ValidationError):
         super().__init__(_("Dashboards do not exist"), field_name="dashboards")
 
 
+class ChartNameExistsValidationError(ValidationError):
+    """
+    Marshmallow validation error for chart name already exists
+    """
+
+    def __init__(self) -> None:
+        super().__init__([_("Name must be unique")], field_name="slice_name")
+
+
 class DatasourceTypeUpdateRequiredValidationError(ValidationError):
     """
     Marshmallow validation error for dashboards don't exist

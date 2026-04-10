@@ -41,6 +41,7 @@ import { Select } from 'src/components';
 import Loading from 'src/components/Loading';
 import { setSaveChartModalVisibility } from 'src/explore/actions/saveModalActions';
 import { SaveActionType } from 'src/explore/types';
+import { getClientErrorObject } from 'src/utils/getClientErrorObject';
 
 // Session storage key for recent dashboard
 const SK_DASHBOARD_ID = 'save_chart_recent_dashboard';
@@ -275,6 +276,23 @@ class SaveModal extends React.Component<SaveModalProps, SaveModalState> {
 
       this.setState({ isLoading: false });
       this.onHide();
+    } catch (error) {
+      this.setState({ isLoading: false });
+      const clientError = await getClientErrorObject(error);
+      this.props.actions.removeSaveModalAlert();
+
+      // Check if this is a duplicate name error
+      if (clientError.error?.includes('Name must be unique')) {
+        this.setState({
+          alert: t(
+            'A chart with the name already exists. Please enter a different name.',
+          ),
+        });
+      } else {
+        this.setState({
+          alert: clientError.error || t('Failed to save chart'),
+        });
+      }
     } finally {
       this.setState({ isLoading: false });
     }

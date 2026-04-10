@@ -16,7 +16,7 @@
 # under the License.
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from flask import g
 from flask_appbuilder.models.sqla import Model
@@ -26,6 +26,7 @@ from superset import security_manager
 from superset.charts.commands.exceptions import (
     ChartForbiddenError,
     ChartInvalidError,
+    ChartNameExistsValidationError,
     ChartNotFoundError,
     ChartUpdateFailedError,
     DashboardsNotFoundValidationError,
@@ -69,19 +70,17 @@ class UpdateChartCommand(UpdateMixin, BaseCommand):
     def validate(self) -> None:
         exceptions: List[ValidationError] = []
         dashboard_ids = self._properties.get("dashboards")
+        slice_name = self._properties.get("slice_name")
         owner_ids: Optional[List[int]] = self._properties.get("owners")
 
-        # Validate if datasource_id is provided datasource_type is required
-        datasource_id = self._properties.get("datasource_id")
-        if datasource_id is not None:
-            datasource_type = self._properties.get("datasource_type", "")
-            if not datasource_type:
-                exceptions.append(DatasourceTypeUpdateRequiredValidationError())
+        datasource_id, datasource_type = self._validate_datasource_type(exceptions)
 
         # Validate/populate model exists
         self._model = ChartDAO.find_by_id(self._model_id)
         if not self._model:
             raise ChartNotFoundError()
+
+        self._validate_name_uniqueness(slice_name, exceptions)
 
         # Check and update ownership; when only updating query context we ignore
         # ownership so the update can be performed by report workers
@@ -117,3 +116,23 @@ class UpdateChartCommand(UpdateMixin, BaseCommand):
             exception = ChartInvalidError()
             exception.add_list(exceptions)
             raise exception
+
+    def _validate_name_uniqueness(
+        self,
+        slice_name: Optional[str],
+        exceptions: List[ValidationError],
+    ) -> None:
+        if slice_name and not ChartDAO.validate_name_uniqueness(
+            slice_name, self._model_id
+        ):
+            exceptions.append(ChartNameExistsValidationError())
+
+    def _validate_datasource_type(
+        self,
+        exceptions: List[ValidationError],
+    ) -> Tuple[Optional[int], str]:
+        datasource_id = self._properties.get("datasource_id")
+        datasource_type = self._properties.get("datasource_type", "")
+        if datasource_id is not None and not datasource_type:
+            exceptions.append(DatasourceTypeUpdateRequiredValidationError())
+        return datasource_id, datasource_type
