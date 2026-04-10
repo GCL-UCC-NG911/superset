@@ -18,10 +18,20 @@ import json
 from flask import g, redirect, Response, request
 from flask_appbuilder import ModelRestApi
 from flask_appbuilder.models.sqla.interface import SQLAInterface
-from flask_appbuilder.security.sqla.models import User, Role, PermissionView
 from flask_appbuilder.api import expose, safe
 from flask_jwt_extended.exceptions import NoAuthorizationError
 from sqlalchemy.orm.exc import NoResultFound
+# NGLS CHANGE - START #
+from flask_appbuilder.security.sqla.models import (
+    User,
+    Role,
+    Permission,
+    ViewMenu,
+    PermissionView,
+)
+from sqlalchemy.orm import joinedload
+from sqlalchemy import asc, desc
+# NGLS CHANGE - END #
 
 from superset import app, is_feature_enabled
 from superset.daos.user import UserDAO
@@ -168,8 +178,7 @@ class UserRestApi(BaseSupersetApi):
         # No avatar found, return a "no-content" response
         return Response(status=204)
 
-
-
+# NGLS CHANGE - START #
 def parse_legacy_q():
     q = request.args.get("q")
     if not q:
@@ -180,60 +189,110 @@ def parse_legacy_q():
     except Exception:
         return {}
 
-class UsersRestApi(ModelRestApi):
-    resource_name = "security/users"
-    datamodel = SQLAInterface(User)
-
-    class_permission_name = "User"
-    method_permission_name = {
-        "get_list": "list",
-        "get": "show",
-    }
-
-    list_columns = [
-        "id",
-        "username",
-        "first_name",
-        "last_name",
-        "email",
-        "active",
-        "roles.name",
-    ]
-
-    show_columns = list_columns
-
-    search_columns = [
-        "username",
-        "first_name",
-        "last_name",
-        "email",
-    ]
-
-    order_columns = ["id", "username", "email"]
-
+class LegacyBaseApi(ModelRestApi):
     page_size = 25
     max_page_size = 1000
+
+    def _get_args(self):
+        return parse_legacy_q()
+
+    def _pagination(self):
+        args = self._get_args()
+        page = args.get("page", 0)
+        page_size = min(args.get("page_size", self.page_size), self.max_page_size)
+        return page, page_size
+
+    # ================= FILTERS =================
+    def _apply_filters(self, query):
+        args = self._get_args()
+        filters = args.get("filters", [])
+
+        for f in filters:
+            col = f.get("col")
+            opr = f.get("opr")
+            value = f.get("value")
+
+            column = getattr(self.datamodel.obj, col, None)
+            if not column:
+                continue
+
+            if opr == "eq":
+                query = query.filter(column == value)
+            elif opr == "ne":
+                query = query.filter(column != value)
+            elif opr == "like":
+                query = query.filter(column.ilike(f"%{value}%"))
+            elif opr == "in":
+                query = query.filter(column.in_(value))
+            elif opr == "gt":
+                query = query.filter(column > value)
+            elif opr == "lt":
+                query = query.filter(column < value)
+
+        return query
+
+    # ================= ORDER =================
+    def _apply_ordering(self, query):
+        args = self._get_args()
+        order_col = args.get("order_column")
+        order_dir = args.get("order_direction", "asc")
+
+        if not order_col:
+            return query
+
+        column = getattr(self.datamodel.obj, order_col, None)
+        if not column:
+            return query
+
+        if order_dir == "desc":
+            return query.order_by(desc(column))
+        return query.order_by(asc(column))
+
+    # ================= OPTIMIZED COUNTING =================
+    def _get_count(self, query):
+        args = self._get_args()
+
+        if args.get("include_count") is False:
+            return None
+
+        if args.get("fast_count"):
+            return query.limit(1000).count()
+
+        return query.order_by(None).count()
+
+    # ================= QUERY PIPELINE =================
+    def _apply_all(self, query):
+        query = self._apply_filters(query)
+        query = self._apply_ordering(query)
+        return query
+
+
+
+# ================= USERS =================
+class LegacyUsersApi(LegacyBaseApi):
+    resource_name = "legacy/security/users"
+    datamodel = SQLAInterface(User)
 
     @expose("/", methods=("GET",))
     @safe
     def get_list(self, **kwargs):
-
-        args = parse_legacy_q()
-
-        page = args.get("page", 0)
-        page_size = args.get("page_size", self.page_size)
+        """
+        Legacy users API (Superset 2.x compatible)
+        ---
+        get:
+          summary: Get users (legacy format)
+          responses:
+            200:
+              description: List of users
+        """
+        page, page_size = self._pagination()
 
         query = self.datamodel.session.query(User)
+        query = self._apply_all(query)
+        # total = query.count()
+        total = self._get_count(query)
 
-        query = self._apply_base_filters(query)
-
-        total = query.count()
-
-        results = (
-            query.offset(page * page_size)
-            .limit(page_size)
-            .all()
-        )
+        results = query.offset(page * page_size).limit(page_size).all()
 
         data = [
             {
@@ -243,74 +302,248 @@ class UsersRestApi(ModelRestApi):
                 "last_name": u.last_name,
                 "email": u.email,
                 "active": u.active,
-                "roles": [{"name": r.name} for r in u.roles],
+                "roles": [{"id": r.id, "name": r.name} for r in u.roles],
             }
             for u in results
         ]
 
-        return self.response(
-            200,
-            count=total,
-            result=data,
-        )
+        # return self.response(200, count=total, result=data)
+        response = {"result": data}
 
-class SecurityRolesApi(ModelRestApi):
-    resource_name = "security/roles"
+        if total is not None:
+            response["count"] = total
+
+        return self.response(200, **response)
+
+
+# ================= ROLES =================
+class LegacyRolesApi(LegacyBaseApi):
+    resource_name = "legacy/security/roles"
+    datamodel = SQLAInterface(Role)
+
+    @expose("/", methods=("GET",))
+    @safe
+    def get_list(self, **kwargs):
+        page, page_size = self._pagination()
+
+        query = self.datamodel.session.query(Role)
+        query = self._apply_all(query)
+        # total = query.count()
+        total = self._get_count(query)
+
+        results = query.offset(page * page_size).limit(page_size).all()
+
+        data = [{"id": r.id, "name": r.name} for r in results]
+
+        # return self.response(200, count=total, result=data)
+        response = {"result": data}
+
+        if total is not None:
+            response["count"] = total
+
+        return self.response(200, **response)
+
+
+class LegacyPostRolePermissionsApi(ModelRestApi):
+    resource_name = "legacy/security/roles"
     datamodel = SQLAInterface(Role)
 
     class_permission_name = "Role"
 
-    @expose("/", methods=("GET",))
+    @expose("/<int:pk>/permissions/", methods=("POST",))
     @safe
-    def get_list(self, **kwargs):
-        args = parse_legacy_q()
+    def add_permissions(self, pk):
+        session = self.datamodel.session
 
-        page = args.get("page", 0)
-        page_size = args.get("page_size", 25)
+        role = session.get(Role, pk)
+        if not role:
+            return self.response_404()
 
-        query = self.datamodel.session.query(Role)
+        data = request.json or {}
 
-        total = query.count()
+        added = []
 
-        results = (
-            query.offset(page * page_size)
-            .limit(page_size)
-            .all()
+        # 🔹 Case 1: ids
+        if "permission_view_menu_ids" in data:
+            pvs = (
+                session.query(PermissionView)
+                .filter(PermissionView.id.in_(data["permission_view_menu_ids"]))
+                .all()
+            )
+
+            for pv in pvs:
+                if pv not in role.permissions:
+                    role.permissions.append(pv)
+                    added.append(pv.id)
+
+        # 🔹 Case 2: legacy (names)
+        elif "permissions" in data:
+            for item in data["permissions"]:
+                permission = None
+                view_menu = None
+
+                if "permission_name" in item:
+                    permission = (
+                        session.query(Permission)
+                        .filter_by(name=item["permission_name"])
+                        .one_or_none()
+                    )
+
+                if "view_menu_name" in item:
+                    view_menu = (
+                        session.query(ViewMenu)
+                        .filter_by(name=item["view_menu_name"])
+                        .one_or_none()
+                    )
+
+                if not permission or not view_menu:
+                    continue
+
+                pv = (
+                    session.query(PermissionView)
+                    .filter_by(
+                        permission_id=permission.id,
+                        view_menu_id=view_menu.id,
+                    )
+                    .one_or_none()
+                )
+
+                if pv and pv not in role.permissions:
+                    role.permissions.append(pv)
+                    added.append(pv.id)
+
+        session.commit()
+
+        return self.response(
+            200,
+            role_id=role.id,
+            added=added,
+            total=len(role.permissions),
         )
 
-        data = [
+
+class LegacyGetRolePermissionsApi(ModelRestApi):
+    resource_name = "legacy/security/roles"
+    datamodel = SQLAInterface(Role)
+
+    class_permission_name = "Role"
+
+    @expose("/<int:pk>/permissions/", methods=("GET",))
+    @safe
+    def get_permissions(self, pk: int):
+        """
+        ---
+        get:
+          summary: Get permissions for a role
+          parameters:
+            - in: path
+              name: pk
+              required: true
+              schema:
+                type: integer
+          responses:
+            200:
+              description: List of permissions for the role
+        """
+
+        try:
+            role = (
+                self.datamodel.session.query(Role)
+                .options(
+                    joinedload(Role.permissions)
+                    .joinedload(PermissionView.permission),
+                    joinedload(Role.permissions)
+                    .joinedload(PermissionView.view_menu),
+                )
+                .filter(Role.id == pk)
+                .one()
+            )
+        except NoResultFound:
+            return self.response_404()
+
+        result = [
             {
-                "id": r.id,
-                "name": r.name,
+                "id": perm.id,
+                "permission": perm.permission.name,
+                "view_menu": perm.view_menu.name,
             }
-            for r in results
+            for perm in role.permissions
         ]
 
-        return self.response(200, count=total, result=data)
+        return self.response(200, count=len(result), result=result)
 
-class SecurityPermissionResourcesApi(ModelRestApi):
-    resource_name = "security/permissions-resources"
-    datamodel = SQLAInterface(PermissionView)
-
-    class_permission_name = "PermissionView"
+# ================= PERMISSIONS =================
+class LegacyPermissionsApi(LegacyBaseApi):
+    resource_name = "legacy/security/permissions"
+    datamodel = SQLAInterface(Permission)
 
     @expose("/", methods=("GET",))
     @safe
     def get_list(self, **kwargs):
-        args = parse_legacy_q()
+        page, page_size = self._pagination()
 
-        page = args.get("page", 0)
-        page_size = args.get("page_size", 50)
+        query = self.datamodel.session.query(Permission)
+        query = self._apply_all(query)
+        # total = query.count()
+        total = self._get_count(query)
+
+        results = query.offset(page * page_size).limit(page_size).all()
+
+        data = [{"id": p.id, "name": p.name} for p in results]
+
+        # return self.response(200, count=total, result=data)
+        response = {"result": data}
+
+        if total is not None:
+            response["count"] = total
+
+        return self.response(200, **response)
+
+
+# ================= RESOURCES =================
+class LegacyResourcesApi(LegacyBaseApi):
+    resource_name = "legacy/security/resources"
+    datamodel = SQLAInterface(ViewMenu)
+
+    @expose("/", methods=("GET",))
+    @safe
+    def get_list(self, **kwargs):
+        page, page_size = self._pagination()
+
+        query = self.datamodel.session.query(ViewMenu)
+        query = self._apply_all(query)
+        # total = query.count()
+        total = self._get_count(query)
+
+        results = query.offset(page * page_size).limit(page_size).all()
+
+        data = [{"id": r.id, "name": r.name} for r in results]
+
+        # return self.response(200, count=total, result=data)
+        response = {"result": data}
+
+        if total is not None:
+            response["count"] = total
+
+        return self.response(200, **response)
+
+
+# ================= PERMISSION-RESOURCE =================
+class LegacyPermissionResourcesApi(LegacyBaseApi):
+    resource_name = "legacy/security/permissions-resources"
+    datamodel = SQLAInterface(PermissionView)
+
+    @expose("/", methods=("GET",))
+    @safe
+    def get_list(self, **kwargs):
+        page, page_size = self._pagination()
 
         query = self.datamodel.session.query(PermissionView)
+        query = self._apply_all(query)
+        # total = query.count()
+        total = self._get_count(query)
 
-        total = query.count()
-
-        results = (
-            query.offset(page * page_size)
-            .limit(page_size)
-            .all()
-        )
+        results = query.offset(page * page_size).limit(page_size).all()
 
         data = [
             {
@@ -321,5 +554,11 @@ class SecurityPermissionResourcesApi(ModelRestApi):
             for p in results
         ]
 
-        return self.response(200, count=total, result=data)
-    
+        # return self.response(200, count=total, result=data)
+        response = {"result": data}
+
+        if total is not None:
+            response["count"] = total
+
+        return self.response(200, **response)
+# NGLS CHANGE - END #
