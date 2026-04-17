@@ -86,11 +86,11 @@ class UpdateDatasetCommand(UpdateMixin, BaseCommand):
             raise DatasetForbiddenError() from ex
 
         database_id = self._properties.get("database", None)
-        table_name = self._properties.get("table_name", None)
+        table_name = self._properties.get("table_name", self._model.table_name)
         # Validate uniqueness
         if not DatasetDAO.validate_update_uniqueness(
             self._model.database_id, self._model_id, table_name
-        ):
+        ) or not DatasetDAO.validate_name_uniqueness(table_name, self._model_id):
             exceptions.append(DatasetExistsValidationError(table_name))
         # Validate/Populate database not allowed to change
         if database_id and database_id != self._model:

@@ -27,6 +27,7 @@ from superset.dashboards.commands.exceptions import (
     DashboardCreateFailedError,
     DashboardInvalidError,
     DashboardSlugExistsValidationError,
+    DashboardTitleExistsValidationError,
 )
 from superset.dashboards.dao import DashboardDAO
 
@@ -51,7 +52,12 @@ class CreateDashboardCommand(CreateMixin, BaseCommand):
         exceptions: List[ValidationError] = []
         owner_ids: Optional[List[int]] = self._properties.get("owners")
         role_ids: Optional[List[int]] = self._properties.get("roles")
+        dashboard_title: str = self._properties.get("dashboard_title", "")
         slug: str = self._properties.get("slug", "")
+
+        # Validate title uniqueness
+        if dashboard_title and not DashboardDAO.validate_title_uniqueness(dashboard_title):
+            exceptions.append(DashboardTitleExistsValidationError())
 
         # Validate slug uniqueness
         if not DashboardDAO.validate_slug_uniqueness(slug):

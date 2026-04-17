@@ -25,6 +25,7 @@ from marshmallow import ValidationError
 from superset.charts.commands.exceptions import (
     ChartCreateFailedError,
     ChartInvalidError,
+    ChartNameExistsValidationError,
     DashboardsNotFoundValidationError,
 )
 from superset.charts.dao import ChartDAO
@@ -55,8 +56,13 @@ class CreateChartCommand(CreateMixin, BaseCommand):
         exceptions = []
         datasource_type = self._properties["datasource_type"]
         datasource_id = self._properties["datasource_id"]
+        slice_name = self._properties.get("slice_name")
         dashboard_ids = self._properties.get("dashboards", [])
         owner_ids: Optional[List[int]] = self._properties.get("owners")
+
+        # Validate chart name uniqueness
+        if slice_name and not ChartDAO.validate_name_uniqueness(slice_name):
+            exceptions.append(ChartNameExistsValidationError())
 
         # Validate/Populate datasource
         try:

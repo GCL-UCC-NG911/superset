@@ -38,6 +38,15 @@ class ChartDAO(BaseDAO):
     base_filter = ChartFilter
 
     @staticmethod
+    def validate_name_uniqueness(name: str, chart_id: Optional[int] = None) -> bool:
+        chart_query = db.session.query(Slice).filter(Slice.slice_name == name)
+
+        if chart_id:
+            chart_query = chart_query.filter(Slice.id != chart_id)
+
+        return not db.session.query(chart_query.exists()).scalar()
+
+    @staticmethod
     def bulk_delete(models: Optional[List[Slice]], commit: bool = True) -> None:
         item_ids = [model.id for model in models] if models else []
         # bulk delete, first delete related data
