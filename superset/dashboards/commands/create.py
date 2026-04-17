@@ -56,7 +56,8 @@ class CreateDashboardCommand(CreateMixin, BaseCommand):
         slug: str = self._properties.get("slug", "")
 
         # Validate title uniqueness
-        if dashboard_title and not DashboardDAO.validate_title_uniqueness(dashboard_title):
+        if dashboard_title and \
+            not DashboardDAO.validate_title_uniqueness(dashboard_title):
             exceptions.append(DashboardTitleExistsValidationError())
 
         # Validate slug uniqueness
