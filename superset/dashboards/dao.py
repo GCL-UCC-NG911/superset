@@ -140,7 +140,9 @@ class DashboardDAO(BaseDAO):
 
     @staticmethod
     def validate_title_uniqueness(name: str, dashboard_id: Optional[int] = None) -> bool:
-        dashboard_query = db.session.query(Dashboard).filter(Dashboard.dashboard_title == name)
+        dashboard_query = db.session.query(Dashboard).filter(
+            Dashboard.dashboard_title == name
+         )
 
         if dashboard_id:
             dashboard_query = dashboard_query.filter(Dashboard.id != dashboard_id)
