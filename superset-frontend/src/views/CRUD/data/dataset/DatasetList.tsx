@@ -771,8 +771,8 @@ const DatasetList: FunctionComponent<DatasetListProps> = ({
               renderBulkSelectCopy={selected => {
                 const { virtualCount, physicalCount } = selected.reduce(
                   (acc, e) => {
-                    if (e.original.kind === 'physical') acc.physicalCount += 1;
-                    else if (e.original.kind === 'virtual') {
+                    if (e.kind === 'physical') acc.physicalCount += 1;
+                    else if (e.kind === 'virtual') {
                       acc.virtualCount += 1;
                     }
                     return acc;

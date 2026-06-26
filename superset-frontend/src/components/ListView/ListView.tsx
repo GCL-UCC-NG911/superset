@@ -17,7 +17,13 @@
  * under the License.
  */
 import { t, styled } from '@superset-ui/core';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Alert from 'src/components/Alert';
 import cx from 'classnames';
 import Button from 'src/components/Button';
@@ -120,20 +126,6 @@ const BulkSelectWrapper = styled(Alert)`
     }
   `}
 `;
-
-const bulkSelectColumnConfig = {
-  Cell: ({ row }: any) => (
-    <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} id={row.id} />
-  ),
-  Header: ({ getToggleAllRowsSelectedProps }: any) => (
-    <IndeterminateCheckbox
-      {...getToggleAllRowsSelectedProps()}
-      id="header-toggle-all"
-    />
-  ),
-  id: 'selection',
-  size: 'sm',
-};
 
 const ViewModeContainer = styled.div`
   padding-right: ${({ theme }) => theme.gridUnit * 4}px;
@@ -249,6 +241,80 @@ function ListView<T extends object = any>({
   highlightRowId,
   emptyState,
 }: ListViewProps<T>) {
+  const [selectedRowsMap, setSelectedRowsMap] = useState<Record<string, T>>({});
+  const selectedRowsMapRef = useRef<Record<string, T>>({});
+
+  // Dynamic bulk-select column config: persists row data directly into
+  // selectedRowsMapRef on each checkbox toggle so selections survive page
+  // navigation without any reconciliation effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const bulkSelectColumnConfig = useMemo(
+    () => ({
+      Cell: ({ row }: any) => {
+        const toggleProps = row.getToggleRowSelectedProps();
+        return (
+          <IndeterminateCheckbox
+            {...toggleProps}
+            id={row.id}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              toggleProps.onChange(e);
+              if (e.target.checked) {
+                selectedRowsMapRef.current = {
+                  ...selectedRowsMapRef.current,
+                  [row.id]: row.original,
+                };
+              } else {
+                const { [row.id]: _removed, ...rest } =
+                  selectedRowsMapRef.current;
+                selectedRowsMapRef.current = rest;
+              }
+              setSelectedRowsMap({ ...selectedRowsMapRef.current });
+            }}
+          />
+        );
+      },
+      Header: ({ getToggleAllRowsSelectedProps, rows: tableRows }: any) => {
+        const toggleProps = getToggleAllRowsSelectedProps();
+        return (
+          <IndeterminateCheckbox
+            {...toggleProps}
+            id="header-toggle-all"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              toggleProps.onChange(e);
+              if (e.target.checked) {
+                const additions: Record<string, T> = {};
+                tableRows.forEach((row: any) => {
+                  additions[row.id] = row.original;
+                });
+                selectedRowsMapRef.current = {
+                  ...selectedRowsMapRef.current,
+                  ...additions,
+                };
+              } else {
+                const currentPageIds = new Set<string>(
+                  tableRows.map((row: any) => String(row.id)),
+                );
+                const filtered: Record<string, T> = {};
+                (
+                  Object.entries(selectedRowsMapRef.current) as [string, T][]
+                ).forEach(([id, row]) => {
+                  if (!currentPageIds.has(id)) {
+                    filtered[id] = row;
+                  }
+                });
+                selectedRowsMapRef.current = filtered;
+              }
+              setSelectedRowsMap({ ...selectedRowsMapRef.current });
+            }}
+          />
+        );
+      },
+      id: 'selection',
+      size: 'sm',
+    }),
+    [],
+  );
+
   const {
     getTableProps,
     getTableBodyProps,
@@ -258,7 +324,7 @@ function ListView<T extends object = any>({
     pageCount = 1,
     gotoPage,
     applyFilterValue,
-    selectedFlatRows,
+    selectedRowIds,
     toggleAllRowsSelected,
     setViewMode,
     state: { pageIndex, pageSize, internalFilters, viewMode },
@@ -299,12 +365,44 @@ function ListView<T extends object = any>({
     }
   }, [query.filters]);
 
+  const handleDeselectAll = useCallback(() => {
+    toggleAllRowsSelected(false);
+    selectedRowsMapRef.current = {};
+    setSelectedRowsMap({});
+  }, [toggleAllRowsSelected]);
+
+  const selectedRows = useMemo(
+    () => Object.values(selectedRowsMap),
+    [selectedRowsMap],
+  );
+
+  const handleBulkActionClick = useCallback(
+    async (action: NonNullable<ListViewProps<T>['bulkActions']>[number]) => {
+      await Promise.resolve(action.onSelect(selectedRows));
+      if (action.key === 'delete') {
+        handleDeselectAll();
+      }
+    },
+    [handleDeselectAll, selectedRows],
+  );
+
   const cardViewEnabled = Boolean(renderCard);
 
   useEffect(() => {
     // discard selections if bulk select is disabled
     if (!bulkSelectEnabled) toggleAllRowsSelected(false);
   }, [bulkSelectEnabled, toggleAllRowsSelected]);
+
+  // Clear the map when bulk-select is disabled or all rows are deselected
+  // (e.g. via the "Deselect all" button which calls toggleAllRowsSelected(false)).
+  useEffect(() => {
+    if (!bulkSelectEnabled || !Object.keys(selectedRowIds || {}).length) {
+      selectedRowsMapRef.current = {};
+      setSelectedRowsMap((current: Record<string, T>) =>
+        Object.keys(current).length ? {} : current,
+      );
+    }
+  }, [bulkSelectEnabled, selectedRowIds]);
 
   return (
     <ListViewStyles>
@@ -344,16 +442,16 @@ function ListView<T extends object = any>({
               message={
                 <>
                   <div className="selectedCopy" data-test="bulk-select-copy">
-                    {renderBulkSelectCopy(selectedFlatRows)}
+                    {renderBulkSelectCopy(selectedRows)}
                   </div>
-                  {Boolean(selectedFlatRows.length) && (
+                  {Boolean(selectedRows.length) && (
                     <>
                       <span
                         data-test="bulk-select-deselect-all"
                         role="button"
                         tabIndex={0}
                         className="deselect-all"
-                        onClick={() => toggleAllRowsSelected(false)}
+                        onClick={handleDeselectAll}
                       >
                         {t('Deselect all')}
                       </span>
@@ -364,11 +462,7 @@ function ListView<T extends object = any>({
                           key={action.key}
                           buttonStyle={action.type}
                           cta
-                          onClick={() =>
-                            action.onSelect(
-                              selectedFlatRows.map(r => r.original),
-                            )
-                          }
+                          onClick={() => handleBulkActionClick(action)}
                         >
                           {action.name}
                         </Button>

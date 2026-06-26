@@ -33,7 +33,6 @@ from superset.commands.importers.v1.utils import (
 from superset.dao.base import BaseDAO
 from superset.models.core import Database
 
-
 class ImportModelsCommand(BaseCommand):
     """Import models"""
 

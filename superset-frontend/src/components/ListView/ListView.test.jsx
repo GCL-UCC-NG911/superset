@@ -247,6 +247,80 @@ describe('ListView', () => {
     `);
   });
 
+  it('deselects all rows after bulk delete resolves', async () => {
+    const deleteAction = jest.fn(() => Promise.resolve());
+    const wrapper2 = factory({
+      ...mockedProps,
+      bulkActions: [
+        {
+          key: 'delete',
+          name: 'delete',
+          type: 'danger',
+          onSelect: deleteAction,
+        },
+      ],
+    });
+    await waitForComponentToPaint(wrapper2);
+
+    act(() => {
+      wrapper2.find('input[id="header-toggle-all"]').at(0).prop('onChange')({
+        target: { value: 'on', checked: true },
+      });
+    });
+    wrapper2.update();
+
+    await act(async () => {
+      await wrapper2
+        .find('[data-test="bulk-select-controls"]')
+        .find(Button)
+        .props()
+        .onClick();
+    });
+    await waitForComponentToPaint(wrapper2);
+    wrapper2.update();
+
+    expect(deleteAction).toHaveBeenCalledWith(mockedProps.data);
+    wrapper2.find(IndeterminateCheckbox).forEach(input => {
+      expect(input.props().checked).toBe(false);
+    });
+  });
+
+  it('keeps selection after non-delete bulk action resolves', async () => {
+    const exportAction = jest.fn(() => Promise.resolve());
+    const wrapper2 = factory({
+      ...mockedProps,
+      bulkActions: [
+        {
+          key: 'export',
+          name: 'export',
+          type: 'primary',
+          onSelect: exportAction,
+        },
+      ],
+    });
+    await waitForComponentToPaint(wrapper2);
+
+    act(() => {
+      wrapper2.find('input[id="0"]').at(0).prop('onChange')({
+        target: { value: 'on', checked: true },
+      });
+    });
+    wrapper2.update();
+
+    await act(async () => {
+      await wrapper2
+        .find('[data-test="bulk-select-controls"]')
+        .find(Button)
+        .props()
+        .onClick();
+    });
+    await waitForComponentToPaint(wrapper2);
+    wrapper2.update();
+
+    expect(exportAction).toHaveBeenCalledWith([mockedProps.data[0]]);
+    expect(wrapper2.find('input[id="0"]').at(0).props().checked).toBe(true);
+  });
+
   it('handles bulk actions on all rows', () => {
     act(() => {
       wrapper.find('input[id="header-toggle-all"]').at(0).prop('onChange')({

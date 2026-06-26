@@ -21,11 +21,13 @@ from copy import copy
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+import yaml
 from flask_babel import lazy_gettext as _
 from sqlalchemy.orm import make_transient, Session
 
 from superset import db
 from superset.commands.base import BaseCommand
+from superset.commands.importers.exceptions import IncorrectVersionError
 from superset.connectors.sqla.models import SqlaTable, SqlMetric, TableColumn
 from superset.datasets.commands.importers.v0 import import_dataset
 from superset.exceptions import DashboardImportException
@@ -270,8 +272,7 @@ def import_dashboard(
 
 def decode_dashboards(o: Dict[str, Any]) -> Any:
     """
-    Function to be passed into json.loads obj_hook parameter
-    Recreates the dashboard object from a json representation.
+    Recreates dashboard objects from serialized marker dictionaries.
     """
 
     if "__Dashboard__" in o:
@@ -290,6 +291,23 @@ def decode_dashboards(o: Dict[str, Any]) -> Any:
     return o
 
 
+def decode_dashboards_content(content: str) -> Any:
+    """
+    Parse YAML content and recursively decode dashboard marker objects.
+    YAML parser is used instead of JSON to support both YAML and JSON formats.
+    """
+
+    def recursive_decode(value: Any) -> Any:
+        if isinstance(value, list):
+            return [recursive_decode(item) for item in value]
+        if isinstance(value, dict):
+            decoded = {key: recursive_decode(item) for key, item in value.items()}
+            return decode_dashboards(decoded)
+        return value
+
+    return recursive_decode(yaml.safe_load(content))
+
+
 def import_dashboards(
     session: Session,
     content: str,
@@ -299,7 +317,7 @@ def import_dashboards(
     """Imports dashboards from a stream to databases"""
     current_tt = int(time.time())
     import_time = current_tt if import_time is None else import_time
-    data = json.loads(content, object_hook=decode_dashboards)
+    data = decode_dashboards_content(content)
     if not data:
         raise DashboardImportException(_("No data in file"))
     dataset_id_mapping: Dict[int, int] = {}
@@ -316,7 +334,7 @@ def import_dashboards(
 
 class ImportDashboardsCommand(BaseCommand):
     """
-    Import dashboard in JSON format.
+    Import dashboards from YAML/JSON v0 format.
 
     This is the original unversioned format used to export and import dashboards
     in Superset.
@@ -337,10 +355,18 @@ class ImportDashboardsCommand(BaseCommand):
             import_dashboards(db.session, content, self.database_id)
 
     def validate(self) -> None:
-        # ensure all files are JSON
-        for content in self.contents.values():
+        # ensure all files are YAML/JSON with dashboard v0 keys
+        for file_name, content in self.contents.items():
             try:
-                json.loads(content)
-            except ValueError:
-                logger.exception("Invalid JSON file")
-                raise
+                data = yaml.safe_load(content)
+            except yaml.YAMLError as ex:
+                logger.exception("Invalid YAML file")
+                raise IncorrectVersionError(
+                    f"{file_name} is not a valid YAML file"
+                ) from ex
+
+            if not isinstance(data, dict):
+                raise IncorrectVersionError(f"{file_name} is not a valid file")
+
+            if "datasources" not in data or "dashboards" not in data:
+                raise IncorrectVersionError(f"{file_name} has no valid keys")
