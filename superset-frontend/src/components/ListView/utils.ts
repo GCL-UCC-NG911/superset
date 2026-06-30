@@ -69,6 +69,13 @@ export class ListViewError extends Error {
   name = 'ListViewError';
 }
 
+function getRowIdentifier(row: Record<string, any>, rowIndex: number) {
+  if (typeof row.id !== 'undefined' && row.id !== null) {
+    return String(row.id);
+  }
+  return String(rowIndex);
+}
+
 // removes element from a list, returns new list
 export function removeFromList(list: any[], index: number): any[] {
   return list.filter((_, i) => index !== i);
@@ -259,12 +266,13 @@ export function useListViewState({
     setAllFilters,
     selectedFlatRows,
     toggleAllRowsSelected,
-    state: { pageIndex, pageSize, sortBy, filters },
+    state: { pageIndex, pageSize, sortBy, filters, selectedRowIds },
   } = useTable(
     {
       columns: columnsWithSelect,
       count,
       data,
+      getRowId: (row, rowIndex) => getRowIdentifier(row, rowIndex),
       disableFilters: true,
       disableSortRemove: true,
       initialState,
@@ -272,6 +280,7 @@ export function useListViewState({
       manualPagination: true,
       manualSortBy: true,
       autoResetFilters: false,
+      autoResetSelectedRows: false,
       pageCount: Math.ceil(count / initialPageSize),
     },
     useFilters,
@@ -373,6 +382,7 @@ export function useListViewState({
     prepareRow,
     rows,
     selectedFlatRows,
+    selectedRowIds,
     setAllFilters,
     state: { pageIndex, pageSize, sortBy, filters, internalFilters, viewMode },
     toggleAllRowsSelected,
