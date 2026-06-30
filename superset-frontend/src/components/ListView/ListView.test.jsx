@@ -218,8 +218,8 @@ describe('ListView', () => {
 
   it('handles bulk actions on 1 row', () => {
     act(() => {
-      wrapper.find('input[id="0"]').at(0).prop('onChange')({
-        target: { value: 'on' },
+      wrapper.find('input[id="1"]').at(0).prop('onChange')({
+        target: { value: 'on', checked: true },
       });
     });
     wrapper.update();
@@ -301,7 +301,7 @@ describe('ListView', () => {
     await waitForComponentToPaint(wrapper2);
 
     act(() => {
-      wrapper2.find('input[id="0"]').at(0).prop('onChange')({
+      wrapper2.find('input[id="1"]').at(0).prop('onChange')({
         target: { value: 'on', checked: true },
       });
     });
@@ -318,13 +318,13 @@ describe('ListView', () => {
     wrapper2.update();
 
     expect(exportAction).toHaveBeenCalledWith([mockedProps.data[0]]);
-    expect(wrapper2.find('input[id="0"]').at(0).props().checked).toBe(true);
+    expect(wrapper2.find('input[id="1"]').at(0).props().checked).toBe(true);
   });
 
   it('handles bulk actions on all rows', () => {
     act(() => {
       wrapper.find('input[id="header-toggle-all"]').at(0).prop('onChange')({
-        target: { value: 'on' },
+        target: { value: 'on', checked: true },
       });
     });
     wrapper.update();
