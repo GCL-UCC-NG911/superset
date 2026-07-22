@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 import logging
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from flask import request, Response
@@ -51,6 +52,7 @@ from superset.reports.schemas import (
     ReportSchedulePostSchema,
     ReportSchedulePutSchema,
 )
+from superset.tasks.scheduler import execute
 from superset.views.base_api import (
     BaseSupersetModelRestApi,
     RelatedFieldFilter,
@@ -74,6 +76,7 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
     include_route_methods = RouteMethod.REST_MODEL_VIEW_CRUD_SET | {
         RouteMethod.RELATED,
         "bulk_delete",  # not using RouteMethod since locally defined
+        "send_now",
     }
     class_permission_name = "ReportSchedule"
     method_permission_name = MODEL_API_RW_METHOD_PERMISSION_MAP
@@ -508,3 +511,43 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
             return self.response_403()
         except ReportScheduleBulkDeleteFailedError as ex:
             return self.response_422(message=str(ex))
+
+    @expose("/<int:pk>/send_now/", methods=["POST"])
+    @protect()
+    @safe
+    @permission_name("post")
+    @statsd_metrics
+    def send_now(self, pk: int) -> Response:
+        """
+        Trigger a Report Schedule execution immediately.
+        """
+
+        try:
+            report_schedule = self.datamodel.get(pk)
+
+            if not report_schedule:
+                return self.response_404()
+
+            scheduled_dttm = datetime.now(timezone.utc)
+
+            execute.apply_async(
+                (
+                    pk,
+                    scheduled_dttm.isoformat(),
+                )
+            )
+
+            return self.response(
+                200,
+                message="Report triggered successfully",
+            )
+
+        except Exception as ex:
+            logger.exception(
+                "Error triggering report schedule %s",
+                pk,
+            )
+
+            return self.response_500(
+                message=str(ex),
+            )
