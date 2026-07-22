@@ -393,7 +393,7 @@ function AlertList({
                   label: 'send-now-action',
                   tooltip: t('Send Now'),
                   placement: 'bottom',
-                  icon: 'PaperPlane',
+                  icon: 'Bolt',
                   onClick: () => handleSendNow(original),
                 }
               : null,
