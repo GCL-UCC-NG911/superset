@@ -192,7 +192,7 @@ function AlertList({
   const handleSendNow = async (alert: AlertObject) => {
     try {
       await SupersetClient.post({
-        endpoint: `/api/v1/report/${alert.id}/exec/`,
+        endpoint: `/api/v1/report/${alert.id}/send_now/`,
       });
       addSuccessToast(
         t('Report/Alert "%s" triggered successfully', alert.name),
