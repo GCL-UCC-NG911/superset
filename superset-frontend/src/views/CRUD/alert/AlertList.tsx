@@ -189,6 +189,23 @@ function AlertList({
     );
   };
 
+  const handleSendNow = async (alert: AlertObject) => {
+    try {
+      await SupersetClient.post({
+        endpoint: `/api/v1/report/${alert.id}/exec/`,
+      });
+      addSuccessToast(
+        t('Report/Alert "%s" triggered successfully', alert.name),
+      );
+    } catch (e) {
+      createErrorHandler(errMsg =>
+        addDangerToast(
+          t('There was an issue triggering %s: %s', alert.name, errMsg),
+        ),
+      )(e);
+    }
+  };
+
   const handleBulkAlertDelete = async (alertsToDelete: AlertObject[]) => {
     try {
       const { message } = await deleteAlerts(
@@ -371,6 +388,15 @@ function AlertList({
             isUserAdmin(user);
 
           const actions = [
+            allowEdit && canEdit
+              ? {
+                label: 'send-now-action',
+                tooltip: t('Send Now'),
+                placement: 'bottom',
+                icon: 'PaperPlane',
+                onClick: () => handleSendNow(original),
+              }
+              : null,
             canEdit
               ? {
                   label: 'execution-log-action',
