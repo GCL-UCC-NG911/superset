@@ -390,12 +390,12 @@ function AlertList({
           const actions = [
             allowEdit && canEdit
               ? {
-                label: 'send-now-action',
-                tooltip: t('Send Now'),
-                placement: 'bottom',
-                icon: 'PaperPlane',
-                onClick: () => handleSendNow(original),
-              }
+                  label: 'send-now-action',
+                  tooltip: t('Send Now'),
+                  placement: 'bottom',
+                  icon: 'PaperPlane',
+                  onClick: () => handleSendNow(original),
+                }
               : null,
             canEdit
               ? {
