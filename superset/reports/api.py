@@ -15,7 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 import logging
+# NGLS - BEGIN
 from datetime import datetime, timezone
+# NGLS - END
 from typing import Any, Optional
 
 from flask import request, Response
@@ -52,7 +54,9 @@ from superset.reports.schemas import (
     ReportSchedulePostSchema,
     ReportSchedulePutSchema,
 )
+# NGLS - BEGIN
 from superset.tasks.scheduler import execute
+# NGLS - END
 from superset.views.base_api import (
     BaseSupersetModelRestApi,
     RelatedFieldFilter,
@@ -76,7 +80,9 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
     include_route_methods = RouteMethod.REST_MODEL_VIEW_CRUD_SET | {
         RouteMethod.RELATED,
         "bulk_delete",  # not using RouteMethod since locally defined
-        "send_now",
+        # NGLS - BEGIN
+        "trigger_now",
+        # NGLS - END
     }
     class_permission_name = "ReportSchedule"
     method_permission_name = MODEL_API_RW_METHOD_PERMISSION_MAP
@@ -512,14 +518,48 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
         except ReportScheduleBulkDeleteFailedError as ex:
             return self.response_422(message=str(ex))
 
-    @expose("/<int:pk>/send_now/", methods=["POST"])
+    # NGLS - BEGIN
+    @expose("/<int:pk>/trigger_now/", methods=["POST"])
     @protect()
     @safe
-    @permission_name("send_now")
+    @permission_name("trigger_now")
     @statsd_metrics
-    def send_now(self, pk: int) -> Response:
+    @event_logger.log_this_with_context(
+    action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.trigger_now",
+    log_to_statsd=False,
+    )
+    def trigger_now(self, pk: int) -> Response:
         """
         Trigger a Report Schedule execution immediately.
+        ---
+        post:
+          description: >-
+            Trigger a Report Schedule execution immediately and send the report to
+            configured recipients.
+          parameters:
+          - in: path
+            schema:
+              type: integer
+            name: pk
+            required: true
+            description: The Report Schedule id
+          responses:
+            200:
+              description: Report schedule triggered successfully
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Report triggered successfully
+            403:
+              $ref: '#/components/responses/403'
+            404:
+              $ref: '#/components/responses/404'
+            500:
+              $ref: '#/components/responses/500'
         """
 
         try:
@@ -551,3 +591,4 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
             return self.response_500(
                 message=str(ex),
             )
+    # NGLS - END

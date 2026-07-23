@@ -189,10 +189,11 @@ function AlertList({
     );
   };
 
-  const handleSendNow = async (alert: AlertObject) => {
+  /* NGLS - BEGIN */
+  const handleTriggerNow = async (alert: AlertObject) => {
     try {
       await SupersetClient.post({
-        endpoint: `/api/v1/report/${alert.id}/send_now/`,
+        endpoint: `/api/v1/report/${alert.id}/trigger_now/`,
       });
       addSuccessToast(
         t('Report/Alert "%s" triggered successfully', alert.name),
@@ -205,6 +206,7 @@ function AlertList({
       )(e);
     }
   };
+  /* NGLS - END */
 
   const handleBulkAlertDelete = async (alertsToDelete: AlertObject[]) => {
     try {
@@ -387,6 +389,7 @@ function AlertList({
             original.owners.map((o: Owner) => o.id).includes(user.userId) ||
             isUserAdmin(user);
 
+          /* NGLS - BEGIN */
           const actions = [
             allowEdit && canEdit
               ? {
@@ -394,9 +397,10 @@ function AlertList({
                   tooltip: t('Send Now'),
                   placement: 'bottom',
                   icon: 'Bolt',
-                  onClick: () => handleSendNow(original),
+                  onClick: () => handleTriggerNow(original),
                 }
               : null,
+            /* NGLS - END */
             canEdit
               ? {
                   label: 'execution-log-action',
@@ -435,7 +439,15 @@ function AlertList({
         size: 'xl',
       },
     ],
-    [canDelete, canEdit, isReportEnabled, toggleActive],
+    [
+      canDelete,
+      canEdit,
+      isReportEnabled,
+      toggleActive,
+      /* NGLS - BEGIN */
+      handleTriggerNow
+      /* NGLS - END */
+    ],
   );
 
   const subMenuButtons: SubMenuProps['buttons'] = [];
