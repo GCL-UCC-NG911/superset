@@ -445,7 +445,7 @@ function AlertList({
       isReportEnabled,
       toggleActive,
       /* NGLS - BEGIN */
-      handleTriggerNow
+      handleTriggerNow,
       /* NGLS - END */
     ],
   );
