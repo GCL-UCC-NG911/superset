@@ -47,7 +47,7 @@ from superset.reports.commands.exceptions import (
 )
 from superset.reports.commands.update import UpdateReportScheduleCommand
 from superset.reports.filters import ReportScheduleAllTextFilter, ReportScheduleFilter
-from superset.reports.models import ReportSchedule
+from superset.reports.models import ReportSchedule, ReportState
 from superset.reports.schemas import (
     get_delete_ids_schema,
     openapi_spec_methods_override,
@@ -558,6 +558,15 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
               $ref: '#/components/responses/403'
             404:
               $ref: '#/components/responses/404'
+            409:
+              description: A report execution is already in progress
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      message:
+                        type: string
             500:
               $ref: '#/components/responses/500'
         """
@@ -568,12 +577,19 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
             if not report_schedule:
                 return self.response_404()
 
+            if report_schedule.last_state == ReportState.WORKING:
+                return self.response(
+                    409,
+                    message="A report execution is already in progress for this schedule",
+                )
+
             scheduled_dttm = datetime.now(timezone.utc)
 
             execute.apply_async(
                 (
                     pk,
                     scheduled_dttm.isoformat(),
+                    True,
                 )
             )
 
