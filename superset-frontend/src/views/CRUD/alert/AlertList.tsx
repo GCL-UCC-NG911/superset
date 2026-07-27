@@ -401,7 +401,7 @@ function AlertList({
           const actions = [
             allowEdit && canEdit
               ? {
-                  label: 'send-now-action',
+                  label: 'trigger-now-action',
                   tooltip: t('Trigger now'),
                   placement: 'bottom',
                   icon: 'Bolt',
