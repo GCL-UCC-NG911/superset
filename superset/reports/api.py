@@ -525,12 +525,11 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
     @permission_name("trigger_now")
     @statsd_metrics
     @event_logger.log_this_with_context(
-    action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.trigger_now",
-    log_to_statsd=False,
+        action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.trigger_now",
+        log_to_statsd=False,
     )
     def trigger_now(self, pk: int) -> Response:
-        """
-        Trigger a Report Schedule execution immediately.
+        """Trigger a Report Schedule execution immediately
         ---
         post:
           description: >-
@@ -542,49 +541,26 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
               type: integer
             name: pk
             required: true
-            description: The Report Schedule id
+            description: The Report Schedule pk
           responses:
             200:
-              description: Report schedule triggered successfully
-              content:
-                application/json:
-                  schema:
-                    type: object
-                    properties:
-                      message:
-                        type: string
-                        example: Report triggered successfully
+              $ref: '#/components/responses/200'
             403:
               $ref: '#/components/responses/403'
             404:
               $ref: '#/components/responses/404'
             409:
-              description: A report execution is already in progress
-              content:
-                application/json:
-                  schema:
-                    type: object
-                    properties:
-                      message:
-                        type: string
+              $ref: '#/components/responses/409'
             500:
               $ref: '#/components/responses/500'
         """
-
         try:
             report_schedule = self.datamodel.get(pk)
-
             if not report_schedule:
                 return self.response_404()
-
             if report_schedule.last_state == ReportState.WORKING:
-                return self.response(
-                    409,
-                    message="A report execution is already in progress for this schedule",
-                )
-
+                return self.response(409)
             scheduled_dttm = datetime.now(timezone.utc)
-
             execute.apply_async(
                 (
                     pk,
@@ -592,19 +568,13 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
                     True,
                 )
             )
-
-            return self.response(
-                200,
-                message="Report triggered successfully",
-            )
-
+            return self.response(200)
         except Exception as ex:
-            logger.exception(
-                "Error triggering report schedule %s",
-                pk,
+            logger.error(
+                "Error triggering report schedule %s: %s",
+                self.__class__.__name__,
+                str(ex),
+                exc_info=True,
             )
-
-            return self.response_500(
-                message=str(ex),
-            )
+            return self.response_500()
     # NGLS - END
