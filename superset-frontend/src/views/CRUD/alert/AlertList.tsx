@@ -201,11 +201,15 @@ function AlertList({
     } catch (e) {
       let customErrorMsg = t('An unknown error occurred');
       if (e.status === 409) {
-        customErrorMsg = t('A report execution is already in progress for this schedule.');
+        customErrorMsg = t(
+          'A report execution is already in progress for this schedule.',
+        );
       } else if (e.status === 404) {
         customErrorMsg = t('This report no longer exists.');
       } else if (e.status === 403) {
-        customErrorMsg = t('You do not have permission to trigger this report.');
+        customErrorMsg = t(
+          'You do not have permission to trigger this report.',
+        );
       } else if (e.status === 500) {
         customErrorMsg = t('Internal server error. Please try again later.');
       }
