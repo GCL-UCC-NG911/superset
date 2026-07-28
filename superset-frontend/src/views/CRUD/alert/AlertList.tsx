@@ -408,7 +408,7 @@ function AlertList({
                   label: 'trigger-now-action',
                   tooltip: t('Trigger now'),
                   placement: 'bottom',
-                  icon: 'Bolt',
+                  icon: 'BoltSmallRun',
                   onClick: () => handleTriggerNow(original),
                 }
               : null,
