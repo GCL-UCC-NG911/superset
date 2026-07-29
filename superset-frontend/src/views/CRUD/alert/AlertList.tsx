@@ -199,7 +199,7 @@ function AlertList({
         t('Report/Alert "%s" triggered successfully', alert.name),
       );
     } catch (e) {
-      let customErrorMsg = t('An unknown error occurred');
+      let customErrorMsg = t('Something went wrong. Please try again later.');
       if (e.status === 409) {
         customErrorMsg = t(
           'A report execution is already in progress for this schedule.',
