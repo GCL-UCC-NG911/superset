@@ -519,7 +519,7 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
             return self.response_422(message=str(ex))
 
     # NGLS - BEGIN
-    @expose("/<int:pk>/trigger_now/", methods=["POST"])
+    @expose("/<int:pk>/trigger_now", methods=["POST"])
     @protect()
     @safe
     @permission_name("trigger_now")
