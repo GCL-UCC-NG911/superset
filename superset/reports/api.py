@@ -569,7 +569,7 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
                 )
             )
             return self.response(200)
-        except Exception as ex:
+        except Exception as ex: # pylint: disable=broad-except
             logger.error(
                 "Error triggering report schedule %s: %s",
                 self.__class__.__name__,
