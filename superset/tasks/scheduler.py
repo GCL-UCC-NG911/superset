@@ -74,15 +74,16 @@ def scheduler() -> None:
 
 
 @celery_app.task(name="reports.execute", bind=True)
-def execute(self: Celery.task, report_schedule_id: int, scheduled_dttm: str) -> None:
+def execute(self: Celery.task, report_schedule_id: int, scheduled_dttm: str, trigger_now: bool = False,) -> None:
     task_id = None
     try:
         task_id = execute.request.id
         scheduled_dttm_ = parser.parse(scheduled_dttm)
         logger.info(
-            "Executing alert/report, task id: %s, scheduled_dttm: %s",
+            "Executing alert/report, task id: %s, scheduled_dttm: %s, trigger_now: %s",
             task_id,
             scheduled_dttm,
+            trigger_now,
         )
         AsyncExecuteReportScheduleCommand(
             task_id,

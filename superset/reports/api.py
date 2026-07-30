@@ -15,6 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 import logging
+# NGLS - BEGIN
+from datetime import datetime, timezone
+# NGLS - END
 from typing import Any, Optional
 
 from flask import request, Response
@@ -44,13 +47,16 @@ from superset.reports.commands.exceptions import (
 )
 from superset.reports.commands.update import UpdateReportScheduleCommand
 from superset.reports.filters import ReportScheduleAllTextFilter, ReportScheduleFilter
-from superset.reports.models import ReportSchedule
+from superset.reports.models import ReportSchedule, ReportState
 from superset.reports.schemas import (
     get_delete_ids_schema,
     openapi_spec_methods_override,
     ReportSchedulePostSchema,
     ReportSchedulePutSchema,
 )
+# NGLS - BEGIN
+from superset.tasks.scheduler import execute
+# NGLS - END
 from superset.views.base_api import (
     BaseSupersetModelRestApi,
     RelatedFieldFilter,
@@ -74,6 +80,9 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
     include_route_methods = RouteMethod.REST_MODEL_VIEW_CRUD_SET | {
         RouteMethod.RELATED,
         "bulk_delete",  # not using RouteMethod since locally defined
+        # NGLS - BEGIN
+        "trigger_now",
+        # NGLS - END
     }
     class_permission_name = "ReportSchedule"
     method_permission_name = MODEL_API_RW_METHOD_PERMISSION_MAP
@@ -508,3 +517,64 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
             return self.response_403()
         except ReportScheduleBulkDeleteFailedError as ex:
             return self.response_422(message=str(ex))
+
+    # NGLS - BEGIN
+    @expose("/<int:pk>/trigger_now", methods=["POST"])
+    @protect()
+    @safe
+    @permission_name("trigger_now")
+    @statsd_metrics
+    @event_logger.log_this_with_context(
+        action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.trigger_now",
+        log_to_statsd=False,
+    )
+    def trigger_now(self, pk: int) -> Response:
+        """Trigger a Report Schedule execution immediately
+        ---
+        post:
+          description: >-
+            Trigger a Report Schedule execution immediately and send the report to
+            configured recipients.
+          parameters:
+          - in: path
+            schema:
+              type: integer
+            name: pk
+            required: true
+            description: The Report Schedule pk
+          responses:
+            200:
+              $ref: '#/components/responses/200'
+            403:
+              $ref: '#/components/responses/403'
+            404:
+              $ref: '#/components/responses/404'
+            409:
+              $ref: '#/components/responses/409'
+            500:
+              $ref: '#/components/responses/500'
+        """
+        try:
+            report_schedule = self.datamodel.get(pk)
+            if not report_schedule:
+                return self.response_404()
+            if report_schedule.last_state == ReportState.WORKING:
+                return self.response(409)
+            scheduled_dttm = datetime.now(timezone.utc)
+            execute.apply_async(
+                (
+                    pk,
+                    scheduled_dttm.isoformat(),
+                    True,
+                )
+            )
+            return self.response(200)
+        except Exception as ex:
+            logger.error(
+                "Error triggering report schedule %s: %s",
+                self.__class__.__name__,
+                str(ex),
+                exc_info=True,
+            )
+            return self.response_500()
+    # NGLS - END

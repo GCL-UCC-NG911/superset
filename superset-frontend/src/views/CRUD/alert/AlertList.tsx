@@ -189,6 +189,38 @@ function AlertList({
     );
   };
 
+  /* NGLS - BEGIN */
+  const handleTriggerNow = async (alert: AlertObject) => {
+    try {
+      await SupersetClient.post({
+        endpoint: `/api/v1/report/${alert.id}/trigger_now`,
+      });
+      addSuccessToast(
+        t('Report/Alert "%s" triggered successfully', alert.name),
+      );
+    } catch (e) {
+      // TO DO: Support validation and error handling for manual report dispatch.
+      let customErrorMsg = t('Something went wrong. Please try again later.');
+      if (e.status === 409) {
+        customErrorMsg = t(
+          'A report execution is already in progress for this schedule.',
+        );
+      } else if (e.status === 404) {
+        customErrorMsg = t('This report no longer exists.');
+      } else if (e.status === 403) {
+        customErrorMsg = t(
+          'You do not have permission to trigger this report.',
+        );
+      } else if (e.status === 500) {
+        customErrorMsg = t('Internal server error. Please try again later.');
+      }
+      addDangerToast(
+        t('There was an issue triggering %s: %s', alert.name, customErrorMsg),
+      );
+    }
+  };
+  /* NGLS - END */
+
   const handleBulkAlertDelete = async (alertsToDelete: AlertObject[]) => {
     try {
       const { message } = await deleteAlerts(
@@ -370,7 +402,18 @@ function AlertList({
             original.owners.map((o: Owner) => o.id).includes(user.userId) ||
             isUserAdmin(user);
 
+          /* NGLS - BEGIN */
           const actions = [
+            allowEdit && canEdit
+              ? {
+                  label: 'trigger-now-action',
+                  tooltip: t('Trigger now'),
+                  placement: 'bottom',
+                  icon: 'Bolt',
+                  onClick: () => handleTriggerNow(original),
+                }
+              : null,
+            /* NGLS - END */
             canEdit
               ? {
                   label: 'execution-log-action',
@@ -409,7 +452,15 @@ function AlertList({
         size: 'xl',
       },
     ],
-    [canDelete, canEdit, isReportEnabled, toggleActive],
+    [
+      canDelete,
+      canEdit,
+      isReportEnabled,
+      toggleActive,
+      /* NGLS - BEGIN */
+      handleTriggerNow,
+      /* NGLS - END */
+    ],
   );
 
   const subMenuButtons: SubMenuProps['buttons'] = [];
