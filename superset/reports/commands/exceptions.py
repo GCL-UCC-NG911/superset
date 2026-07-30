@@ -163,6 +163,10 @@ class ReportScheduleCsvFailedError(CommandException):
 class ReportSchedulePdfFailedError(CommandException):
     message = _("Report Schedule execution failed when generating a pdf.")
 
+class ReportScheduleAlreadyRunningError(CommandException):
+    status = 409
+    message = _("Report Schedule is already running.")
+
 
 # NGLS - END #
 

@@ -37,9 +37,11 @@ from superset.reports.commands.bulk_delete import BulkDeleteReportScheduleComman
 from superset.reports.commands.create import CreateReportScheduleCommand
 from superset.reports.commands.delete import DeleteReportScheduleCommand
 from superset.reports.commands.exceptions import (
+    ReportScheduleAlreadyRunningError,
     ReportScheduleBulkDeleteFailedError,
     ReportScheduleCreateFailedError,
     ReportScheduleDeleteFailedError,
+    ReportScheduleExecuteUnexpectedError,
     ReportScheduleForbiddenError,
     ReportScheduleInvalidError,
     ReportScheduleNotFoundError,
@@ -557,19 +559,28 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
         try:
             report_schedule = self.datamodel.get(pk)
             if not report_schedule:
-                return self.response_404()
+                raise ReportScheduleNotFoundError()
             if report_schedule.last_state == ReportState.WORKING:
-                return self.response(409)
+                raise ReportScheduleAlreadyRunningError()
+
             scheduled_dttm = datetime.now(timezone.utc)
-            execute.apply_async(
-                (
-                    pk,
-                    scheduled_dttm.isoformat(),
-                    True,
+            try:
+                execute.apply_async(
+                    (
+                        pk,
+                        scheduled_dttm.isoformat(),
+                        True,
+                    )
                 )
-            )
+            except Exception as ex:
+                raise ReportScheduleExecuteUnexpectedError() from ex
+
             return self.response(200)
-        except Exception as ex:
+        except ReportScheduleNotFoundError:
+            return self.response_404()
+        except ReportScheduleAlreadyRunningError:
+            return self.response_409()
+        except ReportScheduleExecuteUnexpectedError as ex:
             logger.error(
                 "Error triggering report schedule %s: %s",
                 self.__class__.__name__,
