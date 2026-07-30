@@ -204,7 +204,7 @@ function AlertList({
           t(
             'There was an issue triggering %s: %s',
             alert.name,
-            errMsg
+            errMsg || t('There was an unexpected error. Please try again.'),
           ),
         ),
       )(e);
