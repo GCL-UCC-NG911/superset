@@ -199,7 +199,7 @@ function AlertList({
         t('Report/Alert "%s" triggered successfully', alert.name),
       );
     } catch (e) {
-    // TO DO: Support validation and error handling for manual report dispatch.  
+      // TO DO: Support validation and error handling for manual report dispatch.
       let customErrorMsg = t('Something went wrong. Please try again later.');
       if (e.status === 409) {
         customErrorMsg = t(
