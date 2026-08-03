@@ -562,24 +562,19 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
                 raise ReportScheduleNotFoundError()
             if report_schedule.last_state == ReportState.WORKING:
                 raise ReportScheduleAlreadyRunningError()
-
             scheduled_dttm = datetime.now(timezone.utc)
-            try:
-                execute.apply_async(
-                    (
-                        pk,
-                        scheduled_dttm.isoformat(),
-                        True,
-                    )
+            execute.apply_async(
+                (
+                    pk,
+                    scheduled_dttm.isoformat(),
+                    True,
                 )
-            except Exception as ex:
-                raise ReportScheduleExecuteUnexpectedError() from ex
-
-            return self.response(200)
-        except ReportScheduleNotFoundError:
-            return self.response_404()
-        except ReportScheduleAlreadyRunningError:
-            return self.response_409()
+            )
+            return self.response(200, message="Triggered successfully")
+        except ReportScheduleNotFoundError as ex:
+            return self.response_404(message=str(ex))
+        except ReportScheduleAlreadyRunningError as ex:
+            return self.response_409(message=str(ex))
         except ReportScheduleExecuteUnexpectedError as ex:
             logger.error(
                 "Error triggering report schedule %s: %s",
@@ -587,5 +582,5 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
                 str(ex),
                 exc_info=True,
             )
-            return self.response_500()
+            return self.response_500(message=str(ex))
     # NGLS - END
