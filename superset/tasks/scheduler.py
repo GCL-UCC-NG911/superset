@@ -74,7 +74,9 @@ def scheduler() -> None:
 
 
 @celery_app.task(name="reports.execute", bind=True)
+# pylint: disable=line-too-long
 def execute(self: Celery.task, report_schedule_id: int, scheduled_dttm: str, trigger_now: bool = False,) -> None:
+# pylint: enable=line-too-long
     task_id = None
     try:
         task_id = execute.request.id
