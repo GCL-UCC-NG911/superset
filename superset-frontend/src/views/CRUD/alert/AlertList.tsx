@@ -201,11 +201,7 @@ function AlertList({
     } catch (e) {
       createErrorHandler(errMsg =>
         addDangerToast(
-          t(
-            'There was an issue triggering %s: %s',
-            alert.name,
-            errMsg,
-          ),
+          t('There was an issue triggering %s: %s', alert.name, errMsg),
         ),
       )(e);
     }
