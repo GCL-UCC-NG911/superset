@@ -576,9 +576,9 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
             )
             return self.response(200, message="OK")
         except ReportScheduleNotFoundError as ex:
-            return self.response_404(message=str(ex))
+            return self.response_404()
         except ReportScheduleAlreadyRunningError as ex:
-            return self.response_409(message=str(ex))
+            return self.response(409, message=str(ex))
         except Exception as ex: # pylint: disable=broad-except
             logger.error(
                 "Error triggering report schedule %s: %s",
@@ -586,5 +586,5 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
                 str(ex),
                 exc_info=True,
             )
-            return self.response_500(message="Something went wrong. Please try again later.")
+            return self.response(500, message="Something went wrong. Please try again later.")
     # NGLS - END
