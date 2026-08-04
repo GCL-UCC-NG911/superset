@@ -37,11 +37,15 @@ from superset.reports.commands.bulk_delete import BulkDeleteReportScheduleComman
 from superset.reports.commands.create import CreateReportScheduleCommand
 from superset.reports.commands.delete import DeleteReportScheduleCommand
 from superset.reports.commands.exceptions import (
+    # NGLS - BEGIN
     ReportScheduleAlreadyRunningError,
+    # NGLS - END
     ReportScheduleBulkDeleteFailedError,
     ReportScheduleCreateFailedError,
     ReportScheduleDeleteFailedError,
+    # NGLS - BEGIN
     ReportScheduleExecuteUnexpectedError,
+    # NGLS - END
     ReportScheduleForbiddenError,
     ReportScheduleInvalidError,
     ReportScheduleNotFoundError,
@@ -572,7 +576,7 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
                     )
                 )
             except Exception as celery_ex:
-                raise ReportScheduleExecuteUnexpectedError(str(celery_ex)) from celery_ex
+                raise ReportScheduleExecuteUnexpectedError() from celery_ex
             return self.response(200, message="Triggered successfully")
         except ReportScheduleNotFoundError as ex:
             return self.response_404(message=str(ex))
@@ -595,5 +599,7 @@ class ReportScheduleRestApi(BaseSupersetModelRestApi):
                 str(ex),
                 exc_info=True,
             )
-            return self.response_500(message=str(ex))
+            return self.response_500(
+                message="An unexpected error occurred. Please try again later."
+            )
     # NGLS - END
