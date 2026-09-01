@@ -79,6 +79,15 @@ def test_import_database_no_creds(mocker: MockerFixture, session: Session) -> No
     from tests.integration_tests.fixtures.importexport import database_config_no_creds
 
     mocker.patch.object(security_manager, "can_access", return_value=True)
+    # NGLS CHANGE - START #
+    # Prevent the test from making a real BigQuery API request.
+    # GitHub Actions may provide Google credentials with insufficient scopes,
+    # causing a 403 ACCESS_TOKEN_SCOPE_INSUFFICIENT error.
+    mocker.patch(
+        "superset.models.core.Database.get_all_catalog_names",
+        return_value=set(),
+    )
+    # NGLS CHANGE - END #
 
     engine = db.session.get_bind()
     Database.metadata.create_all(engine)  # pylint: disable=no-member
@@ -89,7 +98,6 @@ def test_import_database_no_creds(mocker: MockerFixture, session: Session) -> No
     assert database.sqlalchemy_uri == "bigquery://test-db/"
     assert database.extra == "{}"
     assert database.uuid == "2ff17edc-f3fa-4609-a5ac-b484281225bc"
-
 
 def test_import_database_sqlite_invalid(
     mocker: MockerFixture, session: Session
