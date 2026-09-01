@@ -15,24 +15,27 @@
 # specific language governing permissions and limitations
 # under the License.
 import json
-from flask import g, redirect, Response, request
+from typing import Any
+
+from flask import g, redirect, request, Response
 from flask_appbuilder import ModelRestApi
-from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.api import expose, safe
-from flask_jwt_extended.exceptions import NoAuthorizationError
-from sqlalchemy.orm.exc import NoResultFound
+from flask_appbuilder.models.sqla.interface import SQLAInterface
+
 # NGLS CHANGE - START #
 from flask_appbuilder.security.sqla.models import (
-    User,
-    Role,
     Permission,
-    ViewMenu,
     PermissionView,
+    Role,
+    User,
+    ViewMenu,
 )
-from sqlalchemy.orm import joinedload
+from flask_jwt_extended.exceptions import NoAuthorizationError
 from sqlalchemy import asc, desc
-# NGLS CHANGE - END #
+from sqlalchemy.orm import joinedload
+from sqlalchemy.orm.exc import NoResultFound
 
+# NGLS CHANGE - END #
 from superset import app, is_feature_enabled
 from superset.daos.user import UserDAO
 from superset.utils.slack import get_user_avatar, SlackClientError
@@ -178,8 +181,9 @@ class UserRestApi(BaseSupersetApi):
         # No avatar found, return a "no-content" response
         return Response(status=204)
 
+
 # NGLS CHANGE - START #
-def parse_legacy_q():
+def parse_legacy_q() -> dict[str, Any]:
     q = request.args.get("q")
     if not q:
         return {}
@@ -189,21 +193,22 @@ def parse_legacy_q():
     except Exception:
         return {}
 
+
 class LegacyBaseApi(ModelRestApi):
     page_size = 25
     max_page_size = 1000
 
-    def _get_args(self):
+    def _get_args(self) -> dict[str, Any]:
         return parse_legacy_q()
 
-    def _pagination(self):
+    def _pagination(self) -> tuple[int, int]:
         args = self._get_args()
         page = args.get("page", 0)
         page_size = min(args.get("page_size", self.page_size), self.max_page_size)
         return page, page_size
 
     # ================= FILTERS =================
-    def _apply_filters(self, query):
+    def _apply_filters(self, query: Any) -> Any:
         args = self._get_args()
         filters = args.get("filters", [])
 
@@ -232,7 +237,7 @@ class LegacyBaseApi(ModelRestApi):
         return query
 
     # ================= ORDER =================
-    def _apply_ordering(self, query):
+    def _apply_ordering(self, query: Any) -> Any:
         args = self._get_args()
         order_col = args.get("order_column")
         order_dir = args.get("order_direction", "asc")
@@ -249,7 +254,7 @@ class LegacyBaseApi(ModelRestApi):
         return query.order_by(asc(column))
 
     # ================= OPTIMIZED COUNTING =================
-    def _get_count(self, query):
+    def _get_count(self, query: Any) -> int | None:
         args = self._get_args()
 
         if args.get("include_count") is False:
@@ -261,11 +266,10 @@ class LegacyBaseApi(ModelRestApi):
         return query.order_by(None).count()
 
     # ================= QUERY PIPELINE =================
-    def _apply_all(self, query):
+    def _apply_all(self, query: Any) -> Any:
         query = self._apply_filters(query)
         query = self._apply_ordering(query)
         return query
-
 
 
 # ================= USERS =================
@@ -275,7 +279,7 @@ class LegacyUsersApi(LegacyBaseApi):
 
     @expose("/", methods=("GET",))
     @safe
-    def get_list(self, **kwargs):
+    def get_list(self, **kwargs: Any) -> Response:
         """
         Legacy users API (Superset 2.x compatible)
         ---
@@ -308,7 +312,7 @@ class LegacyUsersApi(LegacyBaseApi):
         ]
 
         # return self.response(200, count=total, result=data)
-        response = {"result": data}
+        response: dict[str, Any] = {"result": data}
 
         if total is not None:
             response["count"] = total
@@ -323,7 +327,7 @@ class LegacyRolesApi(LegacyBaseApi):
 
     @expose("/", methods=("GET",))
     @safe
-    def get_list(self, **kwargs):
+    def get_list(self, **kwargs: Any) -> Response:
         page, page_size = self._pagination()
 
         query = self.datamodel.session.query(Role)
@@ -336,7 +340,7 @@ class LegacyRolesApi(LegacyBaseApi):
         data = [{"id": r.id, "name": r.name} for r in results]
 
         # return self.response(200, count=total, result=data)
-        response = {"result": data}
+        response: dict[str, Any] = {"result": data}
 
         if total is not None:
             response["count"] = total
@@ -352,7 +356,7 @@ class LegacyPostRolePermissionsApi(ModelRestApi):
 
     @expose("/<int:pk>/permissions/", methods=("POST",))
     @safe
-    def add_permissions(self, pk):
+    def add_permissions(self, pk: int) -> Response:  # noqa: C901
         session = self.datamodel.session
 
         role = session.get(Role, pk)
@@ -430,7 +434,7 @@ class LegacyGetRolePermissionsApi(ModelRestApi):
 
     @expose("/<int:pk>/permissions/", methods=("GET",))
     @safe
-    def get_permissions(self, pk: int):
+    def get_permissions(self, pk: int) -> Response:
         """
         ---
         get:
@@ -450,10 +454,8 @@ class LegacyGetRolePermissionsApi(ModelRestApi):
             role = (
                 self.datamodel.session.query(Role)
                 .options(
-                    joinedload(Role.permissions)
-                    .joinedload(PermissionView.permission),
-                    joinedload(Role.permissions)
-                    .joinedload(PermissionView.view_menu),
+                    joinedload(Role.permissions).joinedload(PermissionView.permission),
+                    joinedload(Role.permissions).joinedload(PermissionView.view_menu),
                 )
                 .filter(Role.id == pk)
                 .one()
@@ -472,6 +474,7 @@ class LegacyGetRolePermissionsApi(ModelRestApi):
 
         return self.response(200, count=len(result), result=result)
 
+
 # ================= PERMISSIONS =================
 class LegacyPermissionsApi(LegacyBaseApi):
     resource_name = "legacy/security/permissions"
@@ -479,7 +482,7 @@ class LegacyPermissionsApi(LegacyBaseApi):
 
     @expose("/", methods=("GET",))
     @safe
-    def get_list(self, **kwargs):
+    def get_list(self, **kwargs: Any) -> Response:
         page, page_size = self._pagination()
 
         query = self.datamodel.session.query(Permission)
@@ -492,7 +495,7 @@ class LegacyPermissionsApi(LegacyBaseApi):
         data = [{"id": p.id, "name": p.name} for p in results]
 
         # return self.response(200, count=total, result=data)
-        response = {"result": data}
+        response: dict[str, Any] = {"result": data}
 
         if total is not None:
             response["count"] = total
@@ -507,7 +510,7 @@ class LegacyResourcesApi(LegacyBaseApi):
 
     @expose("/", methods=("GET",))
     @safe
-    def get_list(self, **kwargs):
+    def get_list(self, **kwargs: Any) -> Response:
         page, page_size = self._pagination()
 
         query = self.datamodel.session.query(ViewMenu)
@@ -520,7 +523,7 @@ class LegacyResourcesApi(LegacyBaseApi):
         data = [{"id": r.id, "name": r.name} for r in results]
 
         # return self.response(200, count=total, result=data)
-        response = {"result": data}
+        response: dict[str, Any] = {"result": data}
 
         if total is not None:
             response["count"] = total
@@ -535,7 +538,7 @@ class LegacyPermissionResourcesApi(LegacyBaseApi):
 
     @expose("/", methods=("GET",))
     @safe
-    def get_list(self, **kwargs):
+    def get_list(self, **kwargs: Any) -> Response:
         page, page_size = self._pagination()
 
         query = self.datamodel.session.query(PermissionView)
@@ -555,10 +558,12 @@ class LegacyPermissionResourcesApi(LegacyBaseApi):
         ]
 
         # return self.response(200, count=total, result=data)
-        response = {"result": data}
+        response: dict[str, Any] = {"result": data}
 
         if total is not None:
             response["count"] = total
 
         return self.response(200, **response)
+
+
 # NGLS CHANGE - END #

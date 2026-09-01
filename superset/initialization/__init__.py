@@ -183,16 +183,18 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         )
         from superset.views.sqllab import SqllabView
         from superset.views.tags import TagModelView, TagView
-        from superset.views.users.api import CurrentUserRestApi, UserRestApi
+
         # NGLS CHANGE - START #
         from superset.views.users.api import (
-            LegacyUsersApi,
-            LegacyRolesApi,
-            LegacyPermissionsApi,
-            LegacyResourcesApi,
-            LegacyPermissionResourcesApi,
+            CurrentUserRestApi,
             LegacyGetRolePermissionsApi,
+            LegacyPermissionResourcesApi,
+            LegacyPermissionsApi,
             LegacyPostRolePermissionsApi,
+            LegacyResourcesApi,
+            LegacyRolesApi,
+            LegacyUsersApi,
+            UserRestApi,
         )
         # NGLS CHANGE - END #
 
