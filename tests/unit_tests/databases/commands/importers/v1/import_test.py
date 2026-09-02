@@ -99,6 +99,7 @@ def test_import_database_no_creds(mocker: MockerFixture, session: Session) -> No
     assert database.extra == "{}"
     assert database.uuid == "2ff17edc-f3fa-4609-a5ac-b484281225bc"
 
+
 def test_import_database_sqlite_invalid(
     mocker: MockerFixture, session: Session
 ) -> None:
