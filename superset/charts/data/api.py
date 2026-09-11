@@ -52,8 +52,10 @@ from superset.utils.core import (
     get_user_id,
 )
 from superset.utils.decorators import logs_context
-from superset.views.base import CsvResponse, generate_download_headers, XlsxResponse
+# NGLS - BEGIN #
+from superset.views.base import CsvResponse, generate_download_headers, PdfResponse, XlsxResponse
 from superset.views.base_api import statsd_metrics
+# NGLS - END #
 
 if TYPE_CHECKING:
     from superset.common.query_context import QueryContext
@@ -373,6 +375,10 @@ class ChartDataRestApi(ChartRestApi):
                 data = result["queries"][0]["data"]
                 if is_csv_format:
                     return CsvResponse(data, headers=generate_download_headers("csv"))
+                # NGLS - BEGIN #
+                elif result_format == ChartDataResultFormat.PDF:
+                    return PdfResponse(data, headers=generate_download_headers("pdf"))
+                # NGLS - END #
 
                 return XlsxResponse(data, headers=generate_download_headers("xlsx"))
 
