@@ -70,7 +70,9 @@ from superset.models.slice import Slice
 from superset.models.sql_lab import Query
 from superset.models.user_attributes import UserAttribute
 from superset.superset_typing import FlaskResponse
-from superset.utils import core as utils, json
+# NGLS - BEGIN #
+from superset.utils import core as utils, json, pdf
+# NGLS - END #
 from superset.utils.cache import etag_cache
 from superset.utils.core import (
     DatasourceType,
@@ -87,6 +89,9 @@ from superset.views.base import (
     generate_download_headers,
     json_error_response,
     json_success,
+    # NGLS - BEGIN #
+    PdfResponse,
+    # NGLS - END #
 )
 from superset.views.error_handling import handle_api_exception
 from superset.views.utils import (
@@ -183,6 +188,13 @@ class Superset(BaseSupersetView):
             return CsvResponse(
                 viz_obj.get_csv(), headers=generate_download_headers("csv")
             )
+
+        # NGLS - BEGIN #
+        if response_type == ChartDataResultFormat.PDF:
+            return PdfResponse(
+                viz_obj.get_pdf(), headers=generate_download_headers("pdf")
+            )
+        # NGLS - END #
 
         if response_type == ChartDataResultType.QUERY:
             return self.get_query_string_response(viz_obj)

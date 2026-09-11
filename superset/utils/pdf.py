@@ -19,6 +19,11 @@ import logging
 from io import BytesIO
 
 from superset.commands.report.exceptions import ReportSchedulePdfFailedError
+# NGLS - BEGIN #
+from typing import Any
+import pandas as pd
+import pdfkit
+# NGLS - END #
 
 logger = logging.getLogger(__name__)
 try:
@@ -46,3 +51,20 @@ def build_pdf_from_screenshots(snapshots: list[bytes]) -> bytes:
         ) from ex
 
     return new_pdf.read()
+
+# NGLS - BEGIN #
+def df_to_pdf(df: pd.DataFrame, **kwargs: Any) -> Any:
+    # convert the pandas dataframe to html
+    # escape=False preserves embedded HTML (e.g. <a> links) instead of rendering it as literal text
+    # disable pandas' default truncation of columns/rows/cell width so the full table renders
+    with pd.option_context(
+        "display.max_columns", None,
+        "display.max_rows", None,
+        "display.max_colwidth", None,
+    ):
+        html = df.to_html(escape=False)
+    # convert html to pdf
+    output = pdfkit.from_string(html, False)
+
+    return output
+# NGLS - END #

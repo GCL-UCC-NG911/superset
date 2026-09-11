@@ -470,6 +470,17 @@ class XlsxResponse(Response):
     )
 
 
+# NGLS - BEGIN #
+class PdfResponse(Response):
+    """
+    Override Response to use pdf mimetype
+    """
+
+    charset = "utf-8"
+    default_mimetype = "application/pdf"
+# NGLS - END #
+
+
 def bind_field(
     _: Any, form: DynamicForm, unbound_field: UnboundField, options: dict[Any, Any]
 ) -> Field:
