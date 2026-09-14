@@ -18,7 +18,6 @@
 import logging
 from io import BytesIO
 
-from superset.commands.report.exceptions import ReportSchedulePdfFailedError
 # NGLS - BEGIN #
 from typing import Any
 import pandas as pd
@@ -33,6 +32,10 @@ except ModuleNotFoundError:
 
 
 def build_pdf_from_screenshots(snapshots: list[bytes]) -> bytes:
+    # NGLS - BEGIN #
+    # deferred import to avoid a circular import chain via reports/models -> models/dashboard -> connectors/sqla/models
+    from superset.commands.report.exceptions import ReportSchedulePdfFailedError
+    # NGLS - END #
     images = []
 
     for snap in snapshots:

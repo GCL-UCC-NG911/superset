@@ -30,6 +30,9 @@ import ChartContainer from 'src/components/Chart/ChartContainer';
 import {
   LOG_ACTIONS_CHANGE_DASHBOARD_FILTER,
   LOG_ACTIONS_EXPLORE_DASHBOARD_CHART,
+  /* NGLS - BEGIN */
+  LOG_ACTIONS_EXPORT_PDF_DASHBOARD_CHART,
+  /* NGLS - END */
   LOG_ACTIONS_EXPORT_CSV_DASHBOARD_CHART,
   LOG_ACTIONS_EXPORT_XLSX_DASHBOARD_CHART,
   LOG_ACTIONS_FORCE_REFRESH_CHART,
@@ -357,6 +360,10 @@ const Chart = props => {
       const logAction =
         format === 'csv'
           ? LOG_ACTIONS_EXPORT_CSV_DASHBOARD_CHART
+          /* NGLS - BEGIN */
+          : format === 'pdf'
+          ? LOG_ACTIONS_EXPORT_PDF_DASHBOARD_CHART
+          /* NGLS - END */
           : LOG_ACTIONS_EXPORT_XLSX_DASHBOARD_CHART;
       boundActionCreators.logEvent(logAction, {
         slice_id: slice.slice_id,
@@ -387,6 +394,12 @@ const Chart = props => {
   const exportFullCSV = useCallback(() => {
     exportTable('csv', true);
   }, [exportTable]);
+
+  /* NGLS - BEGIN */
+  const exportPDF = useCallback(() => {
+    exportTable('pdf', false);
+  }, [exportTable]);
+  /* NGLS - END */
 
   const exportPivotCSV = useCallback(() => {
     exportTable('csv', false, true);
@@ -451,6 +464,9 @@ const Chart = props => {
         logEvent={boundActionCreators.logEvent}
         onExploreChart={onExploreChart}
         exportCSV={exportCSV}
+        /* NGLS - BEGIN */
+        exportPDF={exportPDF}
+        /* NGLS - END */
         exportPivotCSV={exportPivotCSV}
         exportXLSX={exportXLSX}
         exportFullCSV={exportFullCSV}

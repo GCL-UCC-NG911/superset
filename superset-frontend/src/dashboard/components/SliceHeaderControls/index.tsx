@@ -129,6 +129,9 @@ export interface SliceHeaderControlsProps {
   logEvent?: (eventName: string, eventData?: object) => void;
   toggleExpandSlice?: (sliceId: number) => void;
   exportCSV?: (sliceId: number) => void;
+  /* NGLS - BEGIN */
+  downloadAsPdf?: (sliceId: number) => void;
+  /* NGLS - END */
   exportPivotCSV?: (sliceId: number) => void;
   exportFullCSV?: (sliceId: number) => void;
   exportXLSX?: (sliceId: number) => void;
@@ -218,6 +221,12 @@ const SliceHeaderControls = (
         // eslint-disable-next-line no-unused-expressions
         props.exportCSV?.(props.slice.slice_id);
         break;
+      /* NGLS - BEGIN */
+      case MenuKeys.DownloadAsPdf:
+        // eslint-disable-next-line no-unused-expressions
+        props.downloadAsPdf?.(props.slice.slice_id);
+        break;
+      /* NGLS - END */
       case MenuKeys.ExportPivotCsv:
         // eslint-disable-next-line no-unused-expressions
         props.exportPivotCSV?.(props.slice.slice_id);
@@ -512,6 +521,15 @@ const SliceHeaderControls = (
           >
             {t('Download as image')}
           </Menu.Item>
+
+          {/* NGLS - BEGIN */}
+          <Menu.Item
+            key={MenuKeys.DownloadAsPdf}
+            icon={<Icons.FileImageOutlined css={dropdownIconsStyles} />}
+          >
+            {t('Download as PDF')}
+          </Menu.Item>
+          {/* NGLS - END */}
         </Menu.SubMenu>
       )}
     </Menu>
