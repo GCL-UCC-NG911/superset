@@ -72,6 +72,7 @@ export interface HeaderProps {
   addSuccessToast: () => void;
   addDangerToast: () => void;
   addWarningToast: () => void;
+  addInfoToast: () => void;
   colorNamespace?: string;
   charts: ChartState | {};
   colorScheme?: string;
