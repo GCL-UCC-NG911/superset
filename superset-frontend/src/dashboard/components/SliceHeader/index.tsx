@@ -284,7 +284,7 @@ const SliceHeader = forwardRef<HTMLDivElement, SliceHeaderProps>(
                   logEvent={logEvent}
                   exportCSV={exportCSV}
                   /* NGLS - BEGIN */
-                  downloadAsPdf={exportPDF}
+                  exportPDF={exportPDF}
                   /* NGLS - END */
                   exportPivotCSV={exportPivotCSV}
                   exportFullCSV={exportFullCSV}

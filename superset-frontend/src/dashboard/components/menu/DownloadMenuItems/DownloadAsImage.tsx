@@ -34,9 +34,10 @@ export default function DownloadAsImage({
   logEvent?: Function;
 }) {
   const SCREENSHOT_NODE_SELECTOR = '.dashboard';
-  const { addDangerToast } = useToasts();
+  const { addDangerToast, addInfoToast } = useToasts();
   const onDownloadImage = async (e: SyntheticEvent) => {
     try {
+      addInfoToast(t('Preparing file for download, please wait'));
       downloadAsImage(SCREENSHOT_NODE_SELECTOR, dashboardTitle, true)(e);
     } catch (error) {
       logging.error(error);

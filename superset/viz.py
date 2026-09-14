@@ -684,7 +684,7 @@ class BaseViz:  # pylint: disable=too-many-public-methods
     @deprecated(deprecated_in="3.0")
     def get_pdf(self) -> Optional[str]:
         df = self.get_df_payload()["df"]  # leverage caching logic
-        return pdf.df_to_pdf(df, **config["PDF_EXPORT"])
+        return pdf.df_to_pdf(df, config["PDF_EXPORT"])
     # NGLS - END #
 
     @deprecated(deprecated_in="3.0")

@@ -22,6 +22,19 @@ from io import BytesIO
 from typing import Any
 import pandas as pd
 import pdfkit
+from typing import Any, Dict
+
+css = """
+<style>
+    table {
+        border-spacing: 0px;
+        font-size: small;
+    }
+    th, td {
+        padding: 2px 6px;
+    }
+</style>
+"""
 # NGLS - END #
 
 logger = logging.getLogger(__name__)
@@ -56,18 +69,11 @@ def build_pdf_from_screenshots(snapshots: list[bytes]) -> bytes:
     return new_pdf.read()
 
 # NGLS - BEGIN #
-def df_to_pdf(df: pd.DataFrame, **kwargs: Any) -> Any:
+def df_to_pdf(df: pd.DataFrame, options: Dict = None, title: str = None) -> Any:
+    title_header = f"<h2>{title}</h2>" if title else ""
     # convert the pandas dataframe to html
-    # escape=False preserves embedded HTML (e.g. <a> links) instead of rendering it as literal text
-    # disable pandas' default truncation of columns/rows/cell width so the full table renders
-    with pd.option_context(
-        "display.max_columns", None,
-        "display.max_rows", None,
-        "display.max_colwidth", None,
-    ):
-        html = df.to_html(escape=False)
+    html = df.to_html(index=False, justify="left", escape=False)
     # convert html to pdf
-    output = pdfkit.from_string(html, False)
-
+    output = pdfkit.from_string(css + title_header + html, False, options=options or {})
     return output
 # NGLS - END #

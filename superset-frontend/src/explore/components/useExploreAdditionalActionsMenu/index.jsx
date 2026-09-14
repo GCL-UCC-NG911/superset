@@ -139,6 +139,12 @@ export const useExploreAdditionalActionsMenu = (
 
   const { datasource } = latestQueryFormData;
 
+  /* NGLS - BEGIN */
+  if (slice?.slice_name) {
+    latestQueryFormData.report_name = slice.slice_name;
+  }
+  /* NGLS - END */
+
   const shareByEmail = useCallback(async () => {
     try {
       const subject = t('Superset Chart');

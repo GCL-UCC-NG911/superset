@@ -258,11 +258,11 @@ export enum MenuKeys {
   DownloadAsImage = 'download_as_image',
   ExploreChart = 'explore_chart',
   ExportCsv = 'export_csv',
-  /* NGLS - BEGIN */
-  DownloadAsPdf = 'download_as_pdf',
-  /* NGLS - END */
   ExportPivotCsv = 'export_pivot_csv',
   ExportFullCsv = 'export_full_csv',
+  /* NGLS - BEGIN */
+  ExportPdf = 'export_pdf',
+  /* NGLS - END */
   ExportXlsx = 'export_xlsx',
   ExportFullXlsx = 'export_full_xlsx',
   ForceRefresh = 'force_refresh',

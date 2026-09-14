@@ -104,6 +104,8 @@ dependencies = [
     "wtforms>=2.3.3, <4",
     "wtforms-json",
     "xlsxwriter>=3.0.7, <3.1",
+    # NGLS packages
+    "python-slugify",
 ]
 
 [project.optional-dependencies]

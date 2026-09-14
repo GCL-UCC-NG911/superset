@@ -27,7 +27,6 @@ import { addWarningToast } from 'src/components/MessageToasts/actions';
 
 /* NGLS - BEGIN */
 const MARGIN_PT = 10;
-/* NGLS - END */
 
 /**
  * generate a consistent file stem from a description and date
@@ -189,10 +188,10 @@ export default function downloadAsPdf(
         bgcolor: 'white',
         filter,
       })
-      .then((canvas: HTMLCanvasElement) =>
+      .then((canvas) =>
         generatePdf(canvas, `${generateFileStem(description)}.pdf`),
       )
-      .catch((e: unknown) => {
+      .catch((e) => {
         console.error('Creating PDF failed', e);
       });
     /* NGLS - END */

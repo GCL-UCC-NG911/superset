@@ -46,7 +46,7 @@ export interface SliceHeaderControlsProps {
   toggleExpandSlice?: (sliceId: number) => void;
   exportCSV?: (sliceId: number) => void;
   /* NGLS - BEGIN */
-  downloadAsPdf?: (sliceId: number) => void;
+  exportPDF?: (sliceId: number) => void;
   /* NGLS - END */
   exportPivotCSV?: (sliceId: number) => void;
   exportFullCSV?: (sliceId: number) => void;

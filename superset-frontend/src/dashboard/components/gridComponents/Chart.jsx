@@ -370,7 +370,10 @@ const Chart = props => {
         is_cached: props.isCached,
       });
       exportChart({
-        formData: isFullCSV ? { ...formData, row_limit: maxRows } : formData,
+        formData: {
+          ...(isFullCSV ? { ...formData, row_limit: maxRows } : formData),
+          ...(format === 'pdf' ? { report_name: slice.slice_name } : {}),
+        },
         resultType: isPivot ? 'post_processed' : 'full',
         resultFormat: format,
         force: true,
