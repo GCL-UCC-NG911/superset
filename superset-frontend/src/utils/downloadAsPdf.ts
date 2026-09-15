@@ -188,10 +188,10 @@ export default function downloadAsPdf(
         bgcolor: 'white',
         filter,
       })
-      .then((canvas) =>
-        generatePdf(canvas, `${generateFileStem(description)}.pdf`),
-      )
-      .catch((e) => {
+      .then((canvas: HTMLCanvasElement) => {
+        generatePdf(canvas, `${generateFileStem(description)}.pdf`);
+      })
+      .catch((e: unknown) => {
         console.error('Creating PDF failed', e);
       });
     /* NGLS - END */
