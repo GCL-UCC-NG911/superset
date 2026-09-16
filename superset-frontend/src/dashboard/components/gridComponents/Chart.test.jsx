@@ -51,6 +51,7 @@ const props = {
   addSuccessToast() {},
   addDangerToast() {},
   exportCSV() {},
+  exportPDF() {},
   exportFullCSV() {},
   exportXLSX() {},
   exportFullXLSX() {},
@@ -175,6 +176,25 @@ test('should call exportChart when exportCSV is clicked', async () => {
   );
   stubbedExportCSV.mockRestore();
 });
+
+/* NGLS - BEGIN */
+test('should call exportChart when exportPDF is clicked', () => {
+  const stubbedExportPDF = sinon
+    .stub(exploreUtils, 'exportChart')
+    .returns(() => {});
+  const wrapper = setup();
+  wrapper.instance().exportPDF(props.slice.sliceId);
+  expect(stubbedExportPDF.calledOnce).toBe(true);
+  expect(stubbedExportPDF.lastCall.args[0]).toEqual(
+    expect.objectContaining({
+      formData: expect.anything(),
+      resultType: 'full',
+      resultFormat: 'pdf',
+    }),
+  );
+  exploreUtils.exportChart.restore();
+});
+/* NGLS - END */
 
 test('should call exportChart with row_limit props.maxRows when exportFullCSV is clicked', async () => {
   global.featureFlags = {

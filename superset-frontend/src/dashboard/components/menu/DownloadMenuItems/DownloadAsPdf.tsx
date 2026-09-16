@@ -34,9 +34,10 @@ export default function DownloadAsPdf({
   logEvent?: Function;
 }) {
   const SCREENSHOT_NODE_SELECTOR = '.dashboard';
-  const { addDangerToast } = useToasts();
+  const { addDangerToast, addInfoToast } = useToasts();
   const onDownloadPdf = async (e: SyntheticEvent) => {
     try {
+      addInfoToast(t('Preparing file for download, please wait'));
       downloadAsPdf(SCREENSHOT_NODE_SELECTOR, dashboardTitle, true)(e);
     } catch (error) {
       logging.error(error);

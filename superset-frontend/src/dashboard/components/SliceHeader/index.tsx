@@ -50,6 +50,9 @@ type SliceHeaderProps = SliceHeaderControlsProps & {
   formData: object;
   width: number;
   height: number;
+  /* NGLS - BEGIN */
+  exportPDF?: (sliceId: number) => void;
+  /* NGLS - END */
 };
 
 const annotationsLoading = t('Annotation layers are still loading.');
@@ -136,6 +139,9 @@ const SliceHeader = forwardRef<HTMLDivElement, SliceHeaderProps>(
       logExploreChart = () => ({}),
       logEvent,
       exportCSV = () => ({}),
+      /* NGLS - BEGIN */
+      exportPDF = () => ({}),
+      /* NGLS - END */
       exportXLSX = () => ({}),
       editMode = false,
       annotationQuery = {},
@@ -277,6 +283,9 @@ const SliceHeader = forwardRef<HTMLDivElement, SliceHeaderProps>(
                   logExploreChart={logExploreChart}
                   logEvent={logEvent}
                   exportCSV={exportCSV}
+                  /* NGLS - BEGIN */
+                  exportPDF={exportPDF}
+                  /* NGLS - END */
                   exportPivotCSV={exportPivotCSV}
                   exportFullCSV={exportFullCSV}
                   exportXLSX={exportXLSX}

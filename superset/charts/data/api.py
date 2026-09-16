@@ -52,8 +52,16 @@ from superset.utils.core import (
     get_user_id,
 )
 from superset.utils.decorators import logs_context
-from superset.views.base import CsvResponse, generate_download_headers, XlsxResponse
+# NGLS - BEGIN #
+from superset.views.base import (
+    CsvResponse,
+    generate_download_headers,
+    generate_filename,
+    PdfResponse,
+    XlsxResponse,
+)
 from superset.views.base_api import statsd_metrics
+# NGLS - END #
 
 if TYPE_CHECKING:
     from superset.common.query_context import QueryContext
@@ -352,6 +360,10 @@ class ChartDataRestApi(ChartRestApi):
         result_type = result["query_context"].result_type
         result_format = result["query_context"].result_format
 
+        if form_data:
+            title = form_data.get("report_name")
+            filename = generate_filename(title) if title else None
+
         # Post-process the data so it matches the data presented in the chart.
         # This is needed for sending reports based on text charts that do the
         # post-processing of data, eg, the pivot table.
@@ -371,10 +383,15 @@ class ChartDataRestApi(ChartRestApi):
             if len(result["queries"]) == 1:
                 # return single query results
                 data = result["queries"][0]["data"]
+                # NGLS - BEGIN #
                 if is_csv_format:
-                    return CsvResponse(data, headers=generate_download_headers("csv"))
+                    return CsvResponse(data, headers=generate_download_headers("csv", filename=filename))
 
-                return XlsxResponse(data, headers=generate_download_headers("xlsx"))
+                elif result_format == ChartDataResultFormat.PDF:
+                    return PdfResponse(data, headers=generate_download_headers("pdf", filename=filename))
+                # NGLS - END #
+
+                return XlsxResponse(data, headers=generate_download_headers("xlsx", filename=filename))
 
             # return multi-query results bundled as a zip file
             def _process_data(query_data: Any) -> Any:

@@ -34,6 +34,9 @@ export enum NotificationFormats {
   Text = 'TEXT',
   PNG = 'PNG',
   CSV = 'CSV',
+  /* NGLS - BEGIN */
+  PDF = 'PDF',
+  /* NGLS - END */
 }
 export interface ReportObject {
   id?: number;

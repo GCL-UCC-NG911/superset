@@ -18,7 +18,24 @@
 import logging
 from io import BytesIO
 
-from superset.commands.report.exceptions import ReportSchedulePdfFailedError
+# NGLS - BEGIN #
+from typing import Any
+import pandas as pd
+import pdfkit
+from typing import Any, Dict
+
+css = """
+<style>
+    table {
+        border-spacing: 0px;
+        font-size: small;
+    }
+    th, td {
+        padding: 2px 6px;
+    }
+</style>
+"""
+# NGLS - END #
 
 logger = logging.getLogger(__name__)
 try:
@@ -28,6 +45,10 @@ except ModuleNotFoundError:
 
 
 def build_pdf_from_screenshots(snapshots: list[bytes]) -> bytes:
+    # NGLS - BEGIN #
+    # deferred import to avoid a circular import chain via reports/models -> models/dashboard -> connectors/sqla/models
+    from superset.commands.report.exceptions import ReportSchedulePdfFailedError
+    # NGLS - END #
     images = []
 
     for snap in snapshots:
@@ -46,3 +67,13 @@ def build_pdf_from_screenshots(snapshots: list[bytes]) -> bytes:
         ) from ex
 
     return new_pdf.read()
+
+# NGLS - BEGIN #
+def df_to_pdf(df: pd.DataFrame, options: Dict = None, title: str = None) -> Any:
+    title_header = f"<h2>{title}</h2>" if title else ""
+    # convert the pandas dataframe to html
+    html = df.to_html(index=False, justify="left", escape=False)
+    # convert html to pdf
+    output = pdfkit.from_string(css + title_header + html, False, options=options or {})
+    return output
+# NGLS - END #

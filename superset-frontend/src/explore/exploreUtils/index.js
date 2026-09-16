@@ -248,7 +248,7 @@ export const exportChart = ({
   let url;
   let payload;
   const [useLegacyApi, parseMethod] = getQuerySettings(formData);
-  if (useLegacyApi) {
+  if (resultFormat  !== 'pdf' && useLegacyApi) {
     const endpointType = getLegacyEndpointType({ resultFormat, resultType });
     url = getExploreUrl({
       formData,

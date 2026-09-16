@@ -28,6 +28,7 @@ import { HeaderActionsDropdown } from '.';
 const createProps = (): HeaderDropdownProps => ({
   addSuccessToast: jest.fn(),
   addDangerToast: jest.fn(),
+  addInfoToast: jest.fn(),
   customCss: '.ant-menu {margin-left: 100px;}',
   dashboardId: 1,
   dashboardInfo: {
@@ -134,6 +135,23 @@ test('should render the menu items', async () => {
   expect(screen.getByText('Enter fullscreen')).toBeInTheDocument();
   expect(screen.getByText('Download')).toBeInTheDocument();
 });
+
+/* NGLS - BEGIN */
+test('Should open download submenu', async () => {
+  const mockedProps = createProps();
+  setup(mockedProps);
+
+  userEvent.click(screen.getByRole('button', { name: 'Download' }));
+
+  expect(screen.queryByText('Download as image')).not.toBeInTheDocument();
+  expect(screen.queryByText('Download as PDF')).not.toBeInTheDocument();
+
+  expect(screen.getByText('Download')).toBeInTheDocument();
+  userEvent.hover(screen.getByText('Download'));
+  expect(await screen.findByText('Download as image')).toBeInTheDocument();
+  expect(await screen.findByText('Download as PDF')).toBeInTheDocument();
+});
+/* NGLS - END */
 
 test('should render the menu items in edit mode', async () => {
   setup(editModeOnProps);

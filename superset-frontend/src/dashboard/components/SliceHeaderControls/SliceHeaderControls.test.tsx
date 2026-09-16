@@ -31,6 +31,9 @@ const createProps = (viz_type = VizType.Sunburst) =>
     addSuccessToast: jest.fn(),
     exploreChart: jest.fn(),
     exportCSV: jest.fn(),
+    /* NGLS - BEGIN */
+    exportPDF: jest.fn(),
+    /* NGLS - END */
     exportFullCSV: jest.fn(),
     exportXLSX: jest.fn(),
     exportFullXLSX: jest.fn(),
@@ -131,6 +134,10 @@ test('Should render default props', () => {
   delete props.exploreChart;
   // @ts-ignore
   delete props.exportCSV;
+  /* NGLS - BEGIN */
+  // @ts-ignore
+  delete props.exportPDF;
+  /* NGLS - END */
   // @ts-ignore
   delete props.exportXLSX;
   // @ts-ignore
@@ -233,6 +240,18 @@ test('Should "export full Excel"', async () => {
   expect(props.exportFullXLSX).toHaveBeenCalledTimes(1);
   expect(props.exportFullXLSX).toHaveBeenCalledWith(371);
 });
+
+/* NGLS - BEGIN */
+test('Should "Export to PDF"', async () => {
+  const props = createProps();
+  renderWrapper(props);
+  expect(props.exportPDF).toBeCalledTimes(0);
+  userEvent.hover(screen.getByText('Download'));
+  userEvent.click(await screen.findByText('Export to PDF'));
+  expect(props.exportPDF).toBeCalledTimes(1);
+  expect(props.exportPDF).toBeCalledWith(371);
+});
+/* NGLS - END */
 
 test('Should not show export full Excel if report is not table', async () => {
   (global as any).featureFlags = {

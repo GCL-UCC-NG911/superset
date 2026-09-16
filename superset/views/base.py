@@ -23,6 +23,10 @@ import traceback
 from datetime import datetime
 from typing import Any, Callable
 
+# NGLS - BEGIN #
+from slugify import slugify
+# NGLS - END #
+
 from babel import Locale
 from flask import (
     abort,
@@ -132,6 +136,13 @@ def json_success(json_msg: str, status: int = 200) -> FlaskResponse:
 def data_payload_response(payload_json: str, has_error: bool = False) -> FlaskResponse:
     status = 400 if has_error else 200
     return json_success(payload_json, status=status)
+
+
+# NGLS - BEGIN #
+def generate_filename(description: str) -> str:
+    date_str = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    return f"{slugify(description)}-{date_str}"
+# NGLS - END #
 
 
 def generate_download_headers(
@@ -468,6 +479,17 @@ class XlsxResponse(Response):
     default_mimetype = (
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+
+# NGLS - BEGIN #
+class PdfResponse(Response):
+    """
+    Override Response to use pdf mimetype
+    """
+
+    charset = "utf-8"
+    default_mimetype = "application/pdf"
+# NGLS - END #
 
 
 def bind_field(

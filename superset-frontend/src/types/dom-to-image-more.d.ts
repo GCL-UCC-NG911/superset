@@ -18,6 +18,24 @@
  */
 
 declare module 'dom-to-image-more' {
-  import domToImage = require('dom-to-image-more');
-  export = domToImage;
+  /* NGLS - BEGIN */
+  export interface Options {
+    filter?: (node: Node) => boolean;
+    bgcolor?: string;
+    width?: number;
+    height?: number;
+    style?: Record<string, string>;
+    quality?: number;
+    imagePlaceholder?: string;
+    cacheBust?: boolean;
+  }
+
+  interface DomToImageMore {
+    toJpeg(node: Node, options?: Options): Promise<string>;
+    toCanvas(node: Node, options?: Options): Promise<HTMLCanvasElement>;
+  }
+
+  const domToImage: DomToImageMore;
+  export default domToImage;
+  /* NGLS - END */
 }

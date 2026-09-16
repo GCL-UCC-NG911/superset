@@ -34,6 +34,10 @@ export const LOG_ACTIONS_PERIODIC_RENDER_DASHBOARD =
 export const LOG_ACTIONS_EXPLORE_DASHBOARD_CHART = 'explore_dashboard_chart';
 export const LOG_ACTIONS_EXPORT_CSV_DASHBOARD_CHART =
   'export_csv_dashboard_chart';
+/* NGLS - BEGIN */
+export const LOG_ACTIONS_EXPORT_PDF_DASHBOARD_CHART =
+  'export_pdf_dashboard_chart';
+/* NGLS - END */
 export const LOG_ACTIONS_EXPORT_XLSX_DASHBOARD_CHART =
   'export_xlsx_dashboard_chart';
 export const LOG_ACTIONS_CHANGE_DASHBOARD_FILTER = 'change_dashboard_filter';
@@ -54,6 +58,9 @@ export const LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE =
 export const LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF =
   'dashboard_download_as_pdf';
 export const LOG_ACTIONS_CHART_DOWNLOAD_AS_IMAGE = 'chart_download_as_image';
+/* NGLS - BEGIN */
+export const LOG_ACTIONS_CHART_DOWNLOAD_AS_PDF = 'chart_download_as_pdf';
+/* NGLS - END */
 export const LOG_ACTIONS_CHART_DOWNLOAD_AS_CSV = 'chart_download_as_csv';
 export const LOG_ACTIONS_CHART_DOWNLOAD_AS_CSV_PIVOTED =
   'chart_download_as_csv_pivoted';
@@ -100,6 +107,9 @@ export const LOG_EVENT_TYPE_USER = new Set([
   LOG_ACTIONS_EXPLORE_DASHBOARD_CHART,
   LOG_ACTIONS_FORCE_REFRESH_CHART,
   LOG_ACTIONS_EXPORT_CSV_DASHBOARD_CHART,
+  /* NGLS - BEGIN */
+  LOG_ACTIONS_EXPORT_PDF_DASHBOARD_CHART,
+  /* NGLS - END */
   LOG_ACTIONS_CHANGE_DASHBOARD_FILTER,
   LOG_ACTIONS_CHANGE_EXPLORE_CONTROLS,
   LOG_ACTIONS_TOGGLE_EDIT_DASHBOARD,
@@ -110,6 +120,9 @@ export const LOG_EVENT_TYPE_USER = new Set([
   LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE,
   LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF,
   LOG_ACTIONS_CHART_DOWNLOAD_AS_IMAGE,
+  /* NGLS - BEGIN */
+  LOG_ACTIONS_CHART_DOWNLOAD_AS_PDF,
+  /* NGLS - END */
 ]);
 
 export const LOG_EVENT_DATASET_TYPE_DATASET_CREATION = [
