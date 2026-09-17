@@ -146,6 +146,7 @@ module.exports = {
         'react/require-default-props': 0,
         'react/sort-comp': 0, // TODO: re-enable in separate PR
         'react/static-property-placement': 0, // re-enable up for discussion
+        'react/react-in-jsx-scope': 0, // automatic JSX runtime does not require React in scope
         'prettier/prettier': 'error',
         'file-progress/activate': 1,
       },
@@ -288,6 +289,7 @@ module.exports = {
     'react/require-default-props': 0,
     'react/sort-comp': 0, // TODO: re-enable in separate PR
     'react/static-property-placement': 0, // disabled temporarily
+    'react/react-in-jsx-scope': 0, // automatic JSX runtime does not require React in scope
     'prettier/prettier': 'error',
   },
   ignorePatterns,
