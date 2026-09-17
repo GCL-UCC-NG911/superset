@@ -91,7 +91,10 @@ export function safeHtmlSpan(possiblyHtmlString: string) {
 }
 
 export function removeHTMLTags(str: string): string {
-  return str.replace(/<[^>]*>/g, '');
+  const sanitized = xssFilter.process(str);
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(sanitized, 'text/html');
+  return doc.body.textContent || '';
 }
 
 export function isJsonString(str: string): boolean {
