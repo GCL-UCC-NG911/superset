@@ -203,6 +203,7 @@
     "rison": "^0.1.1",
     "scroll-into-view-if-needed": "^2.2.28",
     "shortid": "^2.2.6",
+    "simple-zstd": "^1.4.2",
     "tinycolor2": "^1.4.2",
     "urijs": "^1.19.8",
     "use-immer": "^0.8.1",
