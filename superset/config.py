@@ -875,6 +875,20 @@ PDF_EXPORT = {
 }
 # NGLS - END #
 
+# NGLS - BEGIN #
+CUSTOM_CSV = {"encoding": "utf-8"}
+# PDF Options: Options dictionary that will be passed as argument to pdfkit.
+PDF_EXPORT = {
+    "page-size": "Letter",
+    "margin-top": "0.2in",
+    "margin-right": "0.1in",
+    "margin-bottom": "0.2in",
+    "margin-left": "0.1in",
+    "encoding": "UTF-8",
+    "orientation": "Landscape",
+}
+# NGLS - END #
+
 # ---------------------------------------------------
 # Time grain configurations
 # ---------------------------------------------------
@@ -1257,6 +1271,10 @@ FAB_ADD_SECURITY_VIEWS = True
 FAB_ADD_SECURITY_PERMISSION_VIEW = False
 FAB_ADD_SECURITY_VIEW_MENU_VIEW = False
 FAB_ADD_SECURITY_PERMISSION_VIEWS_VIEW = False
+
+# NGLS - BEGIN #
+FAB_ADD_SECURITY_API = False
+# NGLS - END #
 
 # The link to a page containing common errors and their resolutions
 # It will be appended at the bottom of sql_lab errors.

@@ -18,27 +18,29 @@
  */
 
 /* eslint-disable no-param-reassign */
-import { throttle } from 'lodash';
-import {
-  memo,
+import throttle from 'lodash/throttle';
+import React, {
   useEffect,
   useState,
   useCallback,
   useMemo,
   useRef,
   createContext,
-  FC,
 } from 'react';
 import cx from 'classnames';
-import { styled, t } from '@superset-ui/core';
+import { HandlerFunction, styled, t, isNativeFilter } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
+import { AntdTabs } from 'src/components';
+import { FeatureFlag, isFeatureEnabled } from 'src/featureFlags';
 import Loading from 'src/components/Loading';
-import { EmptyState } from 'src/components/EmptyState';
+import { EmptyStateSmall } from 'src/components/EmptyState';
 import { getFilterBarTestId } from './utils';
-import { VerticalBarProps } from './types';
+import { TabIds, VerticalBarProps } from './types';
+import FilterSets from './FilterSets';
+import { useFilterSets } from './state';
+import EditSection from './FilterSets/EditSection';
 import Header from './Header';
 import FilterControls from './FilterControls/FilterControls';
-import CrossFiltersVertical from './CrossFilters/Vertical';
 
 const BarWrapper = styled.div<{ width: number }>`
   width: ${({ theme }) => theme.gridUnit * 8}px;
@@ -108,6 +110,22 @@ const StyledFilterIcon = styled(Icons.Filter)`
   color: ${({ theme }) => theme.colors.grayscale.base};
 `;
 
+const StyledTabs = styled(AntdTabs)`
+  & .ant-tabs-nav-list {
+    width: 100%;
+  }
+  & .ant-tabs-tab {
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    flex: 1;
+  }
+
+  & > .ant-tabs-nav .ant-tabs-nav-operations {
+    display: none;
+  }
+`;
+
 const FilterBarEmptyStateContainer = styled.div`
   margin-top: ${({ theme }) => theme.gridUnit * 8}px;
 `;
@@ -119,19 +137,25 @@ const FilterControlsWrapper = styled.div`
 `;
 
 export const FilterBarScrollContext = createContext(false);
-const VerticalFilterBar: FC<VerticalBarProps> = ({
+const VerticalFilterBar: React.FC<VerticalBarProps> = ({
   actions,
   canEdit,
   dataMaskSelected,
   filtersOpen,
   filterValues,
   height,
+  isDisabled,
   isInitialized,
   offset,
   onSelectionChange,
   toggleFiltersBar,
   width,
 }) => {
+  const [editFilterSetId, setEditFilterSetId] = useState<number | null>(null);
+  const filterSets = useFilterSets();
+  const filterSetFilterValues = Object.values(filterSets);
+  const [tab, setTab] = useState(TabIds.AllFilters);
+  const nativeFilterValues = filterValues.filter(isNativeFilter);
   const [isScrolling, setIsScrolling] = useState(false);
   const timeout = useRef<any>();
 
@@ -164,32 +188,7 @@ const VerticalFilterBar: FC<VerticalBarProps> = ({
     [height],
   );
 
-  const filterControls = useMemo(
-    () =>
-      filterValues.length === 0 ? (
-        <FilterBarEmptyStateContainer>
-          <EmptyState
-            size="small"
-            title={t('No global filters are currently added')}
-            image="filter.svg"
-            description={
-              canEdit &&
-              t(
-                'Click on "Add or Edit Filters" option in Settings to create new dashboard filters',
-              )
-            }
-          />
-        </FilterBarEmptyStateContainer>
-      ) : (
-        <FilterControlsWrapper>
-          <FilterControls
-            dataMaskSelected={dataMaskSelected}
-            onFilterSelectionChange={onSelectionChange}
-          />
-        </FilterControlsWrapper>
-      ),
-    [canEdit, dataMaskSelected, filterValues.length, onSelectionChange],
-  );
+  const numberOfFilters = nativeFilterValues.length;
 
   return (
     <FilterBarScrollContext.Provider value={isScrolling}>
@@ -202,7 +201,6 @@ const VerticalFilterBar: FC<VerticalBarProps> = ({
           {...getFilterBarTestId('collapsable')}
           className={cx({ open: !filtersOpen })}
           onClick={openFiltersBar}
-          role="button"
           offset={offset}
         >
           <StyledCollapseIcon
@@ -220,12 +218,90 @@ const VerticalFilterBar: FC<VerticalBarProps> = ({
             <div css={{ height }}>
               <Loading />
             </div>
+          ) : isFeatureEnabled(FeatureFlag.DASHBOARD_NATIVE_FILTERS_SET) ? (
+            <StyledTabs
+              centered
+              onChange={setTab as HandlerFunction}
+              defaultActiveKey={TabIds.AllFilters}
+              activeKey={editFilterSetId ? TabIds.AllFilters : undefined}
+            >
+              <AntdTabs.TabPane
+                tab={t('All filters (%(filterCount)d)', {
+                  filterCount: numberOfFilters,
+                })}
+                key={TabIds.AllFilters}
+                css={tabPaneStyle}
+              >
+                {editFilterSetId && (
+                  <EditSection
+                    dataMaskSelected={dataMaskSelected}
+                    disabled={!isDisabled}
+                    onCancel={() => setEditFilterSetId(null)}
+                    filterSetId={editFilterSetId}
+                  />
+                )}
+                {filterValues.length === 0 ? (
+                  <FilterBarEmptyStateContainer>
+                    <EmptyStateSmall
+                      title={t('No filters are currently added')}
+                      image="filter.svg"
+                      description={
+                        canEdit &&
+                        t(
+                          'Click the button above to add a filter to the dashboard',
+                        )
+                      }
+                    />
+                  </FilterBarEmptyStateContainer>
+                ) : (
+                  <FilterControlsWrapper>
+                    <FilterControls
+                      dataMaskSelected={dataMaskSelected}
+                      onFilterSelectionChange={onSelectionChange}
+                    />
+                  </FilterControlsWrapper>
+                )}
+              </AntdTabs.TabPane>
+              <AntdTabs.TabPane
+                disabled={!!editFilterSetId}
+                tab={t('Filter sets (%(filterSetCount)d)', {
+                  filterSetCount: filterSetFilterValues.length,
+                })}
+                key={TabIds.FilterSets}
+                css={tabPaneStyle}
+              >
+                <FilterSets
+                  onEditFilterSet={setEditFilterSetId}
+                  disabled={!isDisabled}
+                  dataMaskSelected={dataMaskSelected}
+                  tab={tab}
+                  onFilterSelectionChange={onSelectionChange}
+                />
+              </AntdTabs.TabPane>
+            </StyledTabs>
           ) : (
             <div css={tabPaneStyle} onScroll={onScroll}>
-              <>
-                <CrossFiltersVertical />
-                {filterControls}
-              </>
+              {filterValues.length === 0 ? (
+                <FilterBarEmptyStateContainer>
+                  <EmptyStateSmall
+                    title={t('No filters are currently added')}
+                    image="filter.svg"
+                    description={
+                      canEdit &&
+                      t(
+                        'Click the button above to add a filter to the dashboard',
+                      )
+                    }
+                  />
+                </FilterBarEmptyStateContainer>
+              ) : (
+                <FilterControlsWrapper>
+                  <FilterControls
+                    dataMaskSelected={dataMaskSelected}
+                    onFilterSelectionChange={onSelectionChange}
+                  />
+                </FilterControlsWrapper>
+              )}
             </div>
           )}
           {actions}
@@ -234,4 +310,4 @@ const VerticalFilterBar: FC<VerticalBarProps> = ({
     </FilterBarScrollContext.Provider>
   );
 };
-export default memo(VerticalFilterBar);
+export default React.memo(VerticalFilterBar);

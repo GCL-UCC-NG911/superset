@@ -78,6 +78,9 @@ class ReportDataFormat(StrEnum):
     PNG = "PNG"
     CSV = "CSV"
     TEXT = "TEXT"
+    # NGLS - BEGIN #
+    PDF = "PDF"
+    # NGLS - END #
 
 
 class ReportCreationMethod(StrEnum):

@@ -14,29 +14,29 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+import json
 import logging
 import time
 from copy import copy
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
+import yaml
 from flask_babel import lazy_gettext as _
-from sqlalchemy.orm import make_transient
+from sqlalchemy.orm import make_transient, Session
 
 from superset import db
 from superset.commands.base import BaseCommand
-from superset.commands.dataset.importers.v0 import import_dataset
+from superset.commands.importers.exceptions import IncorrectVersionError
 from superset.connectors.sqla.models import SqlaTable, SqlMetric, TableColumn
+from superset.datasets.commands.importers.v0 import import_dataset
 from superset.exceptions import DashboardImportException
-from superset.migrations.shared.native_filters import migrate_dashboard
 from superset.models.dashboard import Dashboard
 from superset.models.slice import Slice
-from superset.utils import json
 from superset.utils.dashboard_filter_scopes_converter import (
     convert_filter_scopes,
     copy_filter_scopes,
 )
-from superset.utils.decorators import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +57,7 @@ def import_chart(
     :returns: The resulting id for the imported slice
     :rtype: int
     """
+    session = db.session
     make_transient(slc_to_import)
     slc_to_import.dashboards = []
     slc_to_import.alter_params(remote_id=slc_to_import.id, import_time=import_time)
@@ -65,26 +66,26 @@ def import_chart(
     slc_to_import.reset_ownership()
     params = slc_to_import.params_dict
     datasource = SqlaTable.get_datasource_by_name(
+        session=session,
         datasource_name=params["datasource_name"],
         database_name=params["database_name"],
-        catalog=params.get("catalog"),
         schema=params["schema"],
     )
     slc_to_import.datasource_id = datasource.id  # type: ignore
     if slc_to_override:
         slc_to_override.override(slc_to_import)
-        db.session.flush()
+        session.flush()
         return slc_to_override.id
-    db.session.add(slc_to_import)
+    session.add(slc_to_import)
     logger.info("Final slice: %s", str(slc_to_import.to_json()))
-    db.session.flush()
+    session.flush()
     return slc_to_import.id
 
 
-def import_dashboard(  # noqa: C901
+def import_dashboard(
     # pylint: disable=too-many-locals,too-many-statements
     dashboard_to_import: Dashboard,
-    dataset_id_mapping: Optional[dict[int, int]] = None,
+    dataset_id_mapping: Optional[Dict[int, int]] = None,
     import_time: Optional[int] = None,
 ) -> int:
     """Imports the dashboard from the object to the database.
@@ -98,7 +99,7 @@ def import_dashboard(  # noqa: C901
     """
 
     def alter_positions(
-        dashboard: Dashboard, old_to_new_slc_id_dict: dict[int, int]
+        dashboard: Dashboard, old_to_new_slc_id_dict: Dict[int, int]
     ) -> None:
         """Updates slice_ids in the position json.
 
@@ -157,6 +158,7 @@ def import_dashboard(  # noqa: C901
         dashboard.json_metadata = json.dumps(json_metadata)
 
     logger.info("Started import of the dashboard: %s", dashboard_to_import.to_json())
+    session = db.session
     logger.info("Dashboard has %d slices", len(dashboard_to_import.slices))
     # copy slices object as Slice.import_slice will mutate the slice
     # and will remove the existing dashboard - slice association
@@ -166,17 +168,16 @@ def import_dashboard(  # noqa: C901
     dashboard_to_import.slug = None
 
     old_json_metadata = json.loads(dashboard_to_import.json_metadata or "{}")
-    old_to_new_slc_id_dict: dict[int, int] = {}
+    old_to_new_slc_id_dict: Dict[int, int] = {}
     new_timed_refresh_immune_slices = []
     new_expanded_slices = {}
     new_filter_scopes = {}
     i_params_dict = dashboard_to_import.params_dict
     remote_id_slice_map = {
         slc.params_dict["remote_id"]: slc
-        for slc in db.session.query(Slice).all()
+        for slc in session.query(Slice).all()
         if "remote_id" in slc.params_dict
     }
-    new_slice_ids = []
     for slc in slices:
         logger.info(
             "Importing slice %s from the dashboard: %s",
@@ -185,7 +186,6 @@ def import_dashboard(  # noqa: C901
         )
         remote_slc = remote_id_slice_map.get(slc.id)
         new_slc_id = import_chart(slc, remote_slc, import_time=import_time)
-        new_slice_ids.append(new_slc_id)
         old_to_new_slc_id_dict[slc.id] = new_slc_id
         # update json metadata that deals with slice ids
         new_slc_id_str = str(new_slc_id)
@@ -226,7 +226,7 @@ def import_dashboard(  # noqa: C901
 
     # override the dashboard
     existing_dashboard = None
-    for dash in db.session.query(Dashboard).all():
+    for dash in session.query(Dashboard).all():
         if (
             "remote_id" in dash.params_dict
             and dash.params_dict["remote_id"] == dashboard_to_import.id
@@ -254,27 +254,25 @@ def import_dashboard(  # noqa: C901
 
     alter_native_filters(dashboard_to_import)
 
+    new_slices = (
+        session.query(Slice).filter(Slice.id.in_(old_to_new_slc_id_dict.values())).all()
+    )
+
     if existing_dashboard:
         existing_dashboard.override(dashboard_to_import)
-    else:
-        db.session.add(dashboard_to_import)
+        existing_dashboard.slices = new_slices
+        session.flush()
+        return existing_dashboard.id
 
-    dashboard = existing_dashboard or dashboard_to_import
-    dashboard.slices = (
-        db.session.query(Slice)
-        .filter(Slice.id.in_(old_to_new_slc_id_dict.values()))
-        .all()
-    )
-    # Migrate any filter-box charts to native dashboard filters.
-    migrate_dashboard(dashboard)
-    db.session.flush()
-    return dashboard.id
+    dashboard_to_import.slices = new_slices
+    session.add(dashboard_to_import)
+    session.flush()
+    return dashboard_to_import.id  # type: ignore
 
 
-def decode_dashboards(o: dict[str, Any]) -> Any:
+def decode_dashboards(o: Dict[str, Any]) -> Any:
     """
-    Function to be passed into json.loads obj_hook parameter
-    Recreates the dashboard object from a json representation.
+    Recreates dashboard objects from serialized marker dictionaries.
     """
 
     if "__Dashboard__" in o:
@@ -293,7 +291,25 @@ def decode_dashboards(o: dict[str, Any]) -> Any:
     return o
 
 
+def decode_dashboards_content(content: str) -> Any:
+    """
+    Parse YAML content and recursively decode dashboard marker objects.
+    YAML parser is used instead of JSON to support both YAML and JSON formats.
+    """
+
+    def recursive_decode(value: Any) -> Any:
+        if isinstance(value, list):
+            return [recursive_decode(item) for item in value]
+        if isinstance(value, dict):
+            decoded = {key: recursive_decode(item) for key, item in value.items()}
+            return decode_dashboards(decoded)
+        return value
+
+    return recursive_decode(yaml.safe_load(content))
+
+
 def import_dashboards(
+    session: Session,
     content: str,
     database_id: Optional[int] = None,
     import_time: Optional[int] = None,
@@ -301,22 +317,24 @@ def import_dashboards(
     """Imports dashboards from a stream to databases"""
     current_tt = int(time.time())
     import_time = current_tt if import_time is None else import_time
-    data = json.loads(content, object_hook=decode_dashboards)
+    data = decode_dashboards_content(content)
     if not data:
         raise DashboardImportException(_("No data in file"))
-    dataset_id_mapping: dict[int, int] = {}
+    dataset_id_mapping: Dict[int, int] = {}
     for table in data["datasources"]:
         new_dataset_id = import_dataset(table, database_id, import_time=import_time)
         params = json.loads(table.params)
         dataset_id_mapping[params["remote_id"]] = new_dataset_id
 
+    session.commit()
     for dashboard in data["dashboards"]:
         import_dashboard(dashboard, dataset_id_mapping, import_time=import_time)
+    session.commit()
 
 
 class ImportDashboardsCommand(BaseCommand):
     """
-    Import dashboard in JSON format.
+    Import dashboards from YAML/JSON v0 format.
 
     This is the original unversioned format used to export and import dashboards
     in Superset.
@@ -324,24 +342,31 @@ class ImportDashboardsCommand(BaseCommand):
 
     # pylint: disable=unused-argument
     def __init__(
-        self, contents: dict[str, str], database_id: Optional[int] = None, **kwargs: Any
+        self, contents: Dict[str, str], database_id: Optional[int] = None, **kwargs: Any
     ):
         self.contents = contents
         self.database_id = database_id
 
-    @transaction()
     def run(self) -> None:
         self.validate()
 
         for file_name, content in self.contents.items():
             logger.info("Importing dashboard from file %s", file_name)
-            import_dashboards(content, self.database_id)
+            import_dashboards(db.session, content, self.database_id)
 
     def validate(self) -> None:
-        # ensure all files are JSON
-        for content in self.contents.values():
+        # ensure all files are YAML/JSON with dashboard v0 keys
+        for file_name, content in self.contents.items():
             try:
-                json.loads(content)
-            except ValueError:
-                logger.exception("Invalid JSON file")
-                raise
+                data = yaml.safe_load(content)
+            except yaml.YAMLError as ex:
+                logger.exception("Invalid YAML file")
+                raise IncorrectVersionError(
+                    f"{file_name} is not a valid YAML file"
+                ) from ex
+
+            if not isinstance(data, dict):
+                raise IncorrectVersionError(f"{file_name} is not a valid file")
+
+            if "datasources" not in data or "dashboards" not in data:
+                raise IncorrectVersionError(f"{file_name} has no valid keys")

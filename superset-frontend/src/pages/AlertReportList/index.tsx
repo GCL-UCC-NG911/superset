@@ -190,6 +190,25 @@ function AlertList({
     );
   };
 
+  /* NGLS - BEGIN */
+  const handleTriggerNow = async (alert: AlertObject) => {
+    try {
+      await SupersetClient.post({
+        endpoint: `/api/v1/report/${alert.id}/trigger_now`,
+      });
+      addSuccessToast(
+        t('Report/Alert "%s" triggered successfully', alert.name),
+      );
+    } catch (e) {
+      createErrorHandler(errMsg =>
+        addDangerToast(
+          t('There was an issue triggering %s: %s', alert.name, errMsg),
+        ),
+      )(e);
+    }
+  };
+  /* NGLS - END */
+
   const handleBulkAlertDelete = async (alertsToDelete: AlertObject[]) => {
     try {
       const { message } = await deleteAlerts(
@@ -365,7 +384,18 @@ function AlertList({
             original.owners.map((o: Owner) => o.id).includes(user.userId) ||
             isUserAdmin(user);
 
+          /* NGLS - BEGIN */
           const actions = [
+            allowEdit && canEdit
+              ? {
+                  label: 'trigger-now-action',
+                  tooltip: t('Trigger now'),
+                  placement: 'bottom',
+                  icon: 'Bolt',
+                  onClick: () => handleTriggerNow(original),
+                }
+              : null,
+            /* NGLS - END */
             canEdit
               ? {
                   label: 'execution-log-action',
@@ -408,7 +438,15 @@ function AlertList({
         hidden: true,
       },
     ],
-    [canDelete, canEdit, isReportEnabled, toggleActive],
+    [
+      canDelete,
+      canEdit,
+      isReportEnabled,
+      toggleActive,
+      /* NGLS - BEGIN */
+      handleTriggerNow,
+      /* NGLS - END */
+    ],
   );
 
   const subMenuButtons: SubMenuProps['buttons'] = [];

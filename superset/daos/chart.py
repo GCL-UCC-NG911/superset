@@ -14,30 +14,72 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-from __future__ import annotations
-
+# pylint: disable=arguments-renamed
 import logging
-from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
+
+from sqlalchemy.exc import SQLAlchemyError
 
 from superset.charts.filters import ChartFilter
-from superset.daos.base import BaseDAO
+from superset.dao.base import BaseDAO
 from superset.extensions import db
 from superset.models.core import FavStar, FavStarClassName
 from superset.models.slice import Slice
 from superset.utils.core import get_user_id
 
 if TYPE_CHECKING:
-    pass
+    from superset.connectors.base.models import BaseDatasource
 
 logger = logging.getLogger(__name__)
 
 
-class ChartDAO(BaseDAO[Slice]):
+class ChartDAO(BaseDAO):
+    model_cls = Slice
     base_filter = ChartFilter
 
     @staticmethod
-    def favorited_ids(charts: list[Slice]) -> list[FavStar]:
+    def validate_name_uniqueness(name: str, chart_id: Optional[int] = None) -> bool:
+        chart_query = db.session.query(Slice).filter(Slice.slice_name == name)
+
+        if chart_id:
+            chart_query = chart_query.filter(Slice.id != chart_id)
+
+        return not db.session.query(chart_query.exists()).scalar()
+
+    @staticmethod
+    def bulk_delete(models: Optional[List[Slice]], commit: bool = True) -> None:
+        item_ids = [model.id for model in models] if models else []
+        # bulk delete, first delete related data
+        if models:
+            for model in models:
+                model.owners = []
+                model.dashboards = []
+                db.session.merge(model)
+        # bulk delete itself
+        try:
+            db.session.query(Slice).filter(Slice.id.in_(item_ids)).delete(
+                synchronize_session="fetch"
+            )
+            if commit:
+                db.session.commit()
+        except SQLAlchemyError as ex:
+            db.session.rollback()
+            raise ex
+
+    @staticmethod
+    def save(slc: Slice, commit: bool = True) -> None:
+        db.session.add(slc)
+        if commit:
+            db.session.commit()
+
+    @staticmethod
+    def overwrite(slc: Slice, commit: bool = True) -> None:
+        db.session.merge(slc)
+        if commit:
+            db.session.commit()
+
+    @staticmethod
+    def favorited_ids(charts: List[Slice]) -> List[FavStar]:
         ids = [chart.id for chart in charts]
         return [
             star.obj_id
@@ -49,30 +91,3 @@ class ChartDAO(BaseDAO[Slice]):
             )
             .all()
         ]
-
-    @staticmethod
-    def add_favorite(chart: Slice) -> None:
-        ids = ChartDAO.favorited_ids([chart])
-        if chart.id not in ids:
-            db.session.add(
-                FavStar(
-                    class_name=FavStarClassName.CHART,
-                    obj_id=chart.id,
-                    user_id=get_user_id(),
-                    dttm=datetime.now(),
-                )
-            )
-
-    @staticmethod
-    def remove_favorite(chart: Slice) -> None:
-        fav = (
-            db.session.query(FavStar)
-            .filter(
-                FavStar.class_name == FavStarClassName.CHART,
-                FavStar.obj_id == chart.id,
-                FavStar.user_id == get_user_id(),
-            )
-            .one_or_none()
-        )
-        if fav:
-            db.session.delete(fav)

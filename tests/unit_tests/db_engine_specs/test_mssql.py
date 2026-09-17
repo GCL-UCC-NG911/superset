@@ -17,7 +17,7 @@
 import unittest.mock as mock
 from datetime import datetime
 from textwrap import dedent
-from typing import Any, Optional
+from typing import Any, Dict, Optional, Type
 
 import pytest
 from sqlalchemy import column, table
@@ -27,13 +27,12 @@ from sqlalchemy.sql import select
 from sqlalchemy.types import String, TypeEngine, UnicodeText
 
 from superset.errors import ErrorLevel, SupersetError, SupersetErrorType
-from superset.models.sql_types.mssql_sql_types import GUID
 from superset.utils.core import GenericDataType
 from tests.unit_tests.db_engine_specs.utils import (
     assert_column_spec,
     assert_convert_dttm,
 )
-from tests.unit_tests.fixtures.common import dttm  # noqa: F401
+from tests.unit_tests.fixtures.common import dttm
 
 
 @pytest.mark.parametrize(
@@ -47,17 +46,16 @@ from tests.unit_tests.fixtures.common import dttm  # noqa: F401
         ("NCHAR(10)", UnicodeText, None, GenericDataType.STRING, False),
         ("NVARCHAR(10)", UnicodeText, None, GenericDataType.STRING, False),
         ("NTEXT", UnicodeText, None, GenericDataType.STRING, False),
-        ("uniqueidentifier", GUID, None, GenericDataType.STRING, False),
     ],
 )
 def test_get_column_spec(
     native_type: str,
-    sqla_type: type[TypeEngine],
-    attrs: Optional[dict[str, Any]],
+    sqla_type: Type[TypeEngine],
+    attrs: Optional[Dict[str, Any]],
     generic_type: GenericDataType,
     is_dttm: bool,
 ) -> None:
-    from superset.db_engine_specs.mssql import MssqlEngineSpec as spec  # noqa: N813
+    from superset.db_engine_specs.mssql import MssqlEngineSpec as spec
 
     assert_column_spec(spec, native_type, sqla_type, attrs, generic_type, is_dttm)
 
@@ -96,7 +94,7 @@ def test_where_clause_n_prefix() -> None:
     assert query == query_expected
 
 
-def test_time_exp_mixed_case_col_1y() -> None:
+def test_time_exp_mixd_case_col_1y() -> None:
     from superset.db_engine_specs.mssql import MssqlEngineSpec
 
     col = column("MixedCase")
@@ -126,9 +124,9 @@ def test_time_exp_mixed_case_col_1y() -> None:
 def test_convert_dttm(
     target_type: str,
     expected_result: Optional[str],
-    dttm: datetime,  # noqa: F811
+    dttm: datetime,
 ) -> None:
-    from superset.db_engine_specs.mssql import MssqlEngineSpec as spec  # noqa: N813
+    from superset.db_engine_specs.mssql import MssqlEngineSpec as spec
 
     assert_convert_dttm(spec, target_type, expected_result, dttm)
 
@@ -159,14 +157,6 @@ def test_extract_error_message() -> None:
     assert expected_message == error_message
 
 
-def test_fetch_data_no_description() -> None:
-    from superset.db_engine_specs.mssql import MssqlEngineSpec
-
-    cursor = mock.MagicMock()
-    cursor.description = []
-    assert MssqlEngineSpec.fetch_data(cursor) == []
-
-
 def test_fetch_data() -> None:
     from superset.db_engine_specs.base import BaseEngineSpec
     from superset.db_engine_specs.mssql import MssqlEngineSpec
@@ -176,10 +166,9 @@ def test_fetch_data() -> None:
         "pyodbc_rows_to_tuples",
         return_value="converted",
     ) as mock_pyodbc_rows_to_tuples:
-        cursor = mock.MagicMock()
         data = [(1, "foo")]
         with mock.patch.object(BaseEngineSpec, "fetch_data", return_value=data):
-            result = MssqlEngineSpec.fetch_data(cursor, 0)
+            result = MssqlEngineSpec.fetch_data(None, 0)
             mock_pyodbc_rows_to_tuples.assert_called_once_with(data)
             assert result == "converted"
 
@@ -268,7 +257,6 @@ select TOP 100 * from currency""",
 select TOP 100 * from currency""",
             1000,
         ),
-        ("SELECT DISTINCT x from tbl", "SELECT DISTINCT TOP 100 x from tbl", 100),
         ("SELECT 1 as cnt", "SELECT TOP 10 1 as cnt", 10),
         (
             "select TOP 1000 * from abc where id=1",
@@ -293,21 +281,21 @@ def test_extract_errors() -> None:
     msg = dedent(
         """
 DB-Lib error message 20009, severity 9:
-Unable to connect: Adaptive Server is unavailable or does not exist (localhost_)
+Unable to connect: Adaptive Server is unavailable or does not exist (locahost)
         """
     )
     result = MssqlEngineSpec.extract_errors(Exception(msg))
     assert result == [
         SupersetError(
             error_type=SupersetErrorType.CONNECTION_INVALID_HOSTNAME_ERROR,
-            message='The hostname "localhost_" cannot be resolved.',
+            message='The hostname "locahost" cannot be resolved.',
             level=ErrorLevel.ERROR,
             extra={
                 "engine_name": "Microsoft SQL Server",
                 "issue_codes": [
                     {
                         "code": 1007,
-                        "message": "Issue 1007 - The hostname provided can't be resolved.",  # noqa: E501
+                        "message": "Issue 1007 - The hostname provided can't be resolved.",
                     }
                 ],
             },
@@ -367,7 +355,7 @@ Net-Lib error during Operation timed out (60)
                 "issue_codes": [
                     {
                         "code": 1009,
-                        "message": "Issue 1009 - The host might be down, and can't be reached on the provided port.",  # noqa: E501
+                        "message": "Issue 1009 - The host might be down, and can't be reached on the provided port.",
                     }
                 ],
             },
@@ -400,7 +388,7 @@ Net-Lib error during Operation timed out (60)
                 "issue_codes": [
                     {
                         "code": 1009,
-                        "message": "Issue 1009 - The host might be down, and can't be reached on the provided port.",  # noqa: E501
+                        "message": "Issue 1009 - The host might be down, and can't be reached on the provided port.",
                     }
                 ],
             },
@@ -420,42 +408,25 @@ Adaptive Server connection failed (mssqldb.cxiotftzsypc.us-west-2.rds.amazonaws.
     result = MssqlEngineSpec.extract_errors(
         Exception(msg), context={"username": "testuser", "database": "testdb"}
     )
-    assert (
-        result
-        == [
-            SupersetError(
-                message='Either the username "testuser", password, or database name "testdb" is incorrect.',  # noqa: E501
-                error_type=SupersetErrorType.CONNECTION_ACCESS_DENIED_ERROR,
-                level=ErrorLevel.ERROR,
-                extra={
-                    "engine_name": "Microsoft SQL Server",
-                    "issue_codes": [
-                        {
-                            "code": 1014,
-                            "message": "Issue 1014 - Either the username or "
-                            "the password is wrong.",
-                        },
-                        {
-                            "code": 1015,
-                            "message": "Issue 1015 - Either the database is "
-                            "spelled incorrectly or does not exist.",
-                        },
-                    ],
-                },
-            )
-        ]
-    )
-
-
-@pytest.mark.parametrize(
-    "name,expected_result",
-    [
-        ("col", "col"),
-        ("Col", "Col"),
-        ("COL", "COL"),
-    ],
-)
-def test_denormalize_name(name: str, expected_result: str):
-    from superset.db_engine_specs.mssql import MssqlEngineSpec as spec  # noqa: N813
-
-    assert spec.denormalize_name(mssql.dialect(), name) == expected_result
+    assert result == [
+        SupersetError(
+            message='Either the username "testuser", password, or database name "testdb" is incorrect.',
+            error_type=SupersetErrorType.CONNECTION_ACCESS_DENIED_ERROR,
+            level=ErrorLevel.ERROR,
+            extra={
+                "engine_name": "Microsoft SQL Server",
+                "issue_codes": [
+                    {
+                        "code": 1014,
+                        "message": "Issue 1014 - Either the username or "
+                        "the password is wrong.",
+                    },
+                    {
+                        "code": 1015,
+                        "message": "Issue 1015 - Either the database is "
+                        "spelled incorrectly or does not exist.",
+                    },
+                ],
+            },
+        )
+    ]

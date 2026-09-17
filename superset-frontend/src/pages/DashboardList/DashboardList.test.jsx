@@ -16,12 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import thunk from 'redux-thunk';
 import configureStore from 'redux-mock-store';
 import fetchMock from 'fetch-mock';
-import * as reactRedux from 'react-redux';
-import { isFeatureEnabled } from '@superset-ui/core';
+import { Provider } from 'react-redux';
+import * as featureFlags from 'src/featureFlags';
 
 import waitForComponentToPaint from 'spec/helpers/waitForComponentToPaint';
 import { styledMount as mount } from 'spec/helpers/theming';
@@ -31,13 +32,17 @@ import { QueryParamProvider } from 'use-query-params';
 import { act } from 'react-dom/test-utils';
 
 import ConfirmStatusChange from 'src/components/ConfirmStatusChange';
-import DashboardList from 'src/pages/DashboardList';
+import DashboardList from 'src/views/CRUD/dashboard/DashboardList';
 import ListView from 'src/components/ListView';
 import ListViewCard from 'src/components/ListViewCard';
 import PropertiesModal from 'src/dashboard/components/PropertiesModal';
 import FaveStar from 'src/components/FaveStar';
 import TableCollection from 'src/components/TableCollection';
 import CardCollection from 'src/components/ListView/CardCollection';
+
+// store needed for withToasts(DashboardTable)
+const mockStore = configureStore([thunk]);
+const store = mockStore({});
 
 const dashboardsInfoEndpoint = 'glob:*/api/v1/dashboard/_info*';
 const dashboardOwnersEndpoint = 'glob:*/api/v1/dashboard/related/owners*';
@@ -48,16 +53,12 @@ const dashboardFavoriteStatusEndpoint =
 const dashboardsEndpoint = 'glob:*/api/v1/dashboard/?*';
 const dashboardEndpoint = 'glob:*/api/v1/dashboard/*';
 
-jest.mock('@superset-ui/core', () => ({
-  ...jest.requireActual('@superset-ui/core'),
-  isFeatureEnabled: jest.fn(),
-}));
-
 const mockDashboards = [...new Array(3)].map((_, i) => ({
   id: i,
   url: 'url',
   dashboard_title: `title ${i}`,
   changed_by_name: 'user',
+  changed_by_url: 'changed_by_url',
   changed_by_fk: 1,
   published: true,
   changed_on_utc: new Date().toISOString(),
@@ -95,41 +96,14 @@ fetchMock.get(dashboardEndpoint, {
 
 global.URL.createObjectURL = jest.fn();
 fetchMock.get('/thumbnail', { body: new Blob(), sendAsJson: false });
-const user = {
-  createdOn: '2021-04-27T18:12:38.952304',
-  email: 'admin',
-  firstName: 'admin',
-  isActive: true,
-  lastName: 'admin',
-  permissions: {},
-  roles: {
-    Admin: [
-      ['can_sqllab', 'Superset'],
-      ['can_write', 'Dashboard'],
-      ['can_write', 'Chart'],
-    ],
-  },
-  userId: 1,
-  username: 'admin',
-};
-
-// store needed for withToasts(DatabaseList)
-const mockStore = configureStore([thunk]);
-const store = mockStore({ user });
-const useSelectorMock = jest.spyOn(reactRedux, 'useSelector');
 
 describe('DashboardList', () => {
-  isFeatureEnabled.mockImplementation(
-    feature => feature === 'LISTVIEWS_DEFAULT_CARD_VIEW',
-  );
+  const isFeatureEnabledMock = jest
+    .spyOn(featureFlags, 'isFeatureEnabled')
+    .mockImplementation(feature => feature === 'LISTVIEWS_DEFAULT_CARD_VIEW');
 
   afterAll(() => {
-    isFeatureEnabled.mockRestore();
-  });
-
-  beforeEach(() => {
-    // setup a DOM element as a render target
-    useSelectorMock.mockClear();
+    isFeatureEnabledMock.restore();
   });
 
   const mockedProps = {};
@@ -139,9 +113,9 @@ describe('DashboardList', () => {
     fetchMock.resetHistory();
     wrapper = mount(
       <MemoryRouter>
-        <reactRedux.Provider store={store}>
+        <Provider store={store}>
           <DashboardList {...mockedProps} user={mockUser} />
-        </reactRedux.Provider>
+        </Provider>
       </MemoryRouter>,
     );
 
@@ -166,7 +140,7 @@ describe('DashboardList', () => {
     const callsD = fetchMock.calls(/dashboard\/\?q/);
     expect(callsD).toHaveLength(1);
     expect(callsD[0][0]).toMatchInlineSnapshot(
-      `"http://localhost/api/v1/dashboard/?q=(order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:25,select_columns:!(id,dashboard_title,published,url,slug,changed_by,changed_by.id,changed_by.first_name,changed_by.last_name,changed_on_delta_humanized,owners,owners.id,owners.first_name,owners.last_name,tags.id,tags.name,tags.type,status,certified_by,certification_details,changed_on))"`,
+      `"http://localhost/api/v1/dashboard/?q=(order_column:dashboard_title,order_direction:asc,page:0,page_size:25)"`,
     );
   });
 
@@ -241,14 +215,17 @@ describe('RTL', () => {
     return mounted;
   }
 
+  let isFeatureEnabledMock;
   beforeEach(async () => {
-    isFeatureEnabled.mockImplementation(() => true);
+    isFeatureEnabledMock = jest
+      .spyOn(featureFlags, 'isFeatureEnabled')
+      .mockImplementation(() => true);
     await renderAndWait();
   });
 
   afterEach(() => {
     cleanup();
-    isFeatureEnabled.mockRestore();
+    isFeatureEnabledMock.mockRestore();
   });
 
   it('renders an "Import Dashboard" tooltip under import button', async () => {
@@ -273,9 +250,9 @@ describe('DashboardList - anonymous view', () => {
     fetchMock.resetHistory();
     wrapper = mount(
       <MemoryRouter>
-        <reactRedux.Provider store={store}>
+        <Provider store={store}>
           <DashboardList {...mockedProps} user={mockUserLoggedOut} />
-        </reactRedux.Provider>
+        </Provider>
       </MemoryRouter>,
     );
 
@@ -284,7 +261,7 @@ describe('DashboardList - anonymous view', () => {
 
   afterAll(() => {
     cleanup();
-    fetchMock.reset();
+    fetch.resetMocks();
   });
 
   it('does not render the Favorite Star column in list view for anonymous user', async () => {

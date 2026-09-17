@@ -16,17 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import * as redux from 'redux';
+import React from 'react';
 import { render, screen, fireEvent } from 'spec/helpers/testing-library';
 import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
-import { getExtensionsRegistry, JsonObject } from '@superset-ui/core';
+import { getExtensionsRegistry } from '@superset-ui/core';
 import setupExtensions from 'src/setup/setupExtensions';
-import getOwnerName from 'src/utils/getOwnerName';
+import { HeaderProps } from './types';
 import Header from '.';
-import { DASHBOARD_HEADER_ID } from '../../util/constants';
 
-const initialState = {
+const createProps = () => ({
+  addSuccessToast: jest.fn(),
+  addDangerToast: jest.fn(),
+  addWarningToast: jest.fn(),
+  addInfoToast: jest.fn(),
   dashboardInfo: {
     id: 1,
     dash_edit_perm: false,
@@ -42,19 +45,6 @@ const initialState = {
         ],
       },
     },
-    changed_on_delta_humanized: '7 minutes ago',
-    changed_by: {
-      id: 3,
-      first_name: 'John',
-      last_name: 'Doe',
-    },
-    created_on_delta_humanized: '10 days ago',
-    created_by: {
-      id: 2,
-      first_name: 'Kay',
-      last_name: 'Mon',
-    },
-    owners: [{ first_name: 'John', last_name: 'Doe', id: 1 }],
   },
   user: {
     createdOn: '2021-04-27T18:12:38.952304',
@@ -67,69 +57,74 @@ const initialState = {
     userId: 1,
     username: 'admin',
   },
-  dashboardState: {
-    sliceIds: [],
-    expandedSlices: {},
-    refreshFrequency: 0,
-    shouldPersistRefreshFrequency: false,
-    css: '',
-    isStarred: false,
-    isPublished: false,
-    hasUnsavedChanges: false,
-    maxUndoHistoryExceeded: false,
-    editMode: false,
-    lastModifiedTime: 0,
-  },
+  reports: {},
+  dashboardTitle: 'Dashboard Title',
   charts: {},
-  dashboardLayout: {
-    present: {
-      [DASHBOARD_HEADER_ID]: {
-        meta: {
-          text: 'Dashboard Title',
-        },
-      },
-    },
-    past: [],
-    future: [],
-  },
-};
-
-const editableState = {
-  dashboardState: {
-    ...initialState.dashboardState,
-    editMode: true,
-  },
+  layout: {},
+  expandedSlices: {},
+  css: '',
+  customCss: '',
+  isStarred: false,
+  isLoading: false,
+  lastModifiedTime: 0,
+  refreshFrequency: 0,
+  shouldPersistRefreshFrequency: false,
+  onSave: jest.fn(),
+  onChange: jest.fn(),
+  fetchFaveStar: jest.fn(),
+  fetchCharts: jest.fn(),
+  onRefresh: jest.fn(),
+  fetchUISpecificReport: jest.fn(),
+  saveFaveStar: jest.fn(),
+  savePublished: jest.fn(),
+  isPublished: false,
+  updateDashboardTitle: jest.fn(),
+  editMode: false,
+  setEditMode: jest.fn(),
+  showBuilderPane: jest.fn(),
+  updateCss: jest.fn(),
+  setColorScheme: jest.fn(),
+  setUnsavedChanges: jest.fn(),
+  logEvent: jest.fn(),
+  setRefreshFrequency: jest.fn(),
+  hasUnsavedChanges: false,
+  maxUndoHistoryExceeded: false,
+  onUndo: jest.fn(),
+  onRedo: jest.fn(),
+  undoLength: 0,
+  redoLength: 0,
+  setMaxUndoHistoryExceeded: jest.fn(),
+  maxUndoHistoryToast: jest.fn(),
+  dashboardInfoChanged: jest.fn(),
+  dashboardTitleChanged: jest.fn(),
+});
+const props = createProps();
+const editableProps = {
+  ...props,
+  editMode: true,
   dashboardInfo: {
-    ...initialState.dashboardInfo,
+    ...props.dashboardInfo,
     dash_edit_perm: true,
     dash_save_perm: true,
   },
 };
-
-const undoState = {
-  ...editableState,
-  dashboardLayout: {
-    ...initialState.dashboardLayout,
-    past: [{}],
-  },
+const undoProps = {
+  ...editableProps,
+  undoLength: 1,
 };
-
-const redoState = {
-  ...editableState,
-  dashboardLayout: {
-    ...initialState.dashboardLayout,
-    future: [{}],
-  },
+const redoProps = {
+  ...editableProps,
+  redoLength: 1,
 };
 
 fetchMock.get('glob:*/csstemplateasyncmodelview/api/read', {});
 
-function setup(overrideState: JsonObject = {}) {
+function setup(props: HeaderProps, initialState = {}) {
   return render(
     <div className="dashboard">
-      <Header />
+      <Header {...props} />
     </div>,
-    { useRedux: true, initialState: { ...initialState, ...overrideState } },
+    { useRedux: true, initialState },
   );
 }
 
@@ -139,267 +134,207 @@ async function openActionsDropdown() {
   expect(await screen.findByTestId('header-actions-menu')).toBeInTheDocument();
 }
 
-const addSuccessToast = jest.fn();
-const addDangerToast = jest.fn();
-const addWarningToast = jest.fn();
-const onUndo = jest.fn();
-const onRedo = jest.fn();
-const setEditMode = jest.fn();
-const setUnsavedChanges = jest.fn();
-const fetchFaveStar = jest.fn();
-const saveFaveStar = jest.fn();
-const savePublished = jest.fn();
-const fetchCharts = jest.fn();
-const updateDashboardTitle = jest.fn();
-const updateCss = jest.fn();
-const onChange = jest.fn();
-const onSave = jest.fn();
-const setMaxUndoHistoryExceeded = jest.fn();
-const maxUndoHistoryToast = jest.fn();
-const logEvent = jest.fn();
-const setRefreshFrequency = jest.fn();
-const onRefresh = jest.fn();
-const dashboardInfoChanged = jest.fn();
-const dashboardTitleChanged = jest.fn();
-
-beforeAll(() => {
-  jest.spyOn(redux, 'bindActionCreators').mockImplementation(() => ({
-    addSuccessToast,
-    addDangerToast,
-    addWarningToast,
-    onUndo,
-    onRedo,
-    setEditMode,
-    setUnsavedChanges,
-    fetchFaveStar,
-    saveFaveStar,
-    savePublished,
-    fetchCharts,
-    updateDashboardTitle,
-    updateCss,
-    onChange,
-    onSave,
-    setMaxUndoHistoryExceeded,
-    maxUndoHistoryToast,
-    logEvent,
-    setRefreshFrequency,
-    onRefresh,
-    dashboardInfoChanged,
-    dashboardTitleChanged,
-  }));
-});
-
-beforeEach(() => {
-  jest.clearAllMocks();
-});
-
-beforeEach(() => {
-  window.history.pushState({}, 'Test page', '/dashboard?standalone=1');
-});
-
 test('should render', () => {
-  const { container } = setup();
+  const mockedProps = createProps();
+  const { container } = setup(mockedProps);
   expect(container).toBeInTheDocument();
 });
 
 test('should render the title', () => {
-  setup();
+  const mockedProps = createProps();
+  setup(mockedProps);
   expect(screen.getByTestId('editable-title')).toHaveTextContent(
     'Dashboard Title',
   );
 });
 
 test('should render the editable title', () => {
-  setup(editableState);
+  setup(editableProps);
   expect(screen.getByDisplayValue('Dashboard Title')).toBeInTheDocument();
 });
 
 test('should edit the title', () => {
-  setup(editableState);
+  setup(editableProps);
   const editableTitle = screen.getByDisplayValue('Dashboard Title');
-  expect(onChange).not.toHaveBeenCalled();
+  expect(editableProps.onChange).not.toHaveBeenCalled();
   userEvent.click(editableTitle);
   userEvent.clear(editableTitle);
   userEvent.type(editableTitle, 'New Title');
   userEvent.click(document.body);
-  expect(onChange).toHaveBeenCalled();
+  expect(editableProps.onChange).toHaveBeenCalled();
   expect(screen.getByDisplayValue('New Title')).toBeInTheDocument();
 });
 
 test('should render the "Draft" status', () => {
-  setup();
+  const mockedProps = createProps();
+  setup(mockedProps);
   expect(screen.getByText('Draft')).toBeInTheDocument();
 });
 
 test('should publish', () => {
-  const canEditState = {
+  const mockedProps = createProps();
+  const canEditProps = {
+    ...mockedProps,
     dashboardInfo: {
-      ...initialState.dashboardInfo,
+      ...mockedProps.dashboardInfo,
       dash_edit_perm: true,
       dash_save_perm: true,
     },
   };
-  setup(canEditState);
+  setup(canEditProps);
   const draft = screen.getByText('Draft');
-  expect(savePublished).toHaveBeenCalledTimes(0);
+  expect(mockedProps.savePublished).toHaveBeenCalledTimes(0);
   userEvent.click(draft);
-  expect(savePublished).toHaveBeenCalledTimes(1);
-});
-
-test('should render metadata', () => {
-  setup();
-  expect(
-    screen.getByText(getOwnerName(initialState.dashboardInfo.created_by)),
-  ).toBeInTheDocument();
-  expect(
-    screen.getByText(initialState.dashboardInfo.changed_on_delta_humanized),
-  ).toBeInTheDocument();
+  expect(mockedProps.savePublished).toHaveBeenCalledTimes(1);
 });
 
 test('should render the "Undo" action as disabled', () => {
-  setup(editableState);
+  setup(editableProps);
   expect(screen.getByTestId('undo-action').parentElement).toBeDisabled();
 });
 
 test('should undo', () => {
-  setup(undoState);
+  setup(undoProps);
   const undo = screen.getByTestId('undo-action');
-  expect(onUndo).not.toHaveBeenCalled();
+  expect(undoProps.onUndo).not.toHaveBeenCalled();
   userEvent.click(undo);
-  expect(onUndo).toHaveBeenCalledTimes(1);
+  expect(undoProps.onUndo).toHaveBeenCalledTimes(1);
 });
 
 test('should undo with key listener', () => {
-  onUndo.mockReset();
-  setup(undoState);
-  expect(onUndo).not.toHaveBeenCalled();
+  undoProps.onUndo.mockReset();
+  setup(undoProps);
+  expect(undoProps.onUndo).not.toHaveBeenCalled();
   fireEvent.keyDown(document.body, { key: 'z', code: 'KeyZ', ctrlKey: true });
-  expect(onUndo).toHaveBeenCalledTimes(1);
+  expect(undoProps.onUndo).toHaveBeenCalledTimes(1);
 });
 
 test('should render the "Redo" action as disabled', () => {
-  setup(editableState);
+  setup(editableProps);
   expect(screen.getByTestId('redo-action').parentElement).toBeDisabled();
 });
 
 test('should redo', () => {
-  setup(redoState);
+  setup(redoProps);
   const redo = screen.getByTestId('redo-action');
-  expect(onRedo).not.toHaveBeenCalled();
+  expect(redoProps.onRedo).not.toHaveBeenCalled();
   userEvent.click(redo);
-  expect(onRedo).toHaveBeenCalledTimes(1);
+  expect(redoProps.onRedo).toHaveBeenCalledTimes(1);
 });
 
 test('should redo with key listener', () => {
-  setup(redoState);
-  expect(onRedo).not.toHaveBeenCalled();
+  redoProps.onRedo.mockReset();
+  setup(redoProps);
+  expect(redoProps.onRedo).not.toHaveBeenCalled();
   fireEvent.keyDown(document.body, { key: 'y', code: 'KeyY', ctrlKey: true });
-  expect(onRedo).toHaveBeenCalledTimes(1);
+  expect(redoProps.onRedo).toHaveBeenCalledTimes(1);
 });
 
 test('should render the "Discard changes" button', () => {
-  setup(editableState);
+  setup(editableProps);
   expect(screen.getByText('Discard')).toBeInTheDocument();
 });
 
 test('should render the "Save" button as disabled', () => {
-  setup(editableState);
+  setup(editableProps);
   expect(screen.getByText('Save').parentElement).toBeDisabled();
 });
 
 test('should save', () => {
-  const unsavedState = {
-    ...editableState,
-    dashboardState: {
-      ...editableState.dashboardState,
-      hasUnsavedChanges: true,
-    },
+  const unsavedProps = {
+    ...editableProps,
+    hasUnsavedChanges: true,
   };
-  setup(unsavedState);
+  setup(unsavedProps);
   const save = screen.getByText('Save');
-  expect(onSave).not.toHaveBeenCalled();
+  expect(unsavedProps.onSave).not.toHaveBeenCalled();
   userEvent.click(save);
-  expect(onSave).toHaveBeenCalledTimes(1);
+  expect(unsavedProps.onSave).toHaveBeenCalledTimes(1);
 });
 
 test('should NOT render the "Draft" status', () => {
-  const publishedState = {
-    ...initialState,
-    dashboardState: {
-      ...initialState.dashboardState,
-      isPublished: true,
-    },
+  const mockedProps = createProps();
+  const publishedProps = {
+    ...mockedProps,
+    isPublished: true,
   };
-  setup(publishedState);
+  setup(publishedProps);
   expect(screen.queryByText('Draft')).not.toBeInTheDocument();
 });
 
 test('should render the unselected fave icon', () => {
-  setup();
-  expect(fetchFaveStar).toHaveBeenCalled();
+  const mockedProps = createProps();
+  setup(mockedProps);
+  expect(mockedProps.fetchFaveStar).toHaveBeenCalled();
   expect(
     screen.getByRole('img', { name: 'favorite-unselected' }),
   ).toBeInTheDocument();
 });
 
 test('should render the selected fave icon', () => {
-  const favedState = {
-    dashboardState: {
-      ...initialState.dashboardState,
-      isStarred: true,
-    },
+  const mockedProps = createProps();
+  const favedProps = {
+    ...mockedProps,
+    isStarred: true,
   };
-  setup(favedState);
+  setup(favedProps);
   expect(
     screen.getByRole('img', { name: 'favorite-selected' }),
   ).toBeInTheDocument();
 });
 
 test('should NOT render the fave icon on anonymous user', () => {
-  const anonymousUserState = {
+  const mockedProps = createProps();
+  const anonymousUserProps = {
+    ...mockedProps,
     user: undefined,
   };
-  setup(anonymousUserState);
+  setup(anonymousUserProps);
   expect(() =>
     screen.getByRole('img', { name: 'favorite-unselected' }),
-  ).toThrow('Unable to find');
-  expect(() => screen.getByRole('img', { name: 'favorite-selected' })).toThrow(
-    'Unable to find',
-  );
+  ).toThrowError('Unable to find');
+  expect(() =>
+    screen.getByRole('img', { name: 'favorite-selected' }),
+  ).toThrowError('Unable to find');
 });
 
 test('should fave', async () => {
-  setup();
+  const mockedProps = createProps();
+  setup(mockedProps);
   const fave = screen.getByRole('img', { name: 'favorite-unselected' });
-  expect(saveFaveStar).not.toHaveBeenCalled();
+  expect(mockedProps.saveFaveStar).not.toHaveBeenCalled();
   userEvent.click(fave);
-  expect(saveFaveStar).toHaveBeenCalledTimes(1);
+  expect(mockedProps.saveFaveStar).toHaveBeenCalledTimes(1);
 });
 
 test('should toggle the edit mode', () => {
-  const canEditState = {
+  const mockedProps = createProps();
+  const canEditProps = {
+    ...mockedProps,
     dashboardInfo: {
-      ...initialState.dashboardInfo,
+      ...mockedProps.dashboardInfo,
       dash_edit_perm: true,
     },
   };
-  setup(canEditState);
+  setup(canEditProps);
   const editDashboard = screen.getByText('Edit dashboard');
   expect(screen.queryByText('Edit dashboard')).toBeInTheDocument();
   userEvent.click(editDashboard);
-  expect(logEvent).toHaveBeenCalled();
+  expect(mockedProps.logEvent).toHaveBeenCalled();
 });
 
 test('should render the dropdown icon', () => {
-  setup();
+  const mockedProps = createProps();
+  setup(mockedProps);
   expect(screen.getByRole('img', { name: 'more-horiz' })).toBeInTheDocument();
 });
 
 test('should refresh the charts', async () => {
-  setup();
+  const mockedProps = createProps();
+  setup(mockedProps);
   await openActionsDropdown();
   userEvent.click(screen.getByText('Refresh dashboard'));
-  expect(onRefresh).toHaveBeenCalledTimes(1);
+  expect(mockedProps.onRefresh).toHaveBeenCalledTimes(1);
 });
 
 test('should render an extension component if one is supplied', () => {
@@ -409,78 +344,9 @@ test('should render an extension component if one is supplied', () => {
   ));
   setupExtensions();
 
-  setup();
+  const mockedProps = createProps();
+  setup(mockedProps);
   expect(
     screen.getByText('dashboard.nav.right extension component'),
-  ).toBeInTheDocument();
-});
-
-test('should NOT render MetadataBar when in edit mode', () => {
-  const state = {
-    ...editableState,
-    dashboardInfo: {
-      ...initialState.dashboardInfo,
-      userId: '123',
-    },
-  };
-  setup(state);
-  expect(
-    screen.queryByText(state.dashboardInfo.changed_on_delta_humanized),
-  ).not.toBeInTheDocument();
-});
-
-test('should NOT render MetadataBar when embedded', () => {
-  const state = {
-    dashboardInfo: {
-      ...initialState.dashboardInfo,
-      userId: undefined,
-    },
-  };
-  setup(state);
-  expect(
-    screen.queryByText(state.dashboardInfo.changed_on_delta_humanized),
-  ).not.toBeInTheDocument();
-});
-
-test('should hide edit button and navbar, and show Exit fullscreen when in fullscreen mode', () => {
-  const fullscreenState = {
-    ...initialState,
-    dashboardState: {
-      ...initialState.dashboardState,
-      isFullscreenMode: true,
-    },
-  };
-
-  setup(fullscreenState);
-  expect(screen.queryByTestId('edit-dashboard-button')).not.toBeInTheDocument();
-  expect(screen.getByTestId('actions-trigger')).toBeInTheDocument();
-  expect(screen.queryByTestId('main-navigation')).not.toBeInTheDocument();
-});
-
-test('should show Exit fullscreen when in fullscreen mode', async () => {
-  setup();
-
-  fireEvent.click(screen.getByTestId('actions-trigger'));
-
-  expect(await screen.findByText('Exit fullscreen')).toBeInTheDocument();
-});
-
-test('should have fullscreen option in dropdown', async () => {
-  setup();
-  await openActionsDropdown();
-  expect(screen.getByText('Exit fullscreen')).toBeInTheDocument();
-  expect(screen.queryByText('Enter fullscreen')).not.toBeInTheDocument();
-});
-
-test('should render MetadataBar when not in edit mode and not embedded', () => {
-  const state = {
-    dashboardInfo: {
-      ...initialState.dashboardInfo,
-      userId: '123',
-    },
-  };
-  setup(state);
-  expect(
-    screen.getByText(state.dashboardInfo.changed_on_delta_humanized),
   ).toBeInTheDocument();
 });

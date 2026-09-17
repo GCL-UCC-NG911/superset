@@ -18,16 +18,7 @@
  */
 
 /* eslint-disable no-param-reassign */
-import {
-  FC,
-  memo,
-  useEffect,
-  useState,
-  useCallback,
-  useRef,
-  useMemo,
-} from 'react';
-
+import React, { useEffect, useState, useCallback, createContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   DataMaskStateWithId,
@@ -36,10 +27,9 @@ import {
   DataMask,
   SLOW_DEBOUNCE,
   isNativeFilter,
-  usePrevious,
-  styled,
 } from '@superset-ui/core';
 import { useHistory } from 'react-router-dom';
+import { usePrevious } from 'src/hooks/usePrevious';
 import { updateDataMask, clearDataMask } from 'src/dataMask/actions';
 import { useImmer } from 'use-immer';
 import { isEmpty, isEqual, debounce } from 'lodash';
@@ -47,10 +37,7 @@ import { getInitialDataMask } from 'src/dataMask/reducer';
 import { URL_PARAMS } from 'src/constants';
 import { getUrlParam } from 'src/utils/urlUtils';
 import { useTabId } from 'src/hooks/useTabId';
-import { logEvent } from 'src/logger/actions';
-import { LOG_ACTIONS_CHANGE_DASHBOARD_FILTER } from 'src/logger/LogUtils';
 import { FilterBarOrientation, RootState } from 'src/dashboard/types';
-import { UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';
 import { checkIsApplyDisabled } from './utils';
 import { FiltersBarProps } from './types';
 import {
@@ -63,13 +50,6 @@ import { createFilterKey, updateFilterKey } from './keyValue';
 import ActionButtons from './ActionButtons';
 import Horizontal from './Horizontal';
 import Vertical from './Vertical';
-import { useSelectFiltersInScope } from '../state';
-
-// FilterBar is just being hidden as it must still
-// render fully due to encapsulated logics
-const HiddenFilterBar = styled.div`
-  display: none;
-`;
 
 const EXCLUDED_URL_PARAMS: string[] = [
   URL_PARAMS.nativeFilters.name,
@@ -129,10 +109,10 @@ const publishDataMask = debounce(
   SLOW_DEBOUNCE,
 );
 
-const FilterBar: FC<FiltersBarProps> = ({
-  orientation = FilterBarOrientation.Vertical,
+export const FilterBarScrollContext = createContext(false);
+const FilterBar: React.FC<FiltersBarProps> = ({
+  orientation = FilterBarOrientation.VERTICAL,
   verticalConfig,
-  hidden = false,
 }) => {
   const history = useHistory();
   const dataMaskApplied: DataMaskStateWithId = useNativeFiltersDataMask();
@@ -143,11 +123,8 @@ const FilterBar: FC<FiltersBarProps> = ({
   const tabId = useTabId();
   const filters = useFilters();
   const previousFilters = usePrevious(filters);
-  const filterValues = useMemo(() => Object.values(filters), [filters]);
-  const nativeFilterValues = useMemo(
-    () => filterValues.filter(isNativeFilter),
-    [filterValues],
-  );
+  const filterValues = Object.values(filters);
+  const nativeFilterValues = filterValues.filter(isNativeFilter);
   const dashboardId = useSelector<any, number>(
     ({ dashboardInfo }) => dashboardInfo?.id,
   );
@@ -155,15 +132,7 @@ const FilterBar: FC<FiltersBarProps> = ({
   const canEdit = useSelector<RootState, boolean>(
     ({ dashboardInfo }) => dashboardInfo.dash_edit_perm,
   );
-  const user: UserWithPermissionsAndRoles = useSelector<
-    RootState,
-    UserWithPermissionsAndRoles
-  >(state => state.user);
 
-  const [filtersInScope] = useSelectFiltersInScope(nativeFilterValues);
-
-  const dataMaskSelectedRef = useRef(dataMaskSelected);
-  dataMaskSelectedRef.current = dataMaskSelected;
   const handleFilterSelectionChange = useCallback(
     (
       filter: Pick<Filter, 'id'> & Partial<Filter>,
@@ -174,24 +143,24 @@ const FilterBar: FC<FiltersBarProps> = ({
         if (
           // filterState.value === undefined - means that value not initialized
           dataMask.filterState?.value !== undefined &&
-          dataMaskSelectedRef.current[filter.id]?.filterState?.value ===
-            undefined &&
+          dataMaskSelected[filter.id]?.filterState?.value === undefined &&
           filter.requiredFirst
         ) {
           dispatch(updateDataMask(filter.id, dataMask));
         }
+
         draft[filter.id] = {
           ...(getInitialDataMask(filter.id) as DataMaskWithId),
           ...dataMask,
         };
       });
     },
-    [dispatch, setDataMaskSelected],
+    [dataMaskSelected, dispatch, setDataMaskSelected],
   );
 
   useEffect(() => {
     if (previousFilters && dashboardId === previousDashboardId) {
-      const updates: Record<string, DataMaskWithId> = {};
+      const updates = {};
       Object.values(filters).forEach(currentFilter => {
         const previousFilter = previousFilters?.[currentFilter.id];
         if (!previousFilter) {
@@ -208,17 +177,20 @@ const FilterBar: FC<FiltersBarProps> = ({
         const dataMaskChanged = !isEqual(currentDataMask, previousDataMask);
 
         if (typeChanged || targetsChanged || dataMaskChanged) {
-          updates[currentFilter.id] = getInitialDataMask(
-            currentFilter.id,
-          ) as DataMaskWithId;
+          updates[currentFilter.id] = getInitialDataMask(currentFilter.id);
         }
       });
 
       if (!isEmpty(updates)) {
         setDataMaskSelected(draft => ({ ...draft, ...updates }));
+        Object.keys(updates).forEach(key => dispatch(clearDataMask(key)));
       }
     }
-  }, [dashboardId, filters, previousDashboardId, setDataMaskSelected]);
+  }, [
+    JSON.stringify(filters),
+    JSON.stringify(previousFilters),
+    previousDashboardId,
+  ]);
 
   const dataMaskAppliedText = JSON.stringify(dataMaskApplied);
 
@@ -227,15 +199,11 @@ const FilterBar: FC<FiltersBarProps> = ({
   }, [dataMaskAppliedText, setDataMaskSelected]);
 
   useEffect(() => {
-    // embedded users can't persist filter combinations
-    if (user?.userId) {
-      publishDataMask(history, dashboardId, updateKey, dataMaskApplied, tabId);
-    }
+    publishDataMask(history, dashboardId, updateKey, dataMaskApplied, tabId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardId, dataMaskAppliedText, history, updateKey, tabId]);
 
   const handleApply = useCallback(() => {
-    dispatch(logEvent(LOG_ACTIONS_CHANGE_DASHBOARD_FILTER, {}));
     const filterIds = Object.keys(dataMaskSelected);
     setUpdateKey(1);
     filterIds.forEach(filterId => {
@@ -246,89 +214,64 @@ const FilterBar: FC<FiltersBarProps> = ({
   }, [dataMaskSelected, dispatch]);
 
   const handleClearAll = useCallback(() => {
-    const clearDataMaskIds: string[] = [];
-    let dispatchAllowed = false;
-    filtersInScope.filter(isNativeFilter).forEach(filter => {
-      const { id } = filter;
-      if (dataMaskSelected[id]) {
-        if (filter.controlValues?.enableEmptyFilter) {
-          dispatchAllowed = false;
-        }
-        clearDataMaskIds.push(id);
+    const filterIds = Object.keys(dataMaskSelected);
+    filterIds.forEach(filterId => {
+      if (dataMaskSelected[filterId]) {
+        dispatch(clearDataMask(filterId));
         setDataMaskSelected(draft => {
-          if (draft[id].filterState?.value !== undefined) {
-            draft[id].filterState!.value = undefined;
+          if (draft[filterId].filterState?.value !== undefined) {
+            draft[filterId].filterState!.value = undefined;
           }
         });
       }
     });
-    if (dispatchAllowed) {
-      clearDataMaskIds.forEach(id => dispatch(clearDataMask(id)));
-    }
-  }, [dataMaskSelected, dispatch, filtersInScope, setDataMaskSelected]);
+  }, [dataMaskSelected, dispatch, setDataMaskSelected]);
 
   useFilterUpdates(dataMaskSelected, setDataMaskSelected);
   const isApplyDisabled = checkIsApplyDisabled(
     dataMaskSelected,
     dataMaskApplied,
-    filtersInScope.filter(isNativeFilter),
+    nativeFilterValues,
   );
   const isInitialized = useInitialization();
 
-  const actions = useMemo(
-    () => (
-      <ActionButtons
-        filterBarOrientation={orientation}
-        width={verticalConfig?.width}
-        onApply={handleApply}
-        onClearAll={handleClearAll}
-        dataMaskSelected={dataMaskSelected}
-        dataMaskApplied={dataMaskApplied}
-        isApplyDisabled={isApplyDisabled}
-      />
-    ),
-    [
-      orientation,
-      verticalConfig?.width,
-      handleApply,
-      handleClearAll,
-      dataMaskSelected,
-      dataMaskAppliedText,
-      isApplyDisabled,
-    ],
+  const actions = (
+    <ActionButtons
+      filterBarOrientation={orientation}
+      width={verticalConfig?.width}
+      onApply={handleApply}
+      onClearAll={handleClearAll}
+      dataMaskSelected={dataMaskSelected}
+      dataMaskApplied={dataMaskApplied}
+      isApplyDisabled={isApplyDisabled}
+    />
   );
 
-  const filterBarComponent =
-    orientation === FilterBarOrientation.Horizontal ? (
-      <Horizontal
-        actions={actions}
-        canEdit={canEdit}
-        dashboardId={dashboardId}
-        dataMaskSelected={dataMaskSelected}
-        filterValues={filterValues}
-        isInitialized={isInitialized}
-        onSelectionChange={handleFilterSelectionChange}
-      />
-    ) : verticalConfig ? (
-      <Vertical
-        actions={actions}
-        canEdit={canEdit}
-        dataMaskSelected={dataMaskSelected}
-        filtersOpen={verticalConfig.filtersOpen}
-        filterValues={filterValues}
-        isInitialized={isInitialized}
-        height={verticalConfig.height}
-        offset={verticalConfig.offset}
-        onSelectionChange={handleFilterSelectionChange}
-        toggleFiltersBar={verticalConfig.toggleFiltersBar}
-        width={verticalConfig.width}
-      />
-    ) : null;
-
-  return hidden ? (
-    <HiddenFilterBar>{filterBarComponent}</HiddenFilterBar>
-  ) : (
-    filterBarComponent
-  );
+  return orientation === FilterBarOrientation.HORIZONTAL ? (
+    <Horizontal
+      actions={actions}
+      canEdit={canEdit}
+      dashboardId={dashboardId}
+      dataMaskSelected={dataMaskSelected}
+      filterValues={filterValues}
+      isInitialized={isInitialized}
+      onSelectionChange={handleFilterSelectionChange}
+    />
+  ) : verticalConfig ? (
+    <Vertical
+      actions={actions}
+      canEdit={canEdit}
+      dataMaskSelected={dataMaskSelected}
+      filtersOpen={verticalConfig.filtersOpen}
+      filterValues={filterValues}
+      isInitialized={isInitialized}
+      isDisabled={isApplyDisabled}
+      height={verticalConfig.height}
+      offset={verticalConfig.offset}
+      onSelectionChange={handleFilterSelectionChange}
+      toggleFiltersBar={verticalConfig.toggleFiltersBar}
+      width={verticalConfig.width}
+    />
+  ) : null;
 };
-export default memo(FilterBar);
+export default React.memo(FilterBar);

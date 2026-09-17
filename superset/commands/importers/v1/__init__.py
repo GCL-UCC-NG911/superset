@@ -37,7 +37,6 @@ from superset.utils.decorators import transaction
 
 logger = logging.getLogger(__name__)
 
-
 class ImportModelsCommand(BaseCommand):
     """Import models"""
 

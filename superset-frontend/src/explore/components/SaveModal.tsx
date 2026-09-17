@@ -17,20 +17,19 @@
  * under the License.
  */
 /* eslint camelcase: 0 */
-import { ChangeEvent, FormEvent, Component } from 'react';
+import React from 'react';
 import { Dispatch } from 'redux';
-import rison from 'rison';
+import { SelectValue } from 'antd/lib/select';
 import { connect } from 'react-redux';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import { InfoTooltipWithTrigger } from '@superset-ui/chart-controls';
 import {
   css,
+  t,
+  styled,
   DatasourceType,
   isDefined,
-  logging,
-  styled,
-  SupersetClient,
-  t,
+  ensureIsArray,
 } from '@superset-ui/core';
 import { Input } from 'src/components/Input';
 import { Form, FormItem } from 'src/components/Form';
@@ -38,13 +37,11 @@ import Alert from 'src/components/Alert';
 import Modal from 'src/components/Modal';
 import { Radio } from 'src/components/Radio';
 import Button from 'src/components/Button';
-import { AsyncSelect } from 'src/components';
+import { Select } from 'src/components';
 import Loading from 'src/components/Loading';
-import { canUserEditDashboard } from 'src/dashboard/util/permissionUtils';
 import { setSaveChartModalVisibility } from 'src/explore/actions/saveModalActions';
 import { SaveActionType } from 'src/explore/types';
-import { UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';
-import { Dashboard } from 'src/types/Dashboard';
+import { getClientErrorObject } from 'src/utils/getClientErrorObject';
 
 // Session storage key for recent dashboard
 const SK_DASHBOARD_ID = 'save_chart_recent_dashboard';
@@ -53,7 +50,8 @@ interface SaveModalProps extends RouteComponentProps {
   addDangerToast: (msg: string) => void;
   actions: Record<string, any>;
   form_data?: Record<string, any>;
-  user: UserWithPermissionsAndRoles;
+  userId: number;
+  dashboards: Array<any>;
   alert?: string;
   sliceName?: string;
   slice?: Record<string, any>;
@@ -64,16 +62,18 @@ interface SaveModalProps extends RouteComponentProps {
 }
 
 type SaveModalState = {
+  saveToDashboardId: number | string | null;
   newSliceName?: string;
+  newDashboardName?: string;
   datasetName: string;
+  alert: string | null;
   action: SaveActionType;
   isLoading: boolean;
   saveStatus?: string | null;
-  dashboard?: { label: string; value: string | number };
 };
 
 export const StyledModal = styled(Modal)`
-  .antd5-modal-body {
+  .ant-modal-body {
     overflow: visible;
   }
   i {
@@ -83,75 +83,77 @@ export const StyledModal = styled(Modal)`
   }
 `;
 
-class SaveModal extends Component<SaveModalProps, SaveModalState> {
+class SaveModal extends React.Component<SaveModalProps, SaveModalState> {
   constructor(props: SaveModalProps) {
     super(props);
     this.state = {
+      saveToDashboardId: null,
       newSliceName: props.sliceName,
       datasetName: props.datasource?.name,
+      alert: null,
       action: this.canOverwriteSlice() ? 'overwrite' : 'saveas',
       isLoading: false,
-      dashboard: undefined,
     };
-    this.onDashboardChange = this.onDashboardChange.bind(this);
+    this.onDashboardSelectChange = this.onDashboardSelectChange.bind(this);
     this.onSliceNameChange = this.onSliceNameChange.bind(this);
     this.changeAction = this.changeAction.bind(this);
     this.saveOrOverwrite = this.saveOrOverwrite.bind(this);
     this.isNewDashboard = this.isNewDashboard.bind(this);
+    this.removeAlert = this.removeAlert.bind(this);
     this.onHide = this.onHide.bind(this);
   }
 
   isNewDashboard(): boolean {
-    const { dashboard } = this.state;
-    return typeof dashboard?.value === 'string';
+    return !!(!this.state.saveToDashboardId && this.state.newDashboardName);
   }
 
   canOverwriteSlice(): boolean {
     return (
-      this.props.slice?.owners?.includes(this.props.user.userId) &&
+      this.props.slice?.owners?.includes(this.props.userId) &&
       !this.props.slice?.is_managed_externally
     );
   }
 
-  async componentDidMount() {
-    let { dashboardId } = this.props;
-    if (!dashboardId) {
-      let lastDashboard = null;
-      try {
-        lastDashboard = sessionStorage.getItem(SK_DASHBOARD_ID);
-      } catch (error) {
-        // continue regardless of error
+  componentDidMount() {
+    this.props.actions.fetchDashboards(this.props.userId).then(() => {
+      if (ensureIsArray(this.props.dashboards).length === 0) {
+        return;
       }
-      dashboardId = lastDashboard && parseInt(lastDashboard, 10);
-    }
-    if (dashboardId) {
-      try {
-        const result = (await this.loadDashboard(dashboardId)) as Dashboard;
-        if (canUserEditDashboard(result, this.props.user)) {
-          this.setState({
-            dashboard: { label: result.dashboard_title, value: result.id },
-          });
-        }
-      } catch (error) {
-        logging.warn(error);
-        this.props.addDangerToast(
-          t('An error occurred while loading dashboard information.'),
-        );
+      const dashboardIds = this.props.dashboards?.map(
+        dashboard => dashboard.value,
+      );
+      const lastDashboard = sessionStorage.getItem(SK_DASHBOARD_ID);
+      let recentDashboard = lastDashboard && parseInt(lastDashboard, 10);
+
+      if (this.props.dashboardId) {
+        recentDashboard = this.props.dashboardId;
       }
-    }
+
+      if (
+        recentDashboard !== null &&
+        dashboardIds.indexOf(recentDashboard) !== -1
+      ) {
+        this.setState({
+          saveToDashboardId: recentDashboard,
+        });
+      }
+    });
   }
 
-  handleDatasetNameChange = (e: FormEvent<HTMLInputElement>) => {
+  handleDatasetNameChange = (e: React.FormEvent<HTMLInputElement>) => {
     // @ts-expect-error
     this.setState({ datasetName: e.target.value });
   };
 
-  onSliceNameChange(event: ChangeEvent<HTMLInputElement>) {
+  onSliceNameChange(event: React.ChangeEvent<HTMLInputElement>) {
     this.setState({ newSliceName: event.target.value });
   }
 
-  onDashboardChange(dashboard: { label: string; value: string | number }) {
-    this.setState({ dashboard });
+  onDashboardSelectChange(selected: SelectValue) {
+    const newDashboardName = selected ? String(selected) : undefined;
+    const saveToDashboardId =
+      selected && typeof selected === 'number' ? selected : null;
+    this.setState({ saveToDashboardId, newDashboardName });
   }
 
   changeAction(action: SaveActionType) {
@@ -162,19 +164,9 @@ class SaveModal extends Component<SaveModalProps, SaveModalState> {
     this.props.dispatch(setSaveChartModalVisibility(false));
   }
 
-  handleRedirect = (windowLocationSearch: string, chart: any) => {
-    const searchParams = new URLSearchParams(windowLocationSearch);
-    searchParams.set('save_action', this.state.action);
-    if (this.state.action !== 'overwrite') {
-      searchParams.delete('form_data_key');
-    }
-
-    searchParams.set('slice_id', chart.id.toString());
-    return searchParams;
-  };
-
   async saveOrOverwrite(gotodash: boolean) {
-    this.setState({ isLoading: true });
+    this.setState({ alert: null, isLoading: true });
+    this.props.actions.removeSaveModalAlert();
 
     //  Create or retrieve dashboard
     type DashboardGetResponse = {
@@ -187,6 +179,7 @@ class SaveModal extends Component<SaveModalProps, SaveModalState> {
       if (this.props.datasource?.type === DatasourceType.Query) {
         const { schema, sql, database } = this.props.datasource;
         const { templateParams } = this.props.datasource;
+        const columns = this.props.datasource?.columns || [];
 
         await this.props.actions.saveDataset({
           schema,
@@ -194,6 +187,7 @@ class SaveModal extends Component<SaveModalProps, SaveModalState> {
           database,
           templateParams,
           datasourceName: this.state.datasetName,
+          columns,
         });
       }
 
@@ -209,22 +203,19 @@ class SaveModal extends Component<SaveModalProps, SaveModalState> {
       delete formData.url_params;
 
       let dashboard: DashboardGetResponse | null = null;
-      if (this.state.dashboard) {
-        let validId = this.state.dashboard.value;
-        if (this.isNewDashboard()) {
+      if (this.state.newDashboardName || this.state.saveToDashboardId) {
+        let saveToDashboardId = this.state.saveToDashboardId || null;
+        if (!this.state.saveToDashboardId) {
           const response = await this.props.actions.createDashboard(
-            this.state.dashboard.label,
+            this.state.newDashboardName,
           );
-          validId = response.id;
+          saveToDashboardId = response.id;
         }
 
-        try {
-          dashboard = await this.loadDashboard(validId as number);
-        } catch (error) {
-          this.props.actions.saveSliceFailed();
-          return;
-        }
-
+        const response = await this.props.actions.getDashboard(
+          saveToDashboardId,
+        );
+        dashboard = response.result;
         if (isDefined(dashboard) && isDefined(dashboard?.id)) {
           sliceDashboards = sliceDashboards.includes(dashboard.id)
             ? sliceDashboards
@@ -246,7 +237,7 @@ class SaveModal extends Component<SaveModalProps, SaveModalState> {
           dashboard
             ? {
                 title: dashboard.dashboard_title,
-                new: this.isNewDashboard(),
+                new: !this.state.saveToDashboardId,
               }
             : null,
         );
@@ -257,20 +248,16 @@ class SaveModal extends Component<SaveModalProps, SaveModalState> {
           dashboard
             ? {
                 title: dashboard.dashboard_title,
-                new: this.isNewDashboard(),
+                new: !this.state.saveToDashboardId,
               }
             : null,
         );
       }
 
-      try {
-        if (dashboard) {
-          sessionStorage.setItem(SK_DASHBOARD_ID, `${dashboard.id}`);
-        } else {
-          sessionStorage.removeItem(SK_DASHBOARD_ID);
-        }
-      } catch (error) {
-        // continue regardless of error
+      if (dashboard) {
+        sessionStorage.setItem(SK_DASHBOARD_ID, `${dashboard.id}`);
+      } else {
+        sessionStorage.removeItem(SK_DASHBOARD_ID);
       }
 
       // Go to new dashboard url
@@ -279,62 +266,51 @@ class SaveModal extends Component<SaveModalProps, SaveModalState> {
         return;
       }
 
-      const searchParams = this.handleRedirect(window.location.search, value);
+      const searchParams = new URLSearchParams(window.location.search);
+      searchParams.set('save_action', this.state.action);
+      searchParams.delete('form_data_key');
+      if (this.state.action === 'saveas') {
+        searchParams.set('slice_id', value.id.toString());
+      }
       this.props.history.replace(`/explore/?${searchParams.toString()}`);
 
       this.setState({ isLoading: false });
       this.onHide();
+    } catch (error) {
+      this.setState({ isLoading: false });
+      const clientError = await getClientErrorObject(error);
+      this.props.actions.removeSaveModalAlert();
+
+      // Check if this is a duplicate name error
+      if (clientError.error?.includes('Name must be unique')) {
+        this.setState({
+          alert: t(
+            'A chart with the name already exists. Please enter a different name.',
+          ),
+        });
+      } else {
+        this.setState({
+          alert: clientError.error || t('Failed to save chart'),
+        });
+      }
     } finally {
       this.setState({ isLoading: false });
     }
   }
 
-  loadDashboard = async (id: number) => {
-    const response = await SupersetClient.get({
-      endpoint: `/api/v1/dashboard/${id}`,
-    });
-    return response.json.result;
-  };
-
-  loadDashboards = async (search: string, page: number, pageSize: number) => {
-    const queryParams = rison.encode({
-      columns: ['id', 'dashboard_title'],
-      filters: [
-        {
-          col: 'dashboard_title',
-          opr: 'ct',
-          value: search,
-        },
-        {
-          col: 'owners',
-          opr: 'rel_m_m',
-          value: this.props.user.userId,
-        },
-      ],
-      page,
-      page_size: pageSize,
-      order_column: 'dashboard_title',
-    });
-
-    const { json } = await SupersetClient.get({
-      endpoint: `/api/v1/dashboard/?q=${queryParams}`,
-    });
-    const { result, count } = json;
-    return {
-      data: result.map(
-        (dashboard: { id: number; dashboard_title: string }) => ({
-          value: dashboard.id,
-          label: dashboard.dashboard_title,
-        }),
-      ),
-      totalCount: count,
-    };
-  };
-
   renderSaveChartModal = () => {
-    const info = this.info();
+    const dashboardSelectValue =
+      this.state.saveToDashboardId || this.state.newDashboardName;
+
     return (
       <Form data-test="save-modal-body" layout="vertical">
+        {(this.state.alert || this.props.alert) && (
+          <Alert
+            type="warning"
+            message={this.state.alert || this.props.alert}
+            onClose={this.removeAlert}
+          />
+        )}
         <FormItem data-test="radio-group">
           <Radio
             id="overwrite-radio"
@@ -385,13 +361,13 @@ class SaveModal extends Component<SaveModalProps, SaveModalState> {
           label={t('Add to dashboard')}
           data-test="save-chart-modal-select-dashboard-form"
         >
-          <AsyncSelect
+          <Select
             allowClear
             allowNewOptions
             ariaLabel={t('Select a dashboard')}
-            options={this.loadDashboards}
-            onChange={this.onDashboardChange}
-            value={this.state.dashboard}
+            options={this.props.dashboards}
+            onChange={this.onDashboardSelectChange}
+            value={dashboardSelectValue || undefined}
             placeholder={
               <div>
                 <b>{t('Select')}</b>
@@ -402,38 +378,8 @@ class SaveModal extends Component<SaveModalProps, SaveModalState> {
             }
           />
         </FormItem>
-        {info && <Alert type="info" message={info} closable={false} />}
-        {this.props.alert && (
-          <Alert
-            css={{ marginTop: info ? 16 : undefined }}
-            type="warning"
-            message={this.props.alert}
-            closable={false}
-          />
-        )}
       </Form>
     );
-  };
-
-  info = () => {
-    const isNewDashboard = this.isNewDashboard();
-    let chartWillBeCreated = false;
-    if (
-      this.props.slice &&
-      (this.state.action !== 'overwrite' || !this.canOverwriteSlice())
-    ) {
-      chartWillBeCreated = true;
-    }
-    if (chartWillBeCreated && isNewDashboard) {
-      return t('A new chart and dashboard will be created.');
-    }
-    if (chartWillBeCreated) {
-      return t('A new chart will be created.');
-    }
-    if (isNewDashboard) {
-      return t('A new dashboard will be created.');
-    }
-    return null;
   };
 
   renderFooter = () => (
@@ -446,13 +392,15 @@ class SaveModal extends Component<SaveModalProps, SaveModalState> {
         buttonSize="small"
         disabled={
           !this.state.newSliceName ||
-          !this.state.dashboard ||
+          (!this.state.saveToDashboardId && !this.state.newDashboardName) ||
           (this.props.datasource?.type !== DatasourceType.Table &&
             !this.state.datasetName)
         }
         onClick={() => this.saveOrOverwrite(true)}
       >
-        {t('Save & go to dashboard')}
+        {this.isNewDashboard()
+          ? t('Save & go to new dashboard')
+          : t('Save & go to dashboard')}
       </Button>
       <Button
         id="btn_modal_save"
@@ -467,10 +415,21 @@ class SaveModal extends Component<SaveModalProps, SaveModalState> {
         }
         data-test="btn-modal-save"
       >
-        {t('Save')}
+        {!this.canOverwriteSlice() && this.props.slice
+          ? t('Save as new chart')
+          : this.isNewDashboard()
+          ? t('Save to new dashboard')
+          : t('Save')}
       </Button>
     </div>
   );
+
+  removeAlert() {
+    if (this.props.alert) {
+      this.props.actions.removeSaveModalAlert();
+    }
+    this.setState({ alert: null });
+  }
 
   render() {
     return (
@@ -500,7 +459,7 @@ class SaveModal extends Component<SaveModalProps, SaveModalState> {
 interface StateProps {
   datasource: any;
   slice: any;
-  user: UserWithPermissionsAndRoles;
+  userId: any;
   dashboards: any;
   alert: any;
   isVisible: boolean;
@@ -514,7 +473,7 @@ function mapStateToProps({
   return {
     datasource: explore.datasource,
     slice: explore.slice,
-    user,
+    userId: user?.userId,
     dashboards: saveModal.dashboards,
     alert: saveModal.saveModalAlert,
     isVisible: saveModal.isVisible,
@@ -522,6 +481,3 @@ function mapStateToProps({
 }
 
 export default withRouter(connect(mapStateToProps)(SaveModal));
-
-// User for testing purposes need to revisit once we convert this to functional component
-export { SaveModal as PureSaveModal };

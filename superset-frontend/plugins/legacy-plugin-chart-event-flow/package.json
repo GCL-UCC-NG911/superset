@@ -1,0 +1,39 @@
+{
+  "name": "@superset-ui/legacy-plugin-chart-event-flow",
+  "version": "2.1.0",
+  "description": "Superset Legacy Chart - Event Flow",
+  "keywords": [
+    "superset"
+  ],
+  "homepage": "https://github.com/apache-superset/superset-ui#readme",
+  "bugs": {
+    "url": "https://github.com/apache-superset/superset-ui/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apache-superset/superset-ui.git"
+  },
+  "license": "Apache-2.0",
+  "author": "Superset",
+  "sideEffects": [
+    "*.css"
+  ],
+  "main": "lib/index.js",
+  "module": "esm/index.js",
+  "files": [
+    "esm",
+    "lib"
+  ],
+  "dependencies": {
+    "@data-ui/event-flow": "^0.0.84",
+    "prop-types": "^15.6.2"
+  },
+  "peerDependencies": {
+    "@superset-ui/chart-controls": "*",
+    "@superset-ui/core": "*",
+    "react": "^15 || ^16"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -27,12 +27,20 @@ These features are considered **unfinished** and should only be used on developm
 
 [//]: # "PLEASE KEEP THE LIST SORTED ALPHABETICALLY"
 
-- ALERT_REPORT_TABS
+- CLIENT_CACHE
+- DASHBOARD_CACHE
+- DASHBOARD_NATIVE_FILTERS_SET
+- DISABLE_DATASET_SOURCE_EDIT
+- DRILL_TO_DETAIL
 - ENABLE_ADVANCED_DATA_TYPES
+- ENABLE_EXPLORE_JSON_CSRF_PROTECTION
+- ENABLE_TEMPLATE_REMOVE_FILTERS
+- HORIZONTAL_FILTER_BAR
+- KV_STORE
 - PRESTO_EXPAND_DATA
+- REMOVE_SLICE_LEVEL_LABEL_COLORS
 - SHARE_QUERIES_VIA_KV_STORE
 - TAGGING_SYSTEM
-- CHART_PLUGINS_EXPERIMENTAL
 
 ## In Testing
 
@@ -40,56 +48,48 @@ These features are **finished** but currently being tested. They are usable, but
 
 [//]: # "PLEASE KEEP THE LIST SORTED ALPHABETICALLY"
 
-- ALERT_REPORTS: [(docs)](https://superset.apache.org/docs/configuration/alerts-reports)
+- ALERT_REPORTS: [(docs)](https://superset.apache.org/docs/installation/alerts-reports)
 - ALLOW_FULL_CSV_EXPORT
 - CACHE_IMPERSONATION
 - CONFIRM_DASHBOARD_DIFF
-- DYNAMIC_PLUGINS
-- DATE_FORMAT_IN_EMAIL_SUBJECT: [(docs)](https://superset.apache.org/docs/configuration/alerts-reports#commons)
-- ENABLE_SUPERSET_META_DB: [(docs)](https://superset.apache.org/docs/configuration/databases/#querying-across-databases)
-- ESTIMATE_QUERY_COST
+- DASHBOARD_EDIT_CHART_IN_NEW_TAB
+- DASHBOARD_FILTERS_EXPERIMENTAL
+- DASHBOARD_NATIVE_FILTERS
+- DYNAMIC_PLUGINS: [(docs)](https://superset.apache.org/docs/installation/running-on-kubernetes)
+- ENABLE_FILTER_BOX_MIGRATION
+- ENABLE_JAVASCRIPT_CONTROLS
+- GENERIC_CHART_AXES
 - GLOBAL_ASYNC_QUERIES [(docs)](https://github.com/apache/superset/blob/master/CONTRIBUTING.md#async-chart-queries)
-- HORIZONTAL_FILTER_BAR
-- IMPERSONATE_WITH_EMAIL_PREFIX
-- PLAYWRIGHT_REPORTS_AND_THUMBNAILS
 - RLS_IN_SQLLAB
-- SSH_TUNNELING [(docs)](https://superset.apache.org/docs/configuration/setup-ssh-tunneling)
+- SSH_TUNNELING [(docs)](https://superset.apache.org/docs/installation/setup-ssh-tunneling)
 - USE_ANALAGOUS_COLORS
+- UX_BETA
+- VERSIONED_EXPORT
 
 ## Stable
 
-These features flags are **safe for production**. They have been tested and will be supported for the at least the current major version cycle.
+These features flags are **safe for production** and have been tested.
 
-[//]: # "PLEASE KEEP THESE LISTS SORTED ALPHABETICALLY"
-
-### Flags on the path to feature launch and flag deprecation/removal
-
-- DASHBOARD_VIRTUALIZATION
-
-### Flags retained for runtime configuration
-
-Currently some of our feature flags act as dynamic configurations that can changed
-on the fly. This acts in contradiction with the typical ephemeral feature flag use case,
-where the flag is used to mature a feature, and eventually deprecated once the feature is
-solid. Eventually we'll likely refactor these under a more formal "dynamic configurations" managed
-independently. This new framework will also allow for non-boolean configurations.
+[//]: # "PLEASE KEEP THE LIST SORTED ALPHABETICALLY"
 
 - ALERTS_ATTACH_REPORTS
 - ALLOW_ADHOC_SUBQUERY
-- DASHBOARD_RBAC [(docs)](https://superset.apache.org/docs/using-superset/creating-your-first-dashboard#manage-access-to-dashboards)
-- DATAPANEL_CLOSED_BY_DEFAULT
-- DRILL_BY
+- DASHBOARD_CROSS_FILTERS
+- DASHBOARD_RBAC [(docs)](https://superset.apache.org/docs/creating-charts-dashboards/first-dashboard#manage-access-to-dashboards)
+- DISABLE_LEGACY_DATASOURCE_EDITOR
 - DRUID_JOINS
 - EMBEDDABLE_CHARTS
 - EMBEDDED_SUPERSET
+- ENABLE_DND_WITH_CLICK_UX
+- ENABLE_EXPLORE_DRAG_AND_DROP
 - ENABLE_TEMPLATE_PROCESSING
+- ENFORCE_DB_ENCRYPTION_UI
 - ESCAPE_MARKDOWN_HTML
 - LISTVIEWS_DEFAULT_CARD_VIEW
-- SCHEDULED_QUERIES [(docs)](https://superset.apache.org/docs/configuration/alerts-reports)
-- SLACK_ENABLE_AVATARS (see `superset/config.py` for more information)
+- SCHEDULED_QUERIES [(docs)](https://superset.apache.org/docs/installation/alerts-reports)
 - SQLLAB_BACKEND_PERSISTENCE
-- SQL_VALIDATORS_BY_ENGINE [(docs)](https://superset.apache.org/docs/configuration/sql-templating)
-- THUMBNAILS [(docs)](https://superset.apache.org/docs/configuration/cache)
+- SQL_VALIDATORS_BY_ENGINE [(docs)](https://superset.apache.org/docs/installation/sql-templating)
+- THUMBNAILS [(docs)](https://superset.apache.org/docs/installation/cache)
 
 ## Deprecated Flags
 
@@ -97,7 +97,6 @@ These features flags currently default to True and **will be removed in a future
 
 [//]: # "PLEASE KEEP THE LIST SORTED ALPHABETICALLY"
 
-- AVOID_COLORS_COLLISION
-- DRILL_TO_DETAIL
-- ENABLE_JAVASCRIPT_CONTROLS
-- KV_STORE
+- ALLOW_DASHBOARD_DOMAIN_SHARDING
+- DISPLAY_MARKDOWN_HTML
+- FORCE_DATABASE_CONNECTIONS_SSL

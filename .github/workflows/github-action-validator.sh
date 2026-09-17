@@ -1,4 +1,4 @@
-#!/bin/bash
+# Adapted for NGLS
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -15,14 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-# Inspired from https://github.com/mpalmer/action-validator?tab=readme-ov-file#pre-commit-hook-example
-echo "Running pre-commit hook for GitHub Actions: https://github.com/mpalmer/action-validator"
-	for action in $(git ls-files .github/ | grep -E '^\.github/(workflows|actions)/.*\.ya?ml$'); do
-  if action-validator "$action"; then
-	echo "✅ $action"
-  else
-	echo "❌ $action"
-	exit 1
-  fi
-done
+-r base.in
+-e .[cors,druid,hive,mysql,ngls,postgres,thumbnails]
+gevent==22.10.2

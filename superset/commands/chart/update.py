@@ -16,99 +16,83 @@
 # under the License.
 import logging
 from datetime import datetime
-from functools import partial
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from flask import g
 from flask_appbuilder.models.sqla import Model
 from marshmallow import ValidationError
 
 from superset import security_manager
-from superset.commands.base import BaseCommand, UpdateMixin
-from superset.commands.chart.exceptions import (
+from superset.charts.commands.exceptions import (
     ChartForbiddenError,
     ChartInvalidError,
+    ChartNameExistsValidationError,
     ChartNotFoundError,
     ChartUpdateFailedError,
     DashboardsNotFoundValidationError,
     DatasourceTypeUpdateRequiredValidationError,
 )
-from superset.commands.utils import get_datasource_by_id, update_tags, validate_tags
-from superset.daos.chart import ChartDAO
-from superset.daos.dashboard import DashboardDAO
+from superset.charts.dao import ChartDAO
+from superset.commands.base import BaseCommand, UpdateMixin
+from superset.commands.utils import get_datasource_by_id
+from superset.dao.exceptions import DAOUpdateFailedError
+from superset.dashboards.dao import DashboardDAO
 from superset.exceptions import SupersetSecurityException
 from superset.models.slice import Slice
-from superset.tags.models import ObjectType
-from superset.utils.decorators import on_error, transaction
 
 logger = logging.getLogger(__name__)
 
 
-def is_query_context_update(properties: dict[str, Any]) -> bool:
+def is_query_context_update(properties: Dict[str, Any]) -> bool:
     return set(properties) == {"query_context", "query_context_generation"} and bool(
         properties.get("query_context_generation")
     )
 
 
 class UpdateChartCommand(UpdateMixin, BaseCommand):
-    def __init__(self, model_id: int, data: dict[str, Any]):
+    def __init__(self, model_id: int, data: Dict[str, Any]):
         self._model_id = model_id
         self._properties = data.copy()
         self._model: Optional[Slice] = None
 
-    @transaction(on_error=partial(on_error, reraise=ChartUpdateFailedError))
     def run(self) -> Model:
         self.validate()
-        assert self._model
+        try:
+            if self._properties.get("query_context_generation") is None:
+                self._properties["last_saved_at"] = datetime.now()
+                self._properties["last_saved_by"] = g.user
+            chart = ChartDAO.update(self._model, self._properties)
+        except DAOUpdateFailedError as ex:
+            logger.exception(ex.exception)
+            raise ChartUpdateFailedError() from ex
+        return chart
 
-        # Update tags
-        if (tags := self._properties.pop("tags", None)) is not None:
-            update_tags(ObjectType.chart, self._model.id, self._model.tags, tags)
-
-        if self._properties.get("query_context_generation") is None:
-            self._properties["last_saved_at"] = datetime.now()
-            self._properties["last_saved_by"] = g.user
-
-        return ChartDAO.update(self._model, self._properties)
-
-    def validate(self) -> None:  # noqa: C901
-        exceptions: list[ValidationError] = []
+    def validate(self) -> None:
+        exceptions: List[ValidationError] = []
         dashboard_ids = self._properties.get("dashboards")
-        owner_ids: Optional[list[int]] = self._properties.get("owners")
-        tag_ids: Optional[list[int]] = self._properties.get("tags")
+        slice_name = self._properties.get("slice_name")
+        owner_ids: Optional[List[int]] = self._properties.get("owners")
 
-        # Validate if datasource_id is provided datasource_type is required
-        datasource_id = self._properties.get("datasource_id")
-        if datasource_id is not None:
-            datasource_type = self._properties.get("datasource_type", "")
-            if not datasource_type:
-                exceptions.append(DatasourceTypeUpdateRequiredValidationError())
+        datasource_id, datasource_type = self._validate_datasource_type(exceptions)
 
         # Validate/populate model exists
         self._model = ChartDAO.find_by_id(self._model_id)
         if not self._model:
             raise ChartNotFoundError()
 
+        self._validate_name_uniqueness(slice_name, exceptions)
+
         # Check and update ownership; when only updating query context we ignore
         # ownership so the update can be performed by report workers
         if not is_query_context_update(self._properties):
             try:
                 security_manager.raise_for_ownership(self._model)
-                owners = self.compute_owners(
-                    self._model.owners,
-                    owner_ids,
-                )
+                owners = self.populate_owners(owner_ids)
                 self._properties["owners"] = owners
             except SupersetSecurityException as ex:
                 raise ChartForbiddenError() from ex
             except ValidationError as ex:
                 exceptions.append(ex)
-
-        # validate tags
-        try:
-            validate_tags(ObjectType.chart, self._model.tags, tag_ids)
-        except ValidationError as ex:
-            exceptions.append(ex)
 
         # Validate/Populate datasource
         if datasource_id is not None:
@@ -129,4 +113,26 @@ class UpdateChartCommand(UpdateMixin, BaseCommand):
             self._properties["dashboards"] = dashboards
 
         if exceptions:
-            raise ChartInvalidError(exceptions=exceptions)
+            exception = ChartInvalidError()
+            exception.add_list(exceptions)
+            raise exception
+
+    def _validate_name_uniqueness(
+        self,
+        slice_name: Optional[str],
+        exceptions: List[ValidationError],
+    ) -> None:
+        if slice_name and not ChartDAO.validate_name_uniqueness(
+            slice_name, self._model_id
+        ):
+            exceptions.append(ChartNameExistsValidationError())
+
+    def _validate_datasource_type(
+        self,
+        exceptions: List[ValidationError],
+    ) -> Tuple[Optional[int], str]:
+        datasource_id = self._properties.get("datasource_id")
+        datasource_type = self._properties.get("datasource_type", "")
+        if datasource_id is not None and not datasource_type:
+            exceptions.append(DatasourceTypeUpdateRequiredValidationError())
+        return datasource_id, datasource_type

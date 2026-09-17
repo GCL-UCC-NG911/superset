@@ -15,39 +15,50 @@
 # specific language governing permissions and limitations
 # under the License.
 import logging
-from functools import partial
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional
 
 from flask_appbuilder.models.sqla import Model
 from marshmallow import ValidationError
 
 from superset.commands.base import BaseCommand, CreateMixin
-from superset.commands.dashboard.exceptions import (
+from superset.commands.utils import populate_roles
+from superset.dao.exceptions import DAOCreateFailedError
+from superset.dashboards.commands.exceptions import (
     DashboardCreateFailedError,
     DashboardInvalidError,
     DashboardSlugExistsValidationError,
+    DashboardTitleExistsValidationError,
 )
-from superset.commands.utils import populate_roles
-from superset.daos.dashboard import DashboardDAO
-from superset.utils.decorators import on_error, transaction
+from superset.dashboards.dao import DashboardDAO
 
 logger = logging.getLogger(__name__)
 
 
 class CreateDashboardCommand(CreateMixin, BaseCommand):
-    def __init__(self, data: dict[str, Any]) -> None:
+    def __init__(self, data: Dict[str, Any]):
         self._properties = data.copy()
 
-    @transaction(on_error=partial(on_error, reraise=DashboardCreateFailedError))
     def run(self) -> Model:
         self.validate()
-        return DashboardDAO.create(attributes=self._properties)
+        try:
+            dashboard = DashboardDAO.create(self._properties, commit=False)
+            dashboard = DashboardDAO.update_charts_owners(dashboard, commit=True)
+        except DAOCreateFailedError as ex:
+            logger.exception(ex.exception)
+            raise DashboardCreateFailedError() from ex
+        return dashboard
 
     def validate(self) -> None:
-        exceptions: list[ValidationError] = []
-        owner_ids: Optional[list[int]] = self._properties.get("owners")
-        role_ids: Optional[list[int]] = self._properties.get("roles")
+        exceptions: List[ValidationError] = []
+        owner_ids: Optional[List[int]] = self._properties.get("owners")
+        role_ids: Optional[List[int]] = self._properties.get("roles")
+        dashboard_title: str = self._properties.get("dashboard_title", "")
         slug: str = self._properties.get("slug", "")
+
+        # Validate title uniqueness
+        if dashboard_title and \
+            not DashboardDAO.validate_title_uniqueness(dashboard_title):
+            exceptions.append(DashboardTitleExistsValidationError())
 
         # Validate slug uniqueness
         if not DashboardDAO.validate_slug_uniqueness(slug):
@@ -59,7 +70,9 @@ class CreateDashboardCommand(CreateMixin, BaseCommand):
         except ValidationError as ex:
             exceptions.append(ex)
         if exceptions:
-            raise DashboardInvalidError(exceptions=exceptions)
+            exception = DashboardInvalidError()
+            exception.add_list(exceptions)
+            raise exception
 
         try:
             roles = populate_roles(role_ids)
@@ -67,4 +80,6 @@ class CreateDashboardCommand(CreateMixin, BaseCommand):
         except ValidationError as ex:
             exceptions.append(ex)
         if exceptions:
-            raise DashboardInvalidError(exceptions=exceptions)
+            exception = DashboardInvalidError()
+            exception.add_list(exceptions)
+            raise exception

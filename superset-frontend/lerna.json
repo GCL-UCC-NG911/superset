@@ -1,11 +1,9 @@
 {
+  "lerna": "3.2.1",
   "npmClient": "npm",
-  "packages": [
-    "packages/*",
-    "plugins/*",
-    "src/setup/*"
-  ],
-  "version": "0.20.4",
+  "packages": ["packages/*", "plugins/*"],
+  "useWorkspaces": true,
+  "version": "2.1.0",
   "ignoreChanges": [
     "**/*.md",
     "**/*.spec.tsx?",
@@ -21,6 +19,5 @@
       "message": "chore(superset-ui): publish %s",
       "exact": true
     }
-  },
-  "$schema": "node_modules/lerna/schemas/lerna-schema.json"
+  }
 }

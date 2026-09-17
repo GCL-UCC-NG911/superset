@@ -171,6 +171,8 @@ class Dashboard(AuditMixinNullable, ImportExportMixin, Model):
         "position_json",
         "json_metadata",
         "description",
+        "certified_by",
+        "certification_details",
         "css",
         "slug",
         "certified_by",

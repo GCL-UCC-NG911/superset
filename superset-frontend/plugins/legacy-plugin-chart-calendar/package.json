@@ -1,18 +1,17 @@
 {
   "name": "@superset-ui/legacy-plugin-chart-calendar",
-  "version": "0.20.3",
+  "version": "2.1.0",
   "description": "Superset Legacy Chart - Calendar Heatmap",
   "keywords": [
     "superset"
   ],
-  "homepage": "https://github.com/apache/superset/tree/master/superset-frontend/plugins/legacy-plugin-chart-calendar#readme",
+  "homepage": "https://github.com/apache-superset/superset-ui#readme",
   "bugs": {
-    "url": "https://github.com/apache/superset/issues"
+    "url": "https://github.com/apache-superset/superset-ui/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/apache/superset.git",
-    "directory": "superset-frontend/plugins/legacy-plugin-chart-calendar"
+    "url": "git+https://github.com/apache-superset/superset-ui.git"
   },
   "license": "Apache-2.0",
   "author": "Superset",
@@ -24,15 +23,15 @@
   ],
   "dependencies": {
     "d3-array": "^2.0.3",
-    "d3-selection": "^3.0.0",
+    "d3-selection": "^1.4.0",
     "d3-tip": "^0.9.1",
-    "prop-types": "^15.8.1"
+    "prop-types": "^15.6.2"
   },
   "peerDependencies": {
     "@emotion/react": "^11.4.1",
     "@superset-ui/chart-controls": "*",
     "@superset-ui/core": "*",
-    "react": "^17.0.2"
+    "react": "^16.13.1"
   },
   "publishConfig": {
     "access": "public"

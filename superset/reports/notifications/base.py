@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,7 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, List, Literal, Optional, Type
 
 import pandas as pd
 
@@ -27,9 +28,13 @@ from superset.utils.core import HeaderDataType
 class NotificationContent:
     name: str
     header_data: HeaderDataType  # this is optional to account for error states
-    csv: Optional[bytes] = None  # bytes for csv file
-    pdf: Optional[bytes] = None  # bytes for PDF file
-    screenshots: Optional[list[bytes]] = None  # bytes for a list of screenshots
+    # NGLS - BEGIN #
+    data: Optional[bytes] = None  # bytes for data attachment
+    data_format: Optional[
+        Literal["csv", "pdf"]
+    ] = None  # data attachment format (csv, xlsx, pdf, etc)
+    # NGLS - END #
+    screenshots: Optional[List[bytes]] = None  # bytes for a list of screenshots
     text: Optional[str] = None
     description: Optional[str] = ""
     url: Optional[str] = None  # url to chart/dashboard for this screenshot
@@ -44,7 +49,7 @@ class BaseNotification:  # pylint: disable=too-few-public-methods
     notification type
     """
 
-    plugins: list[type["BaseNotification"]] = []
+    plugins: List[Type["BaseNotification"]] = []
     type: Optional[ReportRecipientType] = None
     """
     Child classes set their notification type ex: `type = "email"` this string will be

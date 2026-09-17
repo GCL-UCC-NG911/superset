@@ -15,30 +15,27 @@
 # specific language governing permissions and limitations
 # under the License.
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Dict, List
 
 import humanize
 from sqlalchemy import and_, or_
 from sqlalchemy.sql import functions as func
 
 from superset import db
-from superset.daos.base import BaseDAO
+from superset.dao.base import BaseDAO
 from superset.models.core import Log
 from superset.models.dashboard import Dashboard
 from superset.models.slice import Slice
-from superset.utils.core import get_user_id
 from superset.utils.dates import datetime_to_epoch
 
 
-class LogDAO(BaseDAO[Log]):
+class LogDAO(BaseDAO):
+    model_cls = Log
+
     @staticmethod
     def get_recent_activity(
-        actions: list[str],
-        distinct: bool,
-        page: int,
-        page_size: int,
-    ) -> list[dict[str, Any]]:
-        user_id = get_user_id()
+        user_id: int, actions: List[str], distinct: bool, page: int, page_size: int
+    ) -> List[Dict[str, Any]]:
         has_subject_title = or_(
             and_(
                 Dashboard.dashboard_title is not None,
@@ -115,6 +112,7 @@ class LogDAO(BaseDAO[Log]):
                         },
                     ),
                 )
+                .filter(Log.action.in_(actions), Log.user_id == user_id)
                 .order_by(Log.dttm.desc())
                 .limit(page_size)
                 .offset(page * page_size)

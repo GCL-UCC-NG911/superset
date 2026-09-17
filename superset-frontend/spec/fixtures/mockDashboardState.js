@@ -1,4 +1,4 @@
-/* eslint-disable theme-colors/no-literal-colors */
+/* eslint-disable superset-theme-colors/no-literal-colors */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file

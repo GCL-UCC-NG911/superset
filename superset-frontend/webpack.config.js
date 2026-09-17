@@ -26,13 +26,13 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
+const createMdxCompiler = require('@storybook/addon-docs/mdx-compiler-plugin');
 const {
   WebpackManifestPlugin,
   getCompilerHooks,
 } = require('webpack-manifest-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const parsedArgs = require('yargs').argv;
-const Visualizer = require('webpack-visualizer-plugin2');
 const getProxyConfig = require('./webpack.proxy-config');
 const packageConfig = require('./package');
 
@@ -46,6 +46,8 @@ const {
   mode = 'development',
   devserverPort = 9000,
   measure = false,
+  analyzeBundle = false,
+  analyzerPort = 8888,
   nameChunks = false,
 } = parsedArgs;
 const isDevMode = mode !== 'production';
@@ -74,7 +76,6 @@ if (!isDevMode) {
 const plugins = [
   new webpack.ProvidePlugin({
     process: 'process/browser.js',
-    ...(isDevMode ? { Buffer: ['buffer', 'Buffer'] } : {}), // Fix legacy-plugin-chart-paired-t-test broken Story
   }),
 
   // creates a manifest.json mapping of name to hashed output used in template files
@@ -97,10 +98,11 @@ const plugins = [
             .filter(x => x.endsWith('.css'))
             .map(x => `${output.publicPath}${x}`),
           js: chunks
-            .filter(x => x.endsWith('.js') && x.match(/(?<!hot-update).js$/))
+            .filter(x => x.endsWith('.js'))
             .map(x => `${output.publicPath}${x}`),
         };
       });
+
       return {
         ...seed,
         entrypoints: entryFiles,
@@ -114,9 +116,6 @@ const plugins = [
   // expose mode variable to other modules
   new webpack.DefinePlugin({
     'process.env.WEBPACK_MODE': JSON.stringify(mode),
-    'process.env.REDUX_DEFAULT_MIDDLEWARE':
-      process.env.REDUX_DEFAULT_MIDDLEWARE,
-    'process.env.SCARF_ANALYTICS': JSON.stringify(process.env.SCARF_ANALYTICS),
   }),
 
   new CopyPlugin({
@@ -155,8 +154,18 @@ if (!isDevMode) {
     }),
   );
 
-  // Runs type checking on a separate process to speed up the build
-  plugins.push(new ForkTsCheckerWebpackPlugin());
+  plugins.push(
+    // runs type checking on a separate process to speed up the build
+    new ForkTsCheckerWebpackPlugin({
+      eslint: {
+        files: './{src,packages,plugins}/**/*.{ts,tsx,js,jsx}',
+        memoryLimit: 4096,
+        options: {
+          ignorePath: './.eslintignore',
+        },
+      },
+    }),
+  );
 }
 
 const PREAMBLE = [path.join(APP_DIR, '/src/preamble.ts')];
@@ -181,18 +190,10 @@ const babelLoader = {
     // disable gzip compression for cache files
     // faster when there are millions of small files
     cacheCompression: false,
+    plugins: ['emotion'],
     presets: [
       [
-        '@babel/preset-react',
-        {
-          runtime: 'automatic',
-          importSource: '@emotion/react',
-        },
-      ],
-    ],
-    plugins: [
-      [
-        '@emotion/babel-plugin',
+        '@emotion/babel-preset-css-prop',
         {
           autoLabel: 'dev-only',
           labelFormat: '[local]',
@@ -209,32 +210,12 @@ const config = {
     menu: addPreamble('src/views/menu.tsx'),
     spa: addPreamble('/src/views/index.tsx'),
     embedded: addPreamble('/src/embedded/index.tsx'),
-  },
-  cache: {
-    type: 'filesystem', // Enable filesystem caching
-    cacheDirectory: path.resolve(__dirname, '.temp_cache'),
-    buildDependencies: {
-      config: [__filename],
-    },
+    sqllab: addPreamble('/src/SqlLab/index.tsx'),
+    profile: addPreamble('/src/profile/index.tsx'),
+    showSavedQuery: [path.join(APP_DIR, '/src/showSavedQuery/index.jsx')],
   },
   output,
   stats: 'minimal',
-  /*
-   Silence warning for missing export in @data-ui's internal structure. This
-   issue arises from an internal implementation detail of @data-ui. As it's
-   non-critical, we suppress it to prevent unnecessary clutter in the build
-   output. For more context, refer to:
-   https://github.com/williaster/data-ui/issues/208#issuecomment-946966712
-   */
-  ignoreWarnings: [
-    {
-      message:
-        /export 'withTooltipPropTypes' \(imported as 'vxTooltipPropTypes'\) was not found/,
-    },
-    {
-      message: /Can't resolve.*superset_text/,
-    },
-  ],
   performance: {
     assetFilter(assetFilename) {
       // don't throw size limit warning on geojson and font files
@@ -267,7 +248,9 @@ const config = {
               'redux',
               'react-redux',
               'react-hot-loader',
+              'react-select',
               'react-sortable-hoc',
+              'react-virtualized',
               'react-table',
               'react-ace',
               '@hot-loader.*',
@@ -302,34 +285,19 @@ const config = {
     // resolve modules from `/superset_frontend/node_modules` and `/superset_frontend`
     modules: ['node_modules', APP_DIR],
     alias: {
-      // TODO: remove aliases once React has been upgraded to v17 and
+      // TODO: remove aliases once React has been upgraded to v. 17 and
       //  AntD version conflict has been resolved
       antd: path.resolve(path.join(APP_DIR, './node_modules/antd')),
       react: path.resolve(path.join(APP_DIR, './node_modules/react')),
       // TODO: remove Handlebars alias once Handlebars NPM package has been updated to
       // correctly support webpack import (https://github.com/handlebars-lang/handlebars.js/issues/953)
       handlebars: 'handlebars/dist/handlebars.js',
-      /*
-      Temporary workaround to prevent Webpack from resolving moment locale
-      files, which are unnecessary for this project and causing build warnings.
-      This prevents "Module not found" errors for moment locale files.
-      */
-      'moment/min/moment-with-locales': false,
-      // Temporary workaround to allow Storybook 8 to work with existing React v16-compatible stories.
-      // Remove below alias once React has been upgreade to v18.
-      '@storybook/react-dom-shim': path.resolve(
-        path.join(
-          APP_DIR,
-          './node_modules/@storybook/react-dom-shim/dist/react-16',
-        ),
-      ),
     },
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.yml'],
     fallback: {
       fs: false,
       vm: require.resolve('vm-browserify'),
       path: false,
-      ...(isDevMode ? { buffer: require.resolve('buffer/') } : {}), // Fix legacy-plugin-chart-paired-t-test broken Story
     },
   },
   context: APP_DIR, // to automatically find tsconfig.json
@@ -381,10 +349,6 @@ const config = {
         ],
         use: [babelLoader],
       },
-      {
-        test: /ace-builds.*\/worker-.*$/,
-        type: 'asset/resource',
-      },
       // react-hot-loader use "ProxyFacade", which is a wrapper for react Component
       // see https://github.com/gaearon/react-hot-loader/issues/1311
       // TODO: refactor recurseReactClone
@@ -401,7 +365,7 @@ const config = {
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true,
+              sourceMap: isDevMode,
             },
           },
         ],
@@ -414,13 +378,13 @@ const config = {
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true,
+              sourceMap: isDevMode,
             },
           },
           {
             loader: 'less-loader',
             options: {
-              sourceMap: true,
+              sourceMap: isDevMode,
               lessOptions: {
                 javascriptEnabled: true,
                 modifyVars: {
@@ -439,7 +403,7 @@ const config = {
         },
         type: 'asset',
         generator: {
-          filename: '[name].[contenthash:8][ext]',
+          filename: '[name].[contenthash:8].[ext]',
         },
       },
       {
@@ -454,11 +418,12 @@ const config = {
           {
             loader: '@svgr/webpack',
             options: {
-              titleProp: true,
-              ref: true,
-              // this is the default value for the icon. Using other values
-              // here will replace width and height in svg with 1em
-              icon: false,
+              svgoConfig: {
+                plugins: {
+                  removeViewBox: false,
+                  icon: true,
+                },
+              },
             },
           },
         ],
@@ -467,7 +432,7 @@ const config = {
         test: /\.(jpg|gif)$/,
         type: 'asset/resource',
         generator: {
-          filename: '[name].[contenthash:8][ext]',
+          filename: '[name].[contenthash:8].[ext]',
         },
       },
       /* for font-awesome */
@@ -484,20 +449,24 @@ const config = {
         test: /\.geojson$/,
         type: 'asset/resource',
       },
-      // {
-      //   test: /\.mdx?$/,
-      //   use: [
-      //     {
-      //       loader: require.resolve('@storybook/mdx2-csf/loader'),
-      //       options: {
-      //         skipCsf: false,
-      //         mdxCompileOptions: {
-      //           remarkPlugins: [remarkGfm],
-      //         },
-      //       },
-      //     },
-      //   ],
-      // },
+      {
+        test: /\.mdx$/,
+        use: [
+          {
+            loader: 'babel-loader',
+            // may or may not need this line depending on your app's setup
+            options: {
+              plugins: ['@babel/plugin-transform-react-jsx'],
+            },
+          },
+          {
+            loader: '@mdx-js/loader',
+            options: {
+              compilers: [createMdxCompiler({})],
+            },
+          },
+        ],
+      },
     ],
   },
   externals: {
@@ -506,7 +475,7 @@ const config = {
     'react/lib/ReactContext': true,
   },
   plugins,
-  devtool: isDevMode ? 'eval-cheap-module-source-map' : false,
+  devtool: isDevMode ? 'source-map' : false,
 };
 
 // find all the symlinked plugins and use their source code for imports
@@ -521,51 +490,39 @@ Object.entries(packageConfig.dependencies).forEach(([pkg, relativeDir]) => {
 });
 console.log(''); // pure cosmetic new line
 
+let proxyConfig = getProxyConfig();
+
 if (isDevMode) {
-  let proxyConfig = getProxyConfig();
-  // Set up a plugin to handle manifest updates
-  config.plugins = config.plugins || [];
-  config.plugins.push({
-    apply: compiler => {
-      const { afterEmit } = getCompilerHooks(compiler);
+  config.devServer = {
+    onBeforeSetupMiddleware(devServer) {
+      // load proxy config when manifest updates
+      const { afterEmit } = getCompilerHooks(devServer.compiler);
       afterEmit.tap('ManifestPlugin', manifest => {
         proxyConfig = getProxyConfig(manifest);
       });
     },
-  });
-
-  config.devServer = {
     historyApiFallback: true,
     hot: true,
     port: devserverPort,
-    proxy: [() => proxyConfig],
+    // Only serves bundled files from webpack-dev-server
+    // and proxy everything else to Superset backend
+    proxy: [
+      // functions are called for every request
+      () => proxyConfig,
+    ],
     client: {
-      overlay: {
-        errors: true,
-        warnings: false,
-        runtimeErrors: error => !/ResizeObserver/.test(error.message),
-      },
+      overlay: { errors: true, warnings: false },
       logging: 'error',
     },
-    static: {
-      directory: path.join(process.cwd(), '../static/assets'),
-    },
+    static: path.join(process.cwd(), '../static/assets'),
   };
 }
 
-// To
-// e.g. npm run package-stats
-if (process.env.BUNDLE_ANALYZER) {
-  config.plugins.push(new BundleAnalyzerPlugin({ analyzerMode: 'static' }));
-  config.plugins.push(
-    // this creates an HTML page with a sunburst diagram of dependencies.
-    // you'll find it at superset/static/stats/statistics.html
-    // note that the file is >100MB so it's in .gitignore
-    new Visualizer({
-      filename: path.join('..', 'stats', 'statistics.html'),
-      throwOnError: true,
-    }),
-  );
+// Bundle analyzer is disabled by default
+// Pass flag --analyzeBundle=true to enable
+// e.g. npm run build -- --analyzeBundle=true
+if (analyzeBundle) {
+  config.plugins.push(new BundleAnalyzerPlugin({ analyzerPort }));
 }
 
 // Speed measurement is disabled by default
