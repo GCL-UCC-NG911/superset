@@ -14,35 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-COMPOSE_PROJECT_NAME=superset
 
-# database configurations (do not modify)
-DATABASE_DB=superset
-DATABASE_HOST=db
-DATABASE_PASSWORD=superset
-DATABASE_USER=superset
+FROM alpine:latest
 
-# database engine specific environment variables
-# change the below if you prefer another database engine
-DATABASE_PORT=5432
-DATABASE_DIALECT=postgresql
-POSTGRES_DB=superset
-POSTGRES_USER=superset
-POSTGRES_PASSWORD=superset
-#MYSQL_DATABASE=superset
-#MYSQL_USER=superset
-#MYSQL_PASSWORD=superset
-#MYSQL_RANDOM_ROOT_PASSWORD=yes
+ARG DOCKERIZE_VERSION=v0.7.0
 
-# Add the mapped in /app/pythonpath_docker which allows devs to override stuff
-PYTHONPATH=/app/pythonpath:/app/docker/pythonpath_dev
-REDIS_HOST=redis
-REDIS_PORT=6379
+RUN apk update --no-cache \
+    && apk add --no-cache wget openssl \
+    && case "$(apk --print-arch)" in \
+        x86_64) ARCH=amd64 ;; \
+        aarch64) ARCH=arm64 ;; \
+       esac \
+    && wget -O - https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-${ARCH}-${DOCKERIZE_VERSION}.tar.gz | tar xzf - -C /usr/local/bin \
+    && apk del wget
 
-FLASK_ENV=production
-SUPERSET_ENV=production
-SUPERSET_LOAD_EXAMPLES=yes
-SUPERSET_SECRET_KEY=TEST_NON_DEV_SECRET
-CYPRESS_CONFIG=false
-SUPERSET_PORT=8088
-MAPBOX_API_KEY=''
+USER 10001

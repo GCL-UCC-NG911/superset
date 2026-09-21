@@ -16,34 +16,46 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, {
+import {
   useState,
   useEffect,
   useReducer,
   useCallback,
   useMemo,
+  ChangeEvent,
 } from 'react';
-import { t, SupersetTheme } from '@superset-ui/core';
+
+import {
+  t,
+  SupersetTheme,
+  getClientErrorObject,
+  VizType,
+} from '@superset-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
-import { getClientErrorObject } from 'src/utils/getClientErrorObject';
-import { addReport, editReport } from 'src/reports/actions/reports';
+import {
+  addReport,
+  editReport,
+} from 'src/features/reports/ReportModal/actions';
 import Alert from 'src/components/Alert';
 import TimezoneSelector from 'src/components/TimezoneSelector';
 import LabeledErrorBoundInput from 'src/components/Form/LabeledErrorBoundInput';
 import Icons from 'src/components/Icons';
 import { CronError } from 'src/components/CronPicker';
-import { RadioChangeEvent } from 'src/components';
+import { Radio, RadioChangeEvent } from 'src/components/Radio';
+import { Input } from 'src/components/Input';
 import withToasts from 'src/components/MessageToasts/withToasts';
 import { ChartState } from 'src/explore/types';
 import {
   ReportCreationMethod,
   ReportObject,
-  NOTIFICATION_FORMATS,
-} from 'src/reports/types';
+  NotificationFormats,
+} from 'src/features/reports/types';
 import { reportSelector } from 'src/views/CRUD/hooks';
+import { StyledInputContainer } from 'src/features/alerts/AlertReportModal';
 import { CreationMethod } from './HeaderReportDropdown';
 import {
   antDErrorAlertStyles,
+  CustomWidthHeaderStyle,
   StyledModal,
   StyledTopSection,
   StyledBottomSection,
@@ -56,8 +68,6 @@ import {
   TimezoneHeaderStyle,
   SectionHeaderStyle,
   StyledMessageContentTitle,
-  StyledRadio,
-  StyledRadioGroup,
 } from './styles';
 
 interface ReportProps {
@@ -66,6 +76,8 @@ interface ReportProps {
   show: boolean;
   userId: number;
   userEmail: string;
+  ccEmail: string;
+  bccEmail: string;
   chart?: ChartState;
   chartName?: string;
   dashboardId?: number;
@@ -75,10 +87,9 @@ interface ReportProps {
 }
 
 const TEXT_BASED_VISUALIZATION_TYPES = [
-  'pivot_table',
-  'pivot_table_v2',
+  VizType.PivotTable,
   'table',
-  'paired_ttest',
+  VizType.PairedTTest,
 ];
 
 const INITIAL_STATE = {
@@ -93,6 +104,9 @@ type ReportObjectState = Partial<ReportObject> & {
   isSubmitting?: boolean;
 };
 
+// Same instance to be used in useEffects
+const EMPTY_OBJECT = {};
+
 function ReportModal({
   onHide,
   show = false,
@@ -100,6 +114,8 @@ function ReportModal({
   chart,
   userId,
   userEmail,
+  ccEmail,
+  bccEmail,
   creationMethod,
   dashboardName,
   chartName,
@@ -109,8 +125,8 @@ function ReportModal({
   const isTextBasedChart =
     isChart && vizType && TEXT_BASED_VISUALIZATION_TYPES.includes(vizType);
   const defaultNotificationFormat = isTextBasedChart
-    ? NOTIFICATION_FORMATS.TEXT
-    : NOTIFICATION_FORMATS.PNG;
+    ? NotificationFormats.Text
+    : NotificationFormats.PNG;
   const entityName = dashboardName || chartName;
   const initialState: ReportObjectState = useMemo(
     () => ({
@@ -145,9 +161,12 @@ function ReportModal({
   // Report fetch logic
   const report = useSelector<any, ReportObject>(state => {
     const resourceType = dashboardId
-      ? CreationMethod.DASHBOARDS
-      : CreationMethod.CHARTS;
-    return reportSelector(state, resourceType, dashboardId || chart?.id);
+      ? CreationMethod.Dashboards
+      : CreationMethod.Charts;
+    return (
+      reportSelector(state, resourceType, dashboardId || chart?.id) ||
+      EMPTY_OBJECT
+    );
   });
   const isEditMode = report && Object.keys(report).length;
 
@@ -165,13 +184,18 @@ function ReportModal({
       type: 'Report',
       active: true,
       force_screenshot: false,
+      custom_width: currentReport.custom_width,
       creation_method: creationMethod,
       dashboard: dashboardId,
       chart: chart?.id,
       owners: [userId],
       recipients: [
         {
-          recipient_config_json: { target: userEmail },
+          recipient_config_json: {
+            target: userEmail,
+            ccTarget: ccEmail,
+            bccTarget: bccEmail,
+          },
           type: 'Email',
         },
       ],
@@ -225,40 +249,61 @@ function ReportModal({
     </>
   );
 
-  /* NGLS - BEGIN */
   const renderMessageContentSection = (
     <>
       <StyledMessageContentTitle>
         <h4>{t('Message content')}</h4>
       </StyledMessageContentTitle>
       <div className="inline-container">
-        <StyledRadioGroup
+        <Radio.GroupWrapper
+          spaceConfig={{
+            direction: 'vertical',
+            size: 'middle',
+            align: 'start',
+            wrap: false,
+          }}
           onChange={(event: RadioChangeEvent) => {
             setCurrentReport({ report_format: event.target.value });
           }}
           value={currentReport.report_format || defaultNotificationFormat}
-        >
-          {isTextBasedChart && (
-            <StyledRadio value={NOTIFICATION_FORMATS.TEXT}>
-              {t('Text embedded in email')}
-            </StyledRadio>
-          )}
-          <StyledRadio value={NOTIFICATION_FORMATS.PNG}>
-            {t('Image (PNG) embedded in email')}
-          </StyledRadio>
-          {isChart && (
-            <StyledRadio value={NOTIFICATION_FORMATS.CSV}>
-              {t('Formatted CSV attached in email')}
-            </StyledRadio>
-          )}
-          <StyledRadio value={NOTIFICATION_FORMATS.PDF}>
-            {t('Formatted PDF attached in email')}
-          </StyledRadio>
-        </StyledRadioGroup>
+          options={[
+            {
+              label: t('Text embedded in email'),
+              value: NotificationFormats.Text,
+            },
+            {
+              label: t('Image (PNG) embedded in email'),
+              value: NotificationFormats.PNG,
+            },
+            {
+              label: t('Formatted CSV attached in email'),
+              value: NotificationFormats.CSV,
+            },
+          ]}
+        />
       </div>
     </>
   );
-  /* NGLS - END */
+  const renderCustomWidthSection = (
+    <StyledInputContainer>
+      <div className="control-label" css={CustomWidthHeaderStyle}>
+        {t('Screenshot width')}
+      </div>
+      <div className="input-container">
+        <Input
+          type="number"
+          name="custom_width"
+          value={currentReport?.custom_width || ''}
+          placeholder={t('Input custom width in pixels')}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => {
+            setCurrentReport({
+              custom_width: parseInt(event.target.value, 10) || null,
+            });
+          }}
+        />
+      </div>
+    </StyledInputContainer>
+  );
 
   return (
     <StyledModal
@@ -306,9 +351,7 @@ function ReportModal({
           <h4 css={(theme: SupersetTheme) => SectionHeaderStyle(theme)}>
             {t('Schedule')}
           </h4>
-          <p>
-            {t('A screenshot of the dashboard will be sent to your email at')}
-          </p>
+          <p>{t('The report will be sent to your email at')}</p>
         </StyledScheduleTitle>
 
         <StyledCronPicker
@@ -332,7 +375,8 @@ function ReportModal({
             setCurrentReport({ timezone: value });
           }}
         />
-        {renderMessageContentSection}
+        {isChart && renderMessageContentSection}
+        {(!isChart || !isTextBasedChart) && renderCustomWidthSection}
       </StyledBottomSection>
       {currentReport.error && (
         <Alert

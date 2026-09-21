@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -14,17 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
--r development.in
--r integration.in
--e file:.[bigquery,hive,presto,trino]
-docker
-flask-testing
-freezegun
-openapi-spec-validator
-parameterized
-pyfakefs
-pylint==2.9.6
-pytest
-pytest-cov
-pytest-mock
-statsd
+/app/docker/docker-init.sh
+
+# TODO: copy config overrides from ENV vars
+
+# TODO: run celery in detached state
+export SERVER_THREADS_AMOUNT=8
+# start up the web server
+
+/app/docker/entrypoints/run-server.sh

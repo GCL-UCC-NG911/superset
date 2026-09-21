@@ -27,16 +27,6 @@ export enum NOTIFICATION_FORMATS {
 }
 /* NGLS - END */
 
-/* NGLS - BEGIN */
-export enum NOTIFICATION_FORMATS {
-  TEXT = 'TEXT',
-  PNG = 'PNG',
-  CSV = 'CSV',
-  PDF = 'PDF',
-  CUSTOM_CSV = 'CUSTOM_CSV',
-}
-/* NGLS - END */
-
 export interface ViewState {
   common: {
     conf: {

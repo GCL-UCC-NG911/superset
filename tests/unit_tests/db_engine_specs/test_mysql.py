@@ -16,7 +16,8 @@
 # under the License.
 
 from datetime import datetime
-from typing import Any, Dict, Optional, Type
+from decimal import Decimal
+from typing import Any, Optional
 from unittest.mock import Mock, patch
 
 import pytest
@@ -33,14 +34,14 @@ from sqlalchemy.dialects.mysql import (
     TINYINT,
     TINYTEXT,
 )
-from sqlalchemy.engine.url import make_url
+from sqlalchemy.engine.url import make_url, URL  # noqa: F401
 
 from superset.utils.core import GenericDataType
 from tests.unit_tests.db_engine_specs.utils import (
     assert_column_spec,
     assert_convert_dttm,
 )
-from tests.unit_tests.fixtures.common import dttm
+from tests.unit_tests.fixtures.common import dttm  # noqa: F401
 
 
 @pytest.mark.parametrize(
@@ -71,12 +72,12 @@ from tests.unit_tests.fixtures.common import dttm
 )
 def test_get_column_spec(
     native_type: str,
-    sqla_type: Type[types.TypeEngine],
-    attrs: Optional[Dict[str, Any]],
+    sqla_type: type[types.TypeEngine],
+    attrs: Optional[dict[str, Any]],
     generic_type: GenericDataType,
     is_dttm: bool,
 ) -> None:
-    from superset.db_engine_specs.mysql import MySQLEngineSpec as spec
+    from superset.db_engine_specs.mysql import MySQLEngineSpec as spec  # noqa: N813
 
     assert_column_spec(spec, native_type, sqla_type, attrs, generic_type, is_dttm)
 
@@ -93,9 +94,11 @@ def test_get_column_spec(
     ],
 )
 def test_convert_dttm(
-    target_type: str, expected_result: Optional[str], dttm: datetime
+    target_type: str,
+    expected_result: Optional[str],
+    dttm: datetime,  # noqa: F811
 ) -> None:
-    from superset.db_engine_specs.mysql import MySQLEngineSpec as spec
+    from superset.db_engine_specs.mysql import MySQLEngineSpec as spec  # noqa: N813
 
     assert_convert_dttm(spec, target_type, expected_result, dttm)
 
@@ -104,8 +107,11 @@ def test_convert_dttm(
     "sqlalchemy_uri,error",
     [
         ("mysql://user:password@host/db1?local_infile=1", True),
+        ("mysql+mysqlconnector://user:password@host/db1?allow_local_infile=1", True),
         ("mysql://user:password@host/db1?local_infile=0", True),
+        ("mysql+mysqlconnector://user:password@host/db1?allow_local_infile=0", True),
         ("mysql://user:password@host/db1", False),
+        ("mysql+mysqlconnector://user:password@host/db1", False),
     ],
 )
 def test_validate_database_uri(sqlalchemy_uri: str, error: bool) -> None:
@@ -113,10 +119,65 @@ def test_validate_database_uri(sqlalchemy_uri: str, error: bool) -> None:
 
     url = make_url(sqlalchemy_uri)
     if error:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             MySQLEngineSpec.validate_database_uri(url)
         return
     MySQLEngineSpec.validate_database_uri(url)
+
+
+@pytest.mark.parametrize(
+    "sqlalchemy_uri,connect_args,returns",
+    [
+        ("mysql://user:password@host/db1", {"local_infile": 1}, {"local_infile": 0}),
+        (
+            "mysql+mysqlconnector://user:password@host/db1",
+            {"allow_local_infile": 1},
+            {"allow_local_infile": 0},
+        ),
+        ("mysql://user:password@host/db1", {"local_infile": -1}, {"local_infile": 0}),
+        (
+            "mysql+mysqlconnector://user:password@host/db1",
+            {"allow_local_infile": -1},
+            {"allow_local_infile": 0},
+        ),
+        ("mysql://user:password@host/db1", {"local_infile": 0}, {"local_infile": 0}),
+        (
+            "mysql+mysqlconnector://user:password@host/db1",
+            {"allow_local_infile": 0},
+            {"allow_local_infile": 0},
+        ),
+        (
+            "mysql://user:password@host/db1",
+            {"param1": "some_value"},
+            {"local_infile": 0, "param1": "some_value"},
+        ),
+        (
+            "mysql+mysqlconnector://user:password@host/db1",
+            {"param1": "some_value"},
+            {"allow_local_infile": 0, "param1": "some_value"},
+        ),
+        (
+            "mysql://user:password@host/db1",
+            {"local_infile": 1, "param1": "some_value"},
+            {"local_infile": 0, "param1": "some_value"},
+        ),
+        (
+            "mysql+mysqlconnector://user:password@host/db1",
+            {"allow_local_infile": 1, "param1": "some_value"},
+            {"allow_local_infile": 0, "param1": "some_value"},
+        ),
+    ],
+)
+def test_adjust_engine_params(
+    sqlalchemy_uri: str, connect_args: dict[str, Any], returns: dict[str, Any]
+) -> None:
+    from superset.db_engine_specs.mysql import MySQLEngineSpec
+
+    url = make_url(sqlalchemy_uri)
+    returned_url, returned_connect_args = MySQLEngineSpec.adjust_engine_params(
+        url, connect_args
+    )
+    assert returned_connect_args == returns
 
 
 @patch("sqlalchemy.engine.Engine.connect")
@@ -148,3 +209,56 @@ def test_cancel_query_failed(engine_mock: Mock) -> None:
     query = Query()
     cursor_mock = engine_mock.raiseError.side_effect = Exception()
     assert MySQLEngineSpec.cancel_query(cursor_mock, query, "123") is False
+
+
+def test_get_schema_from_engine_params() -> None:
+    """
+    Test the ``get_schema_from_engine_params`` method.
+    """
+    from superset.db_engine_specs.mysql import MySQLEngineSpec
+
+    assert (
+        MySQLEngineSpec.get_schema_from_engine_params(
+            make_url("mysql://user:password@host/db1"), {}
+        )
+        == "db1"
+    )
+
+
+@pytest.mark.parametrize(
+    "data,description,expected_result",
+    [
+        (
+            [("1.23456", "abc")],
+            [("dec", "decimal(12,6)"), ("str", "varchar(3)")],
+            [(Decimal("1.23456"), "abc")],
+        ),
+        (
+            [(Decimal("1.23456"), "abc")],
+            [("dec", "decimal(12,6)"), ("str", "varchar(3)")],
+            [(Decimal("1.23456"), "abc")],
+        ),
+        (
+            [(None, "abc")],
+            [("dec", "decimal(12,6)"), ("str", "varchar(3)")],
+            [(None, "abc")],
+        ),
+        (
+            [("1.23456", "abc")],
+            [("dec", "varchar(255)"), ("str", "varchar(3)")],
+            [("1.23456", "abc")],
+        ),
+    ],
+)
+def test_column_type_mutator(
+    data: list[tuple[Any, ...]],
+    description: list[Any],
+    expected_result: list[tuple[Any, ...]],
+):
+    from superset.db_engine_specs.mysql import MySQLEngineSpec as spec  # noqa: N813
+
+    mock_cursor = Mock()
+    mock_cursor.fetchall.return_value = data
+    mock_cursor.description = description
+
+    assert spec.fetch_data(mock_cursor) == expected_result

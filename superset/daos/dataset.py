@@ -106,15 +106,6 @@ class DatasetDAO(BaseDAO[SqlaTable]):
         return not db.session.query(dataset_query.exists()).scalar()
 
     @staticmethod
-    def validate_name_uniqueness(name: str, dataset_id: Optional[int] = None) -> bool:
-        dataset_query = db.session.query(SqlaTable).filter(SqlaTable.table_name == name)
-
-        if dataset_id:
-            dataset_query = dataset_query.filter(SqlaTable.id != dataset_id)
-
-        return not db.session.query(dataset_query.exists()).scalar()
-
-    @staticmethod
     def validate_update_uniqueness(
         database: Database,
         table: Table,

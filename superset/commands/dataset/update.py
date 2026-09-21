@@ -16,16 +16,16 @@
 # under the License.
 import logging
 from collections import Counter
-from typing import Any, Dict, List, Optional
+from functools import partial
+from typing import Any, Optional
 
 from flask_appbuilder.models.sqla import Model
 from marshmallow import ValidationError
+from sqlalchemy.exc import SQLAlchemyError
 
 from superset import security_manager
 from superset.commands.base import BaseCommand, UpdateMixin
-from superset.connectors.sqla.models import SqlaTable
-from superset.dao.exceptions import DAOUpdateFailedError
-from superset.datasets.commands.exceptions import (
+from superset.commands.dataset.exceptions import (
     DatabaseChangeValidationError,
     DatasetColumnNotFoundValidationError,
     DatasetColumnsDuplicateValidationError,
@@ -39,8 +39,11 @@ from superset.datasets.commands.exceptions import (
     DatasetNotFoundError,
     DatasetUpdateFailedError,
 )
-from superset.datasets.dao import DatasetDAO
+from superset.connectors.sqla.models import SqlaTable
+from superset.daos.dataset import DatasetDAO
 from superset.exceptions import SupersetSecurityException
+from superset.sql_parse import Table
+from superset.utils.decorators import on_error, transaction
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +52,7 @@ class UpdateDatasetCommand(UpdateMixin, BaseCommand):
     def __init__(
         self,
         model_id: int,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         override_columns: Optional[bool] = False,
     ):
         self._model_id = model_id
@@ -58,74 +61,92 @@ class UpdateDatasetCommand(UpdateMixin, BaseCommand):
         self.override_columns = override_columns
         self._properties["override_columns"] = override_columns
 
+    @transaction(
+        on_error=partial(
+            on_error,
+            catches=(
+                SQLAlchemyError,
+                ValueError,
+            ),
+            reraise=DatasetUpdateFailedError,
+        )
+    )
     def run(self) -> Model:
         self.validate()
-        if self._model:
-            try:
-                dataset = DatasetDAO.update(
-                    model=self._model,
-                    properties=self._properties,
-                )
-                return dataset
-            except DAOUpdateFailedError as ex:
-                logger.exception(ex.exception)
-                raise DatasetUpdateFailedError() from ex
-        raise DatasetUpdateFailedError()
+        assert self._model
+        return DatasetDAO.update(self._model, attributes=self._properties)
 
     def validate(self) -> None:
-        exceptions: List[ValidationError] = []
-        owner_ids: Optional[List[int]] = self._properties.get("owners")
+        exceptions: list[ValidationError] = []
+        owner_ids: Optional[list[int]] = self._properties.get("owners")
+
         # Validate/populate model exists
         self._model = DatasetDAO.find_by_id(self._model_id)
         if not self._model:
             raise DatasetNotFoundError()
+
         # Check ownership
         try:
             security_manager.raise_for_ownership(self._model)
         except SupersetSecurityException as ex:
             raise DatasetForbiddenError() from ex
 
-        database_id = self._properties.get("database", None)
-        table_name = self._properties.get("table_name", self._model.table_name)
+        database_id = self._properties.get("database")
+
+        catalog = self._properties.get("catalog")
+        if not catalog:
+            catalog = self._properties["catalog"] = (
+                self._model.database.get_default_catalog()
+            )
+
+        table = Table(
+            self._properties.get("table_name"),  # type: ignore
+            self._properties.get("schema"),
+            catalog,
+        )
+
         # Validate uniqueness
         if not DatasetDAO.validate_update_uniqueness(
-            self._model.database_id, self._model_id, table_name
-        ) or not DatasetDAO.validate_name_uniqueness(table_name, self._model_id):
-            exceptions.append(DatasetExistsValidationError(table_name))
+            self._model.database,
+            table,
+            self._model_id,
+        ):
+            exceptions.append(DatasetExistsValidationError(table))
+
         # Validate/Populate database not allowed to change
         if database_id and database_id != self._model:
             exceptions.append(DatabaseChangeValidationError())
+
         # Validate/Populate owner
         try:
-            owners = self.populate_owners(owner_ids)
+            owners = self.compute_owners(
+                self._model.owners,
+                owner_ids,
+            )
             self._properties["owners"] = owners
         except ValidationError as ex:
             exceptions.append(ex)
 
         # Validate columns
-        columns = self._properties.get("columns")
-        if columns:
+        if columns := self._properties.get("columns"):
             self._validate_columns(columns, exceptions)
 
         # Validate metrics
-        metrics = self._properties.get("metrics")
-        if metrics:
+        if metrics := self._properties.get("metrics"):
             self._validate_metrics(metrics, exceptions)
 
         if exceptions:
-            exception = DatasetInvalidError()
-            exception.add_list(exceptions)
-            raise exception
+            raise DatasetInvalidError(exceptions=exceptions)
 
     def _validate_columns(
-        self, columns: List[Dict[str, Any]], exceptions: List[ValidationError]
+        self, columns: list[dict[str, Any]], exceptions: list[ValidationError]
     ) -> None:
         # Validate duplicates on data
         if self._get_duplicates(columns, "column_name"):
             exceptions.append(DatasetColumnsDuplicateValidationError())
         else:
             # validate invalid id's
-            columns_ids: List[int] = [
+            columns_ids: list[int] = [
                 column["id"] for column in columns if "id" in column
             ]
             if not DatasetDAO.validate_columns_exist(self._model_id, columns_ids):
@@ -133,7 +154,7 @@ class UpdateDatasetCommand(UpdateMixin, BaseCommand):
 
             # validate new column names uniqueness
             if not self.override_columns:
-                columns_names: List[str] = [
+                columns_names: list[str] = [
                     column["column_name"] for column in columns if "id" not in column
                 ]
                 if not DatasetDAO.validate_columns_uniqueness(
@@ -142,26 +163,26 @@ class UpdateDatasetCommand(UpdateMixin, BaseCommand):
                     exceptions.append(DatasetColumnsExistsValidationError())
 
     def _validate_metrics(
-        self, metrics: List[Dict[str, Any]], exceptions: List[ValidationError]
+        self, metrics: list[dict[str, Any]], exceptions: list[ValidationError]
     ) -> None:
         if self._get_duplicates(metrics, "metric_name"):
             exceptions.append(DatasetMetricsDuplicateValidationError())
         else:
             # validate invalid id's
-            metrics_ids: List[int] = [
+            metrics_ids: list[int] = [
                 metric["id"] for metric in metrics if "id" in metric
             ]
             if not DatasetDAO.validate_metrics_exist(self._model_id, metrics_ids):
                 exceptions.append(DatasetMetricsNotFoundValidationError())
             # validate new metric names uniqueness
-            metric_names: List[str] = [
+            metric_names: list[str] = [
                 metric["metric_name"] for metric in metrics if "id" not in metric
             ]
             if not DatasetDAO.validate_metrics_uniqueness(self._model_id, metric_names):
                 exceptions.append(DatasetMetricsExistsValidationError())
 
     @staticmethod
-    def _get_duplicates(data: List[Dict[str, Any]], key: str) -> List[str]:
+    def _get_duplicates(data: list[dict[str, Any]], key: str) -> list[str]:
         duplicates = [
             name
             for name, count in Counter([item[key] for item in data]).items()

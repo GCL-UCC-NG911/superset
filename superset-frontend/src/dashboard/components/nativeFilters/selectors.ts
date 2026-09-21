@@ -17,21 +17,20 @@
  * under the License.
  */
 import {
+  DataMask,
   DataMaskStateWithId,
   DataMaskType,
   ensureIsArray,
-  FeatureFlag,
   Filters,
   FilterState,
   getColumnLabel,
-  isFeatureEnabled,
   NativeFilterType,
   NO_TIME_RANGE,
+  QueryFormColumn,
 } from '@superset-ui/core';
 import { TIME_FILTER_MAP } from 'src/explore/constants';
-import { getChartIdsInFilterBoxScope } from 'src/dashboard/util/activeDashboardFilters';
-import { ChartConfiguration } from 'src/dashboard/reducers/types';
-import { Layout } from 'src/dashboard/types';
+import { getChartIdsInFilterScope } from 'src/dashboard/util/activeDashboardFilters';
+import { ChartConfiguration, LayoutItem } from 'src/dashboard/types';
 import { areObjectsEqual } from 'src/reduxUtils';
 
 export enum IndicatorStatus {
@@ -48,6 +47,7 @@ const TIME_GRANULARITY_FIELDS = new Set(Object.values(TIME_FILTER_MAP));
 type Datasource = {
   time_grain_sqla?: [string, string][];
   granularity?: [string, string][];
+  verbose_map?: Record<string, string>;
 };
 
 type Filter = {
@@ -60,8 +60,8 @@ type Filter = {
   datasourceId: string;
 };
 
-const extractLabel = (filter?: FilterState): string | null => {
-  if (filter?.label) {
+export const extractLabel = (filter?: FilterState): string | null => {
+  if (filter?.label && !filter?.label?.includes(undefined)) {
     return filter.label;
   }
   if (filter?.value) {
@@ -91,7 +91,7 @@ const selectIndicatorValue = (
       (columnKey === TIME_FILTER_MAP.time_grain_sqla
         ? datasource.time_grain_sqla
         : datasource.granularity) || []
-    ).reduce(
+    ).reduce<Record<string, string>>(
       (map, [key, value]) => ({
         ...map,
         [key]: value,
@@ -124,7 +124,7 @@ const selectIndicatorsForChartFromFilter = (
 
   return Object.keys(filter.columns)
     .filter(column =>
-      getChartIdsInFilterBoxScope({
+      getChartIdsInFilterScope({
         filterScope: filter.scopes[column],
       }).includes(chartId),
     )
@@ -152,15 +152,53 @@ const getRejectedColumns = (chart: any): Set<string> =>
   );
 
 export type Indicator = {
-  column?: string;
+  column?: QueryFormColumn;
   name: string;
   value?: any;
   status?: IndicatorStatus;
   path?: string[];
 };
 
-const cachedIndicatorsForChart = {};
-const cachedDashboardFilterDataForChart = {};
+export type CrossFilterIndicator = Indicator & { emitterId: number };
+
+export const getCrossFilterIndicator = (
+  chartId: number,
+  dataMask: DataMask,
+  chartLayoutItems: LayoutItem[],
+) => {
+  const filterState = dataMask?.filterState;
+  const filters = dataMask?.extraFormData?.filters;
+  const label = extractLabel(filterState);
+  const filtersState = filterState?.filters;
+  const column =
+    filters?.[0]?.col || (filtersState && Object.keys(filtersState)[0]);
+
+  const chartLayoutItem = chartLayoutItems.find(
+    layoutItem => layoutItem?.meta?.chartId === chartId,
+  );
+
+  const filterObject: Indicator = {
+    column,
+    name:
+      chartLayoutItem?.meta?.sliceNameOverride ||
+      chartLayoutItem?.meta?.sliceName ||
+      '',
+    path: [...(chartLayoutItem?.parents ?? []), chartLayoutItem?.id || ''],
+    value: label,
+  };
+  return filterObject;
+};
+
+const cachedIndicatorsForChart: Record<number, Indicator[]> = {};
+const cachedDashboardFilterDataForChart: Record<
+  string,
+  {
+    appliedColumns: Set<string>;
+    rejectedColumns: Set<string>;
+    matchingFilters: Filter[];
+    matchingDatasources: Datasource[];
+  }
+> = {};
 // inspects redux state to find what the filter indicators should be shown for a given chart
 export const selectIndicatorsForChart = (
   chartId: number,
@@ -184,10 +222,10 @@ export const selectIndicatorsForChart = (
   const cachedFilterData = cachedDashboardFilterDataForChart[chartId];
   if (
     cachedIndicatorsForChart[chartId] &&
-    areObjectsEqual(cachedFilterData?.appliedColumns, appliedColumns) &&
-    areObjectsEqual(cachedFilterData?.rejectedColumns, rejectedColumns) &&
-    areObjectsEqual(cachedFilterData?.matchingFilters, matchingFilters) &&
-    areObjectsEqual(cachedFilterData?.matchingDatasources, matchingDatasources)
+    areObjectsEqual(cachedFilterData.appliedColumns, appliedColumns) &&
+    areObjectsEqual(cachedFilterData.rejectedColumns, rejectedColumns) &&
+    areObjectsEqual(cachedFilterData.matchingFilters, matchingFilters) &&
+    areObjectsEqual(cachedFilterData.matchingDatasources, matchingDatasources)
   ) {
     return cachedIndicatorsForChart[chartId];
   }
@@ -215,15 +253,101 @@ export const selectIndicatorsForChart = (
   return indicators;
 };
 
-const cachedNativeIndicatorsForChart = {};
-const cachedNativeFilterDataForChart: any = {};
+const getStatus = ({
+  label,
+  column,
+  type = DataMaskType.NativeFilters,
+  rejectedColumns,
+  appliedColumns,
+}: {
+  label: string | null;
+  column?: string;
+  type?: DataMaskType;
+  rejectedColumns?: Set<string>;
+  appliedColumns?: Set<string>;
+}): IndicatorStatus => {
+  // a filter is only considered unset if it's value is null
+  const hasValue = label !== null;
+  const APPLIED_STATUS =
+    type === DataMaskType.CrossFilters
+      ? IndicatorStatus.CrossFilterApplied
+      : IndicatorStatus.Applied;
+  if (!column && hasValue) {
+    // Filter without datasource
+    return APPLIED_STATUS;
+  }
+  if (column && rejectedColumns?.has(column))
+    return IndicatorStatus.Incompatible;
+  if (column && appliedColumns?.has(column) && hasValue) {
+    return APPLIED_STATUS;
+  }
+  return IndicatorStatus.Unset;
+};
+
 const defaultChartConfig = {};
+export const selectChartCrossFilters = (
+  dataMask: DataMaskStateWithId,
+  chartId: number,
+  chartLayoutItems: LayoutItem[],
+  chartConfiguration: ChartConfiguration = defaultChartConfig,
+  appliedColumns: Set<string>,
+  rejectedColumns: Set<string>,
+  filterEmitter = false,
+): Indicator[] | CrossFilterIndicator[] => {
+  let crossFilterIndicators: Indicator[] | CrossFilterIndicator[] = [];
+  crossFilterIndicators = Object.values(chartConfiguration)
+    .filter(chartConfig => {
+      const inScope =
+        chartConfig.crossFilters?.chartsInScope?.includes(chartId);
+      if (!filterEmitter && inScope) {
+        return true;
+      }
+      if (filterEmitter && !inScope) {
+        return true;
+      }
+      return false;
+    })
+    .map(chartConfig => {
+      const filterIndicator = getCrossFilterIndicator(
+        Number(chartConfig.id),
+        dataMask[chartConfig.id],
+        chartLayoutItems,
+      );
+      const filterStatus = getStatus({
+        label: filterIndicator.value,
+        column: filterIndicator.column
+          ? getColumnLabel(filterIndicator.column)
+          : undefined,
+        type: DataMaskType.CrossFilters,
+        appliedColumns,
+        rejectedColumns,
+      });
+
+      return { ...filterIndicator, status: filterStatus };
+    })
+    .filter(filter => filter.status === IndicatorStatus.CrossFilterApplied);
+
+  return crossFilterIndicators;
+};
+
+const cachedNativeIndicatorsForChart: Record<number, any> = {};
+const cachedNativeFilterDataForChart: Record<
+  number,
+  {
+    nativeFilters: Filters;
+    chartLayoutItems: LayoutItem[];
+    chartConfiguration: ChartConfiguration;
+    dataMask: DataMaskStateWithId;
+    appliedColumns: Set<string>;
+    rejectedColumns: Set<string>;
+  }
+> = {};
 export const selectNativeIndicatorsForChart = (
   nativeFilters: Filters,
   dataMask: DataMaskStateWithId,
   chartId: number,
   chart: any,
-  dashboardLayout: Layout,
+  chartLayoutItems: LayoutItem[],
   chartConfiguration: ChartConfiguration = defaultChartConfig,
 ): Indicator[] => {
   const appliedColumns = getAppliedColumns(chart);
@@ -235,99 +359,55 @@ export const selectNativeIndicatorsForChart = (
     areObjectsEqual(cachedFilterData?.appliedColumns, appliedColumns) &&
     areObjectsEqual(cachedFilterData?.rejectedColumns, rejectedColumns) &&
     cachedFilterData?.nativeFilters === nativeFilters &&
-    cachedFilterData?.dashboardLayout === dashboardLayout &&
+    cachedFilterData?.chartLayoutItems === chartLayoutItems &&
     cachedFilterData?.chartConfiguration === chartConfiguration &&
     cachedFilterData?.dataMask === dataMask
   ) {
     return cachedNativeIndicatorsForChart[chartId];
   }
-  const getStatus = ({
-    label,
-    column,
-    type = DataMaskType.NativeFilters,
-  }: {
-    label: string | null;
-    column?: string;
-    type?: DataMaskType;
-  }): IndicatorStatus => {
-    // a filter is only considered unset if it's value is null
-    const hasValue = label !== null;
-    if (type === DataMaskType.CrossFilters && hasValue) {
-      return IndicatorStatus.CrossFilterApplied;
-    }
-    if (!column && hasValue) {
-      // Filter without datasource
-      return IndicatorStatus.Applied;
-    }
-    if (column && rejectedColumns.has(column))
-      return IndicatorStatus.Incompatible;
-    if (column && appliedColumns.has(column) && hasValue) {
-      return IndicatorStatus.Applied;
-    }
-    return IndicatorStatus.Unset;
-  };
 
-  let nativeFilterIndicators: any = [];
-  if (isFeatureEnabled(FeatureFlag.DASHBOARD_NATIVE_FILTERS)) {
-    nativeFilterIndicators =
-      nativeFilters &&
-      Object.values(nativeFilters)
-        .filter(
-          nativeFilter =>
-            nativeFilter.type === NativeFilterType.NATIVE_FILTER &&
-            nativeFilter.chartsInScope?.includes(chartId),
-        )
-        .map(nativeFilter => {
-          const column = nativeFilter.targets?.[0]?.column?.name;
-          const filterState = dataMask[nativeFilter.id]?.filterState;
-          const label = extractLabel(filterState);
-          return {
-            column,
-            name: nativeFilter.name,
-            path: [nativeFilter.id],
-            status: getStatus({ label, column }),
-            value: label,
-          };
-        });
-  }
-
-  let crossFilterIndicators: any = [];
-  if (isFeatureEnabled(FeatureFlag.DASHBOARD_CROSS_FILTERS)) {
-    const dashboardLayoutValues = Object.values(dashboardLayout);
-    crossFilterIndicators = Object.values(chartConfiguration)
-      .filter(chartConfig =>
-        chartConfig.crossFilters?.chartsInScope?.includes(chartId),
+  const nativeFilterIndicators =
+    nativeFilters &&
+    Object.values(nativeFilters)
+      .filter(
+        nativeFilter =>
+          nativeFilter.type === NativeFilterType.NativeFilter &&
+          nativeFilter.chartsInScope?.includes(chartId),
       )
-      .map(chartConfig => {
-        const filterState = dataMask[chartConfig.id]?.filterState;
+      .map(nativeFilter => {
+        const column = nativeFilter.targets?.[0]?.column?.name;
+        const filterState = dataMask[nativeFilter.id]?.filterState;
         const label = extractLabel(filterState);
-        const filtersState = filterState?.filters;
-        const column = filtersState && Object.keys(filtersState)[0];
-
-        const dashboardLayoutItem = dashboardLayoutValues.find(
-          layoutItem => layoutItem?.meta?.chartId === chartConfig.id,
-        );
         return {
           column,
-          name: dashboardLayoutItem?.meta?.sliceName as string,
-          path: [
-            ...(dashboardLayoutItem?.parents ?? []),
-            dashboardLayoutItem?.id,
-          ],
+          name: nativeFilter.name,
+          path: [nativeFilter.id],
           status: getStatus({
             label,
-            type: DataMaskType.CrossFilters,
+            column,
+            rejectedColumns,
+            appliedColumns,
           }),
           value: label,
         };
-      })
-      .filter(filter => filter.status === IndicatorStatus.CrossFilterApplied);
-  }
-  const indicators = crossFilterIndicators.concat(nativeFilterIndicators);
+      });
+
+  let crossFilterIndicators: (Indicator | CrossFilterIndicator)[] = [];
+  crossFilterIndicators = selectChartCrossFilters(
+    dataMask,
+    chartId,
+    chartLayoutItems,
+    chartConfiguration,
+    appliedColumns,
+    rejectedColumns,
+  );
+  const indicators = crossFilterIndicators.concat(
+    nativeFilterIndicators as Indicator[],
+  );
   cachedNativeIndicatorsForChart[chartId] = indicators;
   cachedNativeFilterDataForChart[chartId] = {
     nativeFilters,
-    dashboardLayout,
+    chartLayoutItems,
     chartConfiguration,
     dataMask,
     appliedColumns,

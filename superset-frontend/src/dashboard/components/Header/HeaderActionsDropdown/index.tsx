@@ -16,141 +16,56 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React from 'react';
-import PropTypes from 'prop-types';
-
-import { SupersetClient, t } from '@superset-ui/core';
-
+import { PureComponent } from 'react';
+import { isEmpty } from 'lodash';
+import { connect } from 'react-redux';
+import { t } from '@superset-ui/core';
 import { Menu } from 'src/components/Menu';
 import { URL_PARAMS } from 'src/constants';
 import ShareMenuItems from 'src/dashboard/components/menu/ShareMenuItems';
+import DownloadMenuItems from 'src/dashboard/components/menu/DownloadMenuItems';
 import CssEditor from 'src/dashboard/components/CssEditor';
 import RefreshIntervalModal from 'src/dashboard/components/RefreshIntervalModal';
 import SaveModal from 'src/dashboard/components/SaveModal';
-import HeaderReportDropdown from 'src/components/ReportModal/HeaderReportDropdown';
+import HeaderReportDropdown from 'src/features/reports/ReportModal/HeaderReportDropdown';
 import injectCustomCss from 'src/dashboard/util/injectCustomCss';
 import { SAVE_TYPE_NEWDASHBOARD } from 'src/dashboard/util/constants';
 import FilterScopeModal from 'src/dashboard/components/filterscope/FilterScopeModal';
-import downloadAsImage from 'src/utils/downloadAsImage';
-/* NGLS - BEGIN */
-import downloadAsPdf from 'src/utils/downloadAsPdf';
-/* NGLS - END */
 import getDashboardUrl from 'src/dashboard/util/getDashboardUrl';
 import { getActiveFilters } from 'src/dashboard/util/activeDashboardFilters';
 import { getUrlParam } from 'src/utils/urlUtils';
-import { FILTER_BOX_MIGRATION_STATES } from 'src/explore/constants';
-import {
-  LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE,
-  /* NGLS - BEGIN */
-  LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF,
-  /* NGLS - END */
-} from 'src/logger/LogUtils';
+import { MenuKeys, RootState } from 'src/dashboard/types';
+import { HeaderDropdownProps } from 'src/dashboard/components/Header/types';
 
-const propTypes = {
-  addSuccessToast: PropTypes.func.isRequired,
-  addDangerToast: PropTypes.func.isRequired,
-  addInfoToast: PropTypes.func.isRequired,
-  dashboardInfo: PropTypes.object.isRequired,
-  dashboardId: PropTypes.number,
-  dashboardTitle: PropTypes.string,
-  dataMask: PropTypes.object.isRequired,
-  customCss: PropTypes.string,
-  colorNamespace: PropTypes.string,
-  colorScheme: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-  updateCss: PropTypes.func.isRequired,
-  forceRefreshAllCharts: PropTypes.func.isRequired,
-  refreshFrequency: PropTypes.number,
-  shouldPersistRefreshFrequency: PropTypes.bool.isRequired,
-  setRefreshFrequency: PropTypes.func.isRequired,
-  startPeriodicRender: PropTypes.func.isRequired,
-  editMode: PropTypes.bool.isRequired,
-  userCanEdit: PropTypes.bool,
-  userCanShare: PropTypes.bool,
-  userCanSave: PropTypes.bool,
-  userCanCurate: PropTypes.bool.isRequired,
-  isLoading: PropTypes.bool.isRequired,
-  layout: PropTypes.object.isRequired,
-  expandedSlices: PropTypes.object,
-  onSave: PropTypes.func.isRequired,
-  showPropertiesModal: PropTypes.func.isRequired,
-  manageEmbedded: PropTypes.func.isRequired,
-  logEvent: PropTypes.func,
-  refreshLimit: PropTypes.number,
-  refreshWarning: PropTypes.string,
-  lastModifiedTime: PropTypes.number.isRequired,
-  filterboxMigrationState: PropTypes.oneOf(
-    Object.keys(FILTER_BOX_MIGRATION_STATES).map(
-      key => FILTER_BOX_MIGRATION_STATES[key],
-    ),
-  ),
-};
+const mapStateToProps = (state: RootState) => ({
+  directPathToChild: state.dashboardState.directPathToChild,
+});
 
-const defaultProps = {
-  colorNamespace: undefined,
-  colorScheme: undefined,
-  refreshLimit: 0,
-  refreshWarning: null,
-  filterboxMigrationState: FILTER_BOX_MIGRATION_STATES.NOOP,
-};
+interface HeaderActionsDropdownState {
+  css: string;
+  showReportSubMenu: boolean | null;
+}
 
-const MENU_KEYS = {
-  SAVE_MODAL: 'save-modal',
-  SHARE_DASHBOARD: 'share-dashboard',
-  REFRESH_DASHBOARD: 'refresh-dashboard',
-  AUTOREFRESH_MODAL: 'autorefresh-modal',
-  SET_FILTER_MAPPING: 'set-filter-mapping',
-  EDIT_PROPERTIES: 'edit-properties',
-  EDIT_CSS: 'edit-css',
-  DOWNLOAD_AS_IMAGE: 'download-as-image',
-  /* NGLS - BEGIN */
-  DOWNLOAD_AS_PDF: 'download-as-pdf',
-  DOWNLOAD_SUBMENU: 'download-submenu',
-  /* NGLS - END */
-  TOGGLE_FULLSCREEN: 'toggle-fullscreen',
-  MANAGE_EMBEDDED: 'manage-embedded',
-  MANAGE_EMAIL_REPORT: 'manage-email-report',
-};
+export class HeaderActionsDropdown extends PureComponent<
+  HeaderDropdownProps,
+  HeaderActionsDropdownState
+> {
+  static defaultProps = {
+    colorNamespace: undefined,
+    colorScheme: undefined,
+    refreshLimit: 0,
+    refreshWarning: null,
+  };
 
-const SCREENSHOT_NODE_SELECTOR = '.dashboard';
-
-class HeaderActionsDropdown extends React.PureComponent {
-  static discardChanges() {
-    window.location.reload();
-  }
-
-  constructor(props) {
+  constructor(props: HeaderDropdownProps) {
     super(props);
     this.state = {
-      css: props.customCss,
-      cssTemplates: [],
+      css: props.customCss || '',
       showReportSubMenu: null,
     };
-
-    this.changeCss = this.changeCss.bind(this);
-    this.changeRefreshInterval = this.changeRefreshInterval.bind(this);
-    this.handleMenuClick = this.handleMenuClick.bind(this);
-    this.setShowReportSubMenu = this.setShowReportSubMenu.bind(this);
   }
 
-  UNSAFE_componentWillMount() {
-    SupersetClient.get({ endpoint: '/csstemplateasyncmodelview/api/read' })
-      .then(({ json }) => {
-        const cssTemplates = json.result.map(row => ({
-          value: row.template_name,
-          css: row.css,
-          label: row.template_name,
-        }));
-        this.setState({ cssTemplates });
-      })
-      .catch(() => {
-        this.props.addDangerToast(
-          t('An error occurred while fetching available CSS templates'),
-        );
-      });
-  }
-
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps: HeaderDropdownProps) {
     if (this.props.customCss !== nextProps.customCss) {
       this.setState({ css: nextProps.customCss }, () => {
         injectCustomCss(nextProps.customCss);
@@ -158,87 +73,49 @@ class HeaderActionsDropdown extends React.PureComponent {
     }
   }
 
-  setShowReportSubMenu(show) {
-    this.setState({
-      showReportSubMenu: show,
-    });
-  }
+  setShowReportSubMenu = (show: boolean) => {
+    this.setState({ showReportSubMenu: show });
+  };
 
-  changeCss(css) {
+  changeCss = (css: string) => {
     this.props.onChange();
     this.props.updateCss(css);
-  }
+  };
 
-  changeRefreshInterval(refreshInterval, isPersistent) {
+  changeRefreshInterval = (refreshInterval: number, isPersistent: boolean) => {
     this.props.setRefreshFrequency(refreshInterval, isPersistent);
     this.props.startPeriodicRender(refreshInterval * 1000);
-  }
+  };
 
-  handleMenuClick({ key, domEvent }) {
+  handleMenuClick = ({ key }: Record<string, any>) => {
     switch (key) {
-      case MENU_KEYS.REFRESH_DASHBOARD:
+      case MenuKeys.RefreshDashboard:
         this.props.forceRefreshAllCharts();
         this.props.addSuccessToast(t('Refreshing charts'));
         break;
-      case MENU_KEYS.EDIT_PROPERTIES:
+      case MenuKeys.EditProperties:
         this.props.showPropertiesModal();
         break;
-      case MENU_KEYS.DOWNLOAD_AS_IMAGE: {
-        // menu closes with a delay, we need to hide it manually,
-        // so that we don't capture it on the screenshot
-        const menu = document.querySelector(
-          '.ant-dropdown:not(.ant-dropdown-hidden)',
-        );
-        menu.style.visibility = 'hidden';
-        downloadAsImage(
-          SCREENSHOT_NODE_SELECTOR,
-          this.props.dashboardTitle,
-          true,
-        )(domEvent).then(() => {
-          menu.style.visibility = 'visible';
-        });
-        this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_IMAGE);
-        this.props.addInfoToast(t('Preparing file for download, please wait'));
-        break;
-      }
-      /* NGLS - BEGIN */
-      case MENU_KEYS.DOWNLOAD_AS_PDF: {
-        // menu closes with a delay, we need to hide it manually,
-        // so that we don't capture it on the screenshot
-        const menu = document.querySelector(
-          '.ant-dropdown:not(.ant-dropdown-hidden)',
-        );
-        menu.style.visibility = 'hidden';
-        downloadAsPdf(
-          SCREENSHOT_NODE_SELECTOR,
-          this.props.dashboardTitle,
-          true,
-        )(domEvent).then(() => {
-          menu.style.visibility = 'visible';
-        });
-        this.props.logEvent?.(LOG_ACTIONS_DASHBOARD_DOWNLOAD_AS_PDF);
-        this.props.addInfoToast(t('Preparing file for download, please wait'));
-        break;
-      }
-      /* NGLS - END */
-      case MENU_KEYS.TOGGLE_FULLSCREEN: {
+      case MenuKeys.ToggleFullscreen: {
+        const isCurrentlyStandalone =
+          Number(getUrlParam(URL_PARAMS.standalone)) === 1;
         const url = getDashboardUrl({
           pathname: window.location.pathname,
           filters: getActiveFilters(),
           hash: window.location.hash,
-          standalone: !getUrlParam(URL_PARAMS.standalone),
+          standalone: isCurrentlyStandalone ? null : 1,
         });
         window.location.replace(url);
         break;
       }
-      case MENU_KEYS.MANAGE_EMBEDDED: {
+      case MenuKeys.ManageEmbedded: {
         this.props.manageEmbedded();
         break;
       }
       default:
         break;
     }
-  }
+  };
 
   render() {
     const {
@@ -264,16 +141,17 @@ class HeaderActionsDropdown extends React.PureComponent {
       lastModifiedTime,
       addSuccessToast,
       addDangerToast,
-      addInfoToast,
-      filterboxMigrationState,
       setIsDropdownVisible,
       isDropdownVisible,
+      directPathToChild,
       ...rest
     } = this.props;
 
     const emailTitle = t('Superset dashboard');
     const emailSubject = `${emailTitle} ${dashboardTitle}`;
     const emailBody = t('Check out this dashboard: ');
+
+    const isEmbedded = !dashboardInfo?.userId;
 
     const url = getDashboardUrl({
       pathname: window.location.pathname,
@@ -284,11 +162,13 @@ class HeaderActionsDropdown extends React.PureComponent {
     const refreshIntervalOptions =
       dashboardInfo.common?.conf?.DASHBOARD_AUTO_REFRESH_INTERVALS;
 
+    const dashboardComponentId = [...(directPathToChild || [])].pop();
+
     return (
       <Menu selectable={false} data-test="header-actions-menu" {...rest}>
         {!editMode && (
           <Menu.Item
-            key={MENU_KEYS.REFRESH_DASHBOARD}
+            key={MenuKeys.RefreshDashboard}
             data-test="refresh-dashboard-menu-item"
             disabled={isLoading}
             onClick={this.handleMenuClick}
@@ -296,9 +176,9 @@ class HeaderActionsDropdown extends React.PureComponent {
             {t('Refresh dashboard')}
           </Menu.Item>
         )}
-        {!editMode && (
+        {!editMode && !isEmbedded && (
           <Menu.Item
-            key={MENU_KEYS.TOGGLE_FULLSCREEN}
+            key={MenuKeys.ToggleFullscreen}
             onClick={this.handleMenuClick}
           >
             {getUrlParam(URL_PARAMS.standalone)
@@ -308,29 +188,28 @@ class HeaderActionsDropdown extends React.PureComponent {
         )}
         {editMode && (
           <Menu.Item
-            key={MENU_KEYS.EDIT_PROPERTIES}
+            key={MenuKeys.EditProperties}
             onClick={this.handleMenuClick}
           >
             {t('Edit properties')}
           </Menu.Item>
         )}
         {editMode && (
-          <Menu.Item key={MENU_KEYS.EDIT_CSS}>
+          <Menu.Item key={MenuKeys.EditCss}>
             <CssEditor
-              triggerNode={<span>{t('Edit CSS')}</span>}
+              triggerNode={<div>{t('Edit CSS')}</div>}
               initialCss={this.state.css}
-              templates={this.state.cssTemplates}
               onChange={this.changeCss}
+              addDangerToast={addDangerToast}
             />
           </Menu.Item>
         )}
         <Menu.Divider />
         {userCanSave && (
-          <Menu.Item key={MENU_KEYS.SAVE_MODAL}>
+          <Menu.Item key={MenuKeys.SaveModal}>
             <SaveModal
-              addSuccessToast={this.props.addSuccessToast}
-              addDangerToast={this.props.addDangerToast}
-              addInfoToast={this.props.addInfoToast}
+              addSuccessToast={addSuccessToast}
+              addDangerToast={addDangerToast}
               dashboardId={dashboardId}
               dashboardTitle={dashboardTitle}
               dashboardInfo={dashboardInfo}
@@ -345,57 +224,44 @@ class HeaderActionsDropdown extends React.PureComponent {
               colorScheme={colorScheme}
               onSave={onSave}
               triggerNode={
-                <span data-test="save-as-menu-item">{t('Save as')}</span>
+                <div data-test="save-as-menu-item">{t('Save as')}</div>
               }
               canOverwrite={userCanEdit}
             />
           </Menu.Item>
         )}
-        {
-          /* NGLS */
-          !editMode && (
-            <Menu.SubMenu
-              title={t('Download')}
-              key={MENU_KEYS.DOWNLOAD_SUBMENU}
-            >
-              <Menu.Item
-                key={MENU_KEYS.DOWNLOAD_AS_IMAGE}
-                onClick={this.handleMenuClick}
-              >
-                {t('Download as image')}
-              </Menu.Item>
-              <Menu.Item
-                key={MENU_KEYS.DOWNLOAD_AS_PDF}
-                onClick={this.handleMenuClick}
-              >
-                {t('Download as PDF')}
-              </Menu.Item>
-            </Menu.SubMenu>
-          )
-        }
+        <Menu.SubMenu
+          key={MenuKeys.Download}
+          disabled={isLoading}
+          title={t('Download')}
+        >
+          <DownloadMenuItems
+            pdfMenuItemTitle={t('Export to PDF')}
+            imageMenuItemTitle={t('Download as Image')}
+            dashboardTitle={dashboardTitle}
+            dashboardId={dashboardId}
+            logEvent={this.props.logEvent}
+          />
+        </Menu.SubMenu>
         {userCanShare && (
-          <Menu.SubMenu
-            key={MENU_KEYS.SHARE_DASHBOARD}
+          <ShareMenuItems
+            key={MenuKeys.Share}
             data-test="share-dashboard-menu-item"
-            disabled={isLoading}
             title={t('Share')}
-          >
-            <ShareMenuItems
-              url={url}
-              copyMenuItemTitle={t('Copy permalink to clipboard')}
-              emailMenuItemTitle={t('Share permalink by email')}
-              emailSubject={emailSubject}
-              emailBody={emailBody}
-              addSuccessToast={addSuccessToast}
-              addDangerToast={addDangerToast}
-              addInfoToast={addInfoToast}
-              dashboardId={dashboardId}
-            />
-          </Menu.SubMenu>
+            url={url}
+            copyMenuItemTitle={t('Copy permalink to clipboard')}
+            emailMenuItemTitle={t('Share permalink by email')}
+            emailSubject={emailSubject}
+            emailBody={emailBody}
+            addSuccessToast={addSuccessToast}
+            addDangerToast={addDangerToast}
+            dashboardId={dashboardId}
+            dashboardComponentId={dashboardComponentId}
+          />
         )}
         {!editMode && userCanCurate && (
           <Menu.Item
-            key={MENU_KEYS.MANAGE_EMBEDDED}
+            key={MenuKeys.ManageEmbedded}
             onClick={this.handleMenuClick}
           >
             {t('Embed dashboard')}
@@ -429,26 +295,26 @@ class HeaderActionsDropdown extends React.PureComponent {
             </Menu>
           )
         ) : null}
-        {editMode &&
-          filterboxMigrationState !== FILTER_BOX_MIGRATION_STATES.CONVERTED && (
-            <Menu.Item key={MENU_KEYS.SET_FILTER_MAPPING}>
-              <FilterScopeModal
-                className="m-r-5"
-                triggerNode={t('Set filter mapping')}
-              />
-            </Menu.Item>
-          )}
+        {editMode && !isEmpty(dashboardInfo?.metadata?.filter_scopes) && (
+          <Menu.Item key={MenuKeys.SetFilterMapping}>
+            <FilterScopeModal
+              triggerNode={
+                <div className="m-r-5">{t('Set filter mapping')}</div>
+              }
+            />
+          </Menu.Item>
+        )}
 
-        <Menu.Item key={MENU_KEYS.AUTOREFRESH_MODAL}>
+        <Menu.Item key={MenuKeys.AutorefreshModal}>
           <RefreshIntervalModal
-            addSuccessToast={this.props.addSuccessToast}
+            addSuccessToast={addSuccessToast}
             refreshFrequency={refreshFrequency}
             refreshLimit={refreshLimit}
             refreshWarning={refreshWarning}
             onChange={this.changeRefreshInterval}
             editMode={editMode}
             refreshIntervalOptions={refreshIntervalOptions}
-            triggerNode={<span>{t('Set auto-refresh interval')}</span>}
+            triggerNode={<div>{t('Set auto-refresh interval')}</div>}
           />
         </Menu.Item>
       </Menu>
@@ -456,7 +322,4 @@ class HeaderActionsDropdown extends React.PureComponent {
   }
 }
 
-HeaderActionsDropdown.propTypes = propTypes;
-HeaderActionsDropdown.defaultProps = defaultProps;
-
-export default HeaderActionsDropdown;
+export default connect(mapStateToProps)(HeaderActionsDropdown);
