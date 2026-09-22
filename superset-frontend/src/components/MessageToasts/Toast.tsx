@@ -19,7 +19,7 @@
 import { styled, css, SupersetTheme } from '@superset-ui/core';
 import cx from 'classnames';
 import { Interweave } from 'interweave';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Icons from 'src/components/Icons';
 import { ToastType, ToastMeta } from './types';
 
@@ -79,13 +79,13 @@ export default function Toast({ toast, onCloseToast }: ToastPresenterProps) {
   let className = 'toast--success';
   let icon = <Icons.CircleCheckSolid css={theme => StyledIcon(theme)} />;
 
-  if (toast.toastType === ToastType.Warning) {
+  if (toast.toastType === ToastType.WARNING) {
     icon = <Icons.WarningSolid css={StyledIcon} />;
     className = 'toast--warning';
-  } else if (toast.toastType === ToastType.Danger) {
+  } else if (toast.toastType === ToastType.DANGER) {
     icon = <Icons.ErrorSolid css={StyledIcon} />;
     className = 'toast--danger';
-  } else if (toast.toastType === ToastType.Info) {
+  } else if (toast.toastType === ToastType.INFO) {
     icon = <Icons.InfoSolid css={StyledIcon} />;
     className = 'toast--info';
   }

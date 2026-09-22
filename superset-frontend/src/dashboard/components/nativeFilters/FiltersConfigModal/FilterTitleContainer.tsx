@@ -16,21 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { forwardRef, ReactNode } from 'react';
-
+import React, { forwardRef } from 'react';
 import { styled, t } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
 import { FilterRemoval } from './types';
 import DraggableFilter from './DraggableFilter';
 
-export const FilterTitle = styled.div`
+const FilterTitle = styled.div`
   ${({ theme }) => `
       display: flex;
       align-items: center;
       padding: ${theme.gridUnit * 2}px;
       width: 100%;
       border-radius: ${theme.borderRadius}px;
-      cursor: pointer;
       &.active {
         color: ${theme.colors.grayscale.dark1};
         border-radius: ${theme.borderRadius}px;
@@ -113,13 +111,7 @@ const FilterTitleContainer = forwardRef<HTMLDivElement, Props>(
           className={classNames.join(' ')}
         >
           <div css={{ display: 'flex', width: '100%' }}>
-            <div
-              css={{
-                alignItems: 'center',
-                display: 'flex',
-                wordBreak: 'break-all',
-              }}
-            >
+            <div css={{ alignItems: 'center', display: 'flex' }}>
               {isRemoved ? t('(Removed)') : getFilterTitle(id)}
             </div>
             {!removedFilters[id] && isErrored && (
@@ -156,7 +148,7 @@ const FilterTitleContainer = forwardRef<HTMLDivElement, Props>(
     };
 
     const renderFilterGroups = () => {
-      const items: ReactNode[] = [];
+      const items: React.ReactNode[] = [];
       filters.forEach((item, index) => {
         items.push(
           <DraggableFilter

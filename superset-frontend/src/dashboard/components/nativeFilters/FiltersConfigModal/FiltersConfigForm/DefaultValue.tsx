@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { FC } from 'react';
+import React, { FC } from 'react';
 import {
   Behavior,
   SetDataMaskHook,
@@ -28,11 +28,6 @@ import { FormInstance } from 'src/components';
 import Loading from 'src/components/Loading';
 import { NativeFiltersForm } from '../types';
 import { getFormData } from '../../utils';
-import {
-  INPUT_HEIGHT,
-  INPUT_WIDTH,
-  TIME_FILTER_INPUT_WIDTH,
-} from './constants';
 
 type DefaultValueProps = {
   hasDefaultValue: boolean;
@@ -53,7 +48,7 @@ const DefaultValue: FC<DefaultValueProps> = ({
   formData,
   enableNoResults,
 }) => {
-  const formFilter = form.getFieldValue('filters')?.[filterId];
+  const formFilter = (form.getFieldValue('filters') || {})[filterId];
   const queriesData = formFilter?.defaultValueQueriesData;
   const loading = hasDataset && queriesData === null;
   const value = formFilter?.defaultDataMask?.filterState?.value;
@@ -63,14 +58,10 @@ const DefaultValue: FC<DefaultValueProps> = ({
     <Loading position="inline-centered" />
   ) : (
     <SuperChart
-      height={INPUT_HEIGHT}
-      width={
-        formFilter?.filterType === 'filter_time'
-          ? TIME_FILTER_INPUT_WIDTH
-          : INPUT_WIDTH
-      }
-      appSection={AppSection.FilterConfigModal}
-      behaviors={[Behavior.NativeFilter]}
+      height={32}
+      width={formFilter?.filterType === 'filter_time' ? 350 : 250}
+      appSection={AppSection.FILTER_CONFIG_MODAL}
+      behaviors={[Behavior.NATIVE_FILTER]}
       formData={formData}
       // For charts that don't have datasource we need workaround for empty placeholder
       queriesData={

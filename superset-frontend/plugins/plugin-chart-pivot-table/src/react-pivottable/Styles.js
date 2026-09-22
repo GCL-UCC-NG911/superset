@@ -23,7 +23,6 @@ export const Styles = styled.div`
   ${({ theme, isDashboardEditMode }) => css`
     table.pvtTable {
       position: ${isDashboardEditMode ? 'inherit' : 'relative'};
-      width: calc(100% - ${theme.gridUnit}px);
       font-size: ${theme.typography.sizes.s}px;
       text-align: left;
       margin: ${theme.gridUnit}px;

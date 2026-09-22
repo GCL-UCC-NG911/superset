@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unused-state */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,23 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { RefObject, ReactNode, PureComponent } from 'react';
-
+import React, { RefObject } from 'react';
 import { styled } from '@superset-ui/core';
 import cx from 'classnames';
 
 interface HoverMenuProps {
   position: 'left' | 'top';
   innerRef: RefObject<HTMLDivElement>;
-  children: ReactNode;
-  onHover?: (data: { isHovered: boolean }) => void;
+  children: React.ReactNode;
 }
 
 const HoverStyleOverrides = styled.div`
   .hover-menu {
     opacity: 0;
     position: absolute;
-    z-index: 11; // one more than DragDroppable
+    z-index: 10;
     font-size: ${({ theme }) => theme.typography.sizes.m};
   }
 
@@ -66,25 +63,11 @@ const HoverStyleOverrides = styled.div`
   }
 `;
 
-export default class HoverMenu extends PureComponent<HoverMenuProps> {
+export default class HoverMenu extends React.PureComponent<HoverMenuProps> {
   static defaultProps = {
     position: 'left',
     innerRef: null,
     children: null,
-  };
-
-  handleMouseEnter = () => {
-    const { onHover } = this.props;
-    if (onHover) {
-      onHover({ isHovered: true });
-    }
-  };
-
-  handleMouseLeave = () => {
-    const { onHover } = this.props;
-    if (onHover) {
-      onHover({ isHovered: false });
-    }
   };
 
   render() {
@@ -98,9 +81,6 @@ export default class HoverMenu extends PureComponent<HoverMenuProps> {
             position === 'left' && 'hover-menu--left',
             position === 'top' && 'hover-menu--top',
           )}
-          onMouseEnter={this.handleMouseEnter}
-          onMouseLeave={this.handleMouseLeave}
-          data-test="hover-menu"
         >
           {children}
         </div>

@@ -9,14 +9,11 @@ on:
     types: [opened, edited, reopened, synchronize]
 
 jobs:
-  lint-check:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      pull-requests: write
+  check:
+    runs-on: ubuntu-latest
     steps:
       - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
         with:
           persist-credentials: false
           submodules: recursive
@@ -28,4 +25,4 @@ jobs:
           on-failed-regex-create-review: false
           on-failed-regex-comment:
             "Please format your PR title to match: `%regex%`!"
-          repo-token: "${{ github.token }}"
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"

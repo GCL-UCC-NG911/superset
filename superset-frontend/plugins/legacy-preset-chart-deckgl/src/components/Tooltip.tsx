@@ -17,15 +17,16 @@
  * under the License.
  */
 
-import { styled, safeHtmlSpan } from '@superset-ui/core';
-import { ReactNode } from 'react';
+import { styled } from '@superset-ui/core';
+import React, { useMemo } from 'react';
+import { filterXSS } from 'xss';
 
 export type TooltipProps = {
   tooltip:
     | {
         x: number;
         y: number;
-        content: ReactNode;
+        content: string;
       }
     | null
     | undefined;
@@ -54,12 +55,28 @@ export default function Tooltip(props: TooltipProps) {
   }
 
   const { x, y, content } = tooltip;
-  const safeContent =
-    typeof content === 'string' ? safeHtmlSpan(content) : content;
+
+  if (typeof content === 'string') {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const contentHtml = useMemo(
+      () => ({
+        __html: filterXSS(content, { stripIgnoreTag: true }),
+      }),
+      [content],
+    );
+    return (
+      <StyledDiv top={y} left={x}>
+        <div
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={contentHtml}
+        />
+      </StyledDiv>
+    );
+  }
 
   return (
     <StyledDiv top={y} left={x}>
-      {safeContent}
+      {content}
     </StyledDiv>
   );
 }

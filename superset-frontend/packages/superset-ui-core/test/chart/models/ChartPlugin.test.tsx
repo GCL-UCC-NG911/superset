@@ -17,6 +17,7 @@
  * under the License.
  */
 
+import React from 'react';
 import {
   ChartPlugin,
   ChartMetadata,
@@ -31,7 +32,6 @@ import {
   QueryFormData,
   DatasourceType,
   supersetTheme,
-  VizType,
 } from '@superset-ui/core';
 
 describe('ChartPlugin', () => {
@@ -60,7 +60,7 @@ describe('ChartPlugin', () => {
     const FORM_DATA = {
       datasource: '1__table',
       granularity: 'day',
-      viz_type: VizType.Table,
+      viz_type: 'table',
     };
 
     it('creates a new plugin', () => {

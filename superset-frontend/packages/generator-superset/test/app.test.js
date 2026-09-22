@@ -17,18 +17,22 @@
  * under the License.
  */
 
-import helpers, { result } from 'yeoman-test';
-import appModule from '../generators/app';
+const assert = require('yeoman-assert');
+const helpers = require('yeoman-test');
+const appModule = require('../generators/app');
 
-test('generator-superset:app:creates files', async () => {
-  await helpers.run(appModule).withPrompts({
-    subgenerator: 'package',
-    name: 'my-package',
-  });
-  result.assertFile([
-    'package.json',
-    'README.md',
-    'src/index.ts',
-    'test/index.test.ts',
-  ]);
-});
+test('generator-superset:app:creates files', () =>
+  helpers
+    .run(appModule)
+    .withPrompts({
+      subgenerator: 'package',
+      name: 'my-package',
+    })
+    .then(function () {
+      assert.file([
+        'package.json',
+        'README.md',
+        'src/index.ts',
+        'test/index.test.ts',
+      ]);
+    }));

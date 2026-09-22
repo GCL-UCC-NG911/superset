@@ -30,7 +30,12 @@ const mockStore = configureStore(middlewares);
 test('returns selected queryEditor values', () => {
   const { result } = renderHook(
     () =>
-      useQueryEditor(defaultQueryEditor.id, ['id', 'name', 'dbId', 'schema']),
+      useQueryEditor(defaultQueryEditor.id, [
+        'id',
+        'name',
+        'dbId',
+        'schemaOptions',
+      ]),
     {
       wrapper: createWrapper({
         useRedux: true,
@@ -42,7 +47,7 @@ test('returns selected queryEditor values', () => {
     id: defaultQueryEditor.id,
     name: defaultQueryEditor.name,
     dbId: defaultQueryEditor.dbId,
-    schema: defaultQueryEditor.schema,
+    schemaOptions: defaultQueryEditor.schemaOptions,
   });
 });
 

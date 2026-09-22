@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { FC } from 'react';
+import React from 'react';
 import { t, useTheme, styled } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
 import { DropdownButton } from 'src/components/DropdownButton';
@@ -35,13 +35,16 @@ const SaveDatasetActionButton = ({
   const theme = useTheme();
 
   const StyledDropdownButton = styled(
-    DropdownButton as FC<DropdownButtonProps>,
+    DropdownButton as React.FC<DropdownButtonProps>,
   )`
     &.ant-dropdown-button button.ant-btn.ant-btn-default {
+      &:first-of-type {
+        width: ${theme.gridUnit * 16}px;
+      }
       font-weight: ${theme.gridUnit * 150};
       background-color: ${theme.colors.primary.light4};
       color: ${theme.colors.primary.dark1};
-      &:nth-of-type(2) {
+      &:nth-child(2) {
         &:before,
         &:hover:before {
           border-left: 2px solid ${theme.colors.primary.dark2};
@@ -55,7 +58,11 @@ const SaveDatasetActionButton = ({
   `;
 
   return !overlayMenu ? (
-    <Button onClick={() => setShowSave(true)} buttonStyle="primary">
+    <Button
+      onClick={() => setShowSave(true)}
+      buttonStyle="primary"
+      css={{ width: theme.gridUnit * 25 }}
+    >
       {t('Save')}
     </Button>
   ) : (

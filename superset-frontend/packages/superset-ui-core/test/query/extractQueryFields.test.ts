@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { configure, QueryMode } from '@superset-ui/core';
+import { configure, QueryMode, DTTM_ALIAS } from '@superset-ui/core';
 import extractQueryFields from '../../src/query/extractQueryFields';
 import { NUM_METRIC } from '../fixtures';
 
@@ -112,6 +112,18 @@ describe('extractQueryFields', () => {
     });
   });
 
+  it('should include time', () => {
+    expect(
+      extractQueryFields({ groupby: 'col_1', include_time: true }).columns,
+    ).toEqual([DTTM_ALIAS, 'col_1']);
+    expect(
+      extractQueryFields({
+        groupby: ['col_1', DTTM_ALIAS, ''],
+        include_time: true,
+      }).columns,
+    ).toEqual(['col_1', DTTM_ALIAS]);
+  });
+
   it('should ignore null values', () => {
     expect(
       extractQueryFields({ series: ['a'], columns: null }).columns,
@@ -124,7 +136,7 @@ describe('extractQueryFields', () => {
         columns: ['a'],
         groupby: ['b'],
         metric: ['m'],
-        query_mode: QueryMode.Raw,
+        query_mode: QueryMode.raw,
       }),
     ).toEqual({
       columns: ['a'],
@@ -139,7 +151,7 @@ describe('extractQueryFields', () => {
         columns: ['a'],
         groupby: [],
         metric: ['m'],
-        query_mode: QueryMode.Aggregate,
+        query_mode: QueryMode.aggregate,
       }),
     ).toEqual({
       metrics: ['m'],
@@ -151,7 +163,7 @@ describe('extractQueryFields', () => {
         columns: ['a'],
         groupby: ['b'],
         metric: ['m'],
-        query_mode: QueryMode.Aggregate,
+        query_mode: QueryMode.aggregate,
       }),
     ).toEqual({
       metrics: ['m'],

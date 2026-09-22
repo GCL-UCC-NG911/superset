@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { ReactElement } from 'react';
+import React, { ReactElement } from 'react';
 import mockConsole, { RestoreConsole } from 'jest-mock-console';
 import { triggerResizeObserver } from 'resize-observer-polyfill';
 import ErrorBoundary from 'react-error-boundary';
@@ -45,7 +45,7 @@ const DEFAULT_QUERIES_DATA = [
 ];
 
 function expectDimension(
-  renderedWrapper: cheerio.Cheerio,
+  renderedWrapper: Cheerio,
   width: number,
   height: number,
 ) {
@@ -60,8 +60,7 @@ const mount = (component: ReactElement) =>
     wrappingComponentProps: { theme: supersetTheme },
   });
 
-// TODO: rewrite to rtl
-describe.skip('SuperChart', () => {
+describe('SuperChart', () => {
   const plugins = [
     new DiligentChartPlugin().configure({ key: ChartKeys.DILIGENT }),
     new BuggyChartPlugin().configure({ key: ChartKeys.BUGGY }),
@@ -166,7 +165,6 @@ describe.skip('SuperChart', () => {
       const inactiveErrorHandler = jest.fn();
       const activeErrorHandler = jest.fn();
       mount(
-        // @ts-ignore
         <ErrorBoundary onError={activeErrorHandler}>
           <SuperChart
             disableErrorBoundary

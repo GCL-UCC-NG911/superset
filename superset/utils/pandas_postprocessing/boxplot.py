@@ -14,7 +14,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
 import numpy as np
 from flask_babel import gettext as _
@@ -25,13 +25,13 @@ from superset.utils.core import PostProcessingBoxplotWhiskerType
 from superset.utils.pandas_postprocessing.aggregate import aggregate
 
 
-def boxplot(  # noqa: C901
+def boxplot(
     df: DataFrame,
-    groupby: list[str],
-    metrics: list[str],
+    groupby: List[str],
+    metrics: List[str],
     whisker_type: PostProcessingBoxplotWhiskerType,
     percentiles: Optional[
-        Union[list[Union[int, float]], tuple[Union[int, float], Union[int, float]]]
+        Union[List[Union[int, float]], Tuple[Union[int, float], Union[int, float]]]
     ] = None,
 ) -> DataFrame:
     """
@@ -99,15 +99,15 @@ def boxplot(  # noqa: C901
             return np.nanpercentile(series, low)
 
     else:
-        whisker_high = np.max
-        whisker_low = np.min
+        whisker_high = np.max  # type: ignore
+        whisker_low = np.min  # type: ignore
 
-    def outliers(series: Series) -> set[float]:
+    def outliers(series: Series) -> Set[float]:
         above = series[series > whisker_high(series)]
         below = series[series < whisker_low(series)]
         return above.tolist() + below.tolist()
 
-    operators: dict[str, Callable[[Any], Any]] = {
+    operators: Dict[str, Callable[[Any], Any]] = {
         "mean": np.mean,
         "median": np.median,
         "max": whisker_high,
@@ -117,7 +117,7 @@ def boxplot(  # noqa: C901
         "count": np.ma.count,
         "outliers": outliers,
     }
-    aggregates: dict[str, dict[str, Union[str, Callable[..., Any]]]] = {
+    aggregates: Dict[str, Dict[str, Union[str, Callable[..., Any]]]] = {
         f"{metric}__{operator_name}": {"column": metric, "operator": operator}
         for operator_name, operator in operators.items()
         for metric in metrics

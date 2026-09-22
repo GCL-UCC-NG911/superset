@@ -16,19 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactNode, RefObject } from 'react';
+import React, { ReactNode } from 'react';
 
 import { css, styled, t } from '@superset-ui/core';
 import { ColumnMeta, Metric } from '@superset-ui/chart-controls';
 
 const TooltipSectionWrapper = styled.div`
   ${({ theme }) => css`
-    display: -webkit-box;
-    -webkit-line-clamp: 40;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
+    display: flex;
+    flex-direction: column;
     font-size: ${theme.typography.sizes.s}px;
     line-height: 1.2;
 
@@ -52,27 +48,20 @@ const TooltipSection = ({
   text: ReactNode;
 }) => (
   <TooltipSectionWrapper>
-    <TooltipSectionLabel>{label}</TooltipSectionLabel>: <span>{text}</span>
+    <TooltipSectionLabel>{label}</TooltipSectionLabel>
+    <span>{text}</span>
   </TooltipSectionWrapper>
 );
 
-export const isLabelTruncated = (labelRef?: RefObject<any>): boolean =>
+export const isLabelTruncated = (labelRef?: React.RefObject<any>): boolean =>
   !!(labelRef?.current?.scrollWidth > labelRef?.current?.clientWidth);
 
 export const getColumnLabelText = (column: ColumnMeta): string =>
   column.verbose_name || column.column_name;
 
-export const getColumnTypeTooltipNode = (column: ColumnMeta): ReactNode => {
-  if (!column.type) {
-    return null;
-  }
-
-  return <TooltipSection label={t('Column type')} text={column.type} />;
-};
-
 export const getColumnTooltipNode = (
   column: ColumnMeta,
-  labelRef?: RefObject<any>,
+  labelRef?: React.RefObject<any>,
 ): ReactNode => {
   if (
     (!column.column_name || !column.verbose_name) &&
@@ -101,7 +90,7 @@ type MetricType = Omit<Metric, 'id'> & { label?: string };
 
 export const getMetricTooltipNode = (
   metric: MetricType,
-  labelRef?: RefObject<any>,
+  labelRef?: React.RefObject<any>,
 ): ReactNode => {
   if (
     !metric.verbose_name &&

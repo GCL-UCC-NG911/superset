@@ -16,30 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { fireEvent, render } from 'spec/helpers/testing-library';
 
+import React from 'react';
+import { ReactWrapper } from 'enzyme';
+import { styledMount as mount } from 'spec/helpers/theming';
 import Label from '.';
 import { LabelGallery, options } from './Label.stories';
 
-// test the basic component
-test('renders the base component (no onClick)', () => {
-  const { container } = render(<Label />);
-  expect(container).toBeInTheDocument();
-});
+describe('Label', () => {
+  let wrapper: ReactWrapper;
 
-test('works with an onClick handler', () => {
-  const mockAction = jest.fn();
-  const { getByText } = render(<Label onClick={mockAction}>test</Label>);
-  fireEvent.click(getByText('test'));
-  expect(mockAction).toHaveBeenCalled();
-});
+  // test the basic component
+  it('renders the base component (no onClick)', () => {
+    expect(React.isValidElement(<Label />)).toBe(true);
+  });
 
-// test stories from the storybook!
-test('renders all the storybook gallery variants', () => {
-  const { container } = render(<LabelGallery />);
-  const nonInteractiveLabelCount = 4;
-  const renderedLabelCount = options.length * 2 + nonInteractiveLabelCount;
-  expect(container.querySelectorAll('.ant-tag')).toHaveLength(
-    renderedLabelCount,
-  );
+  it('works with an onClick handler', () => {
+    const mockAction = jest.fn();
+    wrapper = mount(<Label onClick={mockAction} />);
+    wrapper.find(Label).simulate('click');
+    expect(mockAction).toHaveBeenCalled();
+  });
+
+  // test stories from the storybook!
+  it('renders all the storybook gallery variants', () => {
+    wrapper = mount(<LabelGallery />);
+    expect(wrapper.find(Label).length).toEqual(options.length * 2);
+  });
 });

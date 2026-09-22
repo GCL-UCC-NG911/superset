@@ -18,6 +18,7 @@
  */
 
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 import { render, screen } from 'spec/helpers/testing-library';
 import { FilterBarOrientation } from 'src/dashboard/types';
 import FilterDivider from './FilterDivider';
@@ -55,7 +56,7 @@ test('vertical mode, title and description', () => {
 test('horizontal mode, title', () => {
   render(
     <FilterDivider
-      orientation={FilterBarOrientation.Horizontal}
+      orientation={FilterBarOrientation.HORIZONTAL}
       title={SAMPLE_TITLE}
       description=""
       overflow
@@ -74,7 +75,7 @@ test('horizontal mode, title', () => {
 test('horizontal mode, title and description', async () => {
   render(
     <FilterDivider
-      orientation={FilterBarOrientation.Horizontal}
+      orientation={FilterBarOrientation.HORIZONTAL}
       title={SAMPLE_TITLE}
       description={SAMPLE_DESCRIPTION}
     />,
@@ -97,7 +98,7 @@ test('horizontal mode, title and description', async () => {
 test('horizontal overflow mode, title', () => {
   render(
     <FilterDivider
-      orientation={FilterBarOrientation.Horizontal}
+      orientation={FilterBarOrientation.HORIZONTAL}
       overflow
       title={SAMPLE_TITLE}
       description=""
@@ -116,7 +117,7 @@ test('horizontal overflow mode, title', () => {
 test('horizontal overflow mode, title and description', () => {
   render(
     <FilterDivider
-      orientation={FilterBarOrientation.Horizontal}
+      orientation={FilterBarOrientation.HORIZONTAL}
       overflow
       title={SAMPLE_TITLE}
       description={SAMPLE_DESCRIPTION}

@@ -24,6 +24,7 @@ Create Date: 2021-07-27 08:25:20.755453
 
 from alembic import op
 from sqlalchemy import engine
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 from superset.utils.core import generic_find_uq_constraint_name
 
@@ -39,13 +40,15 @@ def upgrade():
     insp = engine.reflection.Inspector.from_engine(bind)
 
     # Drop the uniqueness constraint if it exists.
+    constraint = generic_find_uq_constraint_name("tables", {"table_name"}, insp)
 
-    if constraint := generic_find_uq_constraint_name("tables", {"table_name"}, insp):
+    if constraint:
         with op.batch_alter_table("tables", naming_convention=conv) as batch_op:
             batch_op.drop_constraint(constraint, type_="unique")
 
 
 def downgrade():
+
     # One cannot simply re-add the uniqueness constraint as it may not have previously
     # existed.
     pass

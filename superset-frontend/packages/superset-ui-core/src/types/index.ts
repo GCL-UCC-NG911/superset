@@ -16,9 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { NumberFormatter } from '../number-format';
-import { CurrencyFormatter } from '../currency-format';
-
 export * from '../query/types';
 
 export type Maybe<T> = T | null;
@@ -26,5 +23,3 @@ export type Maybe<T> = T | null;
 export type Optional<T> = T | undefined;
 
 export type ValueOf<T> = T[keyof T];
-
-export type ValueFormatter = NumberFormatter | CurrencyFormatter;

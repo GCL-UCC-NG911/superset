@@ -17,6 +17,7 @@
  * under the License.
  */
 
+import React from 'react';
 import { render, screen } from 'spec/helpers/testing-library';
 import userEvent from '@testing-library/user-event';
 import { Ellipsis } from './Ellipsis';
@@ -24,15 +25,15 @@ import { Ellipsis } from './Ellipsis';
 test('Ellipsis - click when the button is enabled', () => {
   const click = jest.fn();
   render(<Ellipsis onClick={click} />);
-  expect(click).toHaveBeenCalledTimes(0);
+  expect(click).toBeCalledTimes(0);
   userEvent.click(screen.getByRole('button'));
-  expect(click).toHaveBeenCalledTimes(1);
+  expect(click).toBeCalledTimes(1);
 });
 
 test('Ellipsis - click when the button is disabled', () => {
   const click = jest.fn();
   render(<Ellipsis onClick={click} disabled />);
-  expect(click).toHaveBeenCalledTimes(0);
+  expect(click).toBeCalledTimes(0);
   userEvent.click(screen.getByRole('button'));
-  expect(click).toHaveBeenCalledTimes(0);
+  expect(click).toBeCalledTimes(0);
 });

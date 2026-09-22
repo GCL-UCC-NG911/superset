@@ -15,9 +15,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from __future__ import annotations
-
 import re
+from typing import List, Optional
 
 from pgsanity.pgsanity import check_string
 
@@ -32,13 +31,9 @@ class PostgreSQLValidator(BaseSQLValidator):  # pylint: disable=too-few-public-m
 
     @classmethod
     def validate(
-        cls,
-        sql: str,
-        catalog: str | None,
-        schema: str | None,
-        database: Database,
-    ) -> list[SQLValidationAnnotation]:
-        annotations: list[SQLValidationAnnotation] = []
+        cls, sql: str, schema: Optional[str], database: Database
+    ) -> List[SQLValidationAnnotation]:
+        annotations: List[SQLValidationAnnotation] = []
         valid, error = check_string(sql, add_semicolon=True)
         if valid:
             return annotations

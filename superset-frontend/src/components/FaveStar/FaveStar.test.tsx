@@ -17,6 +17,7 @@
  * under the License.
  */
 
+import React from 'react';
 import { render, screen } from 'spec/helpers/testing-library';
 import userEvent from '@testing-library/user-event';
 import FaveStar from '.';
@@ -37,20 +38,20 @@ test('render right content', async () => {
     screen.getByRole('img', { name: 'favorite-selected' }),
   ).toBeInTheDocument();
 
-  expect(props.saveFaveStar).toHaveBeenCalledTimes(0);
+  expect(props.saveFaveStar).toBeCalledTimes(0);
   userEvent.click(screen.getByRole('button'));
-  expect(props.saveFaveStar).toHaveBeenCalledTimes(1);
-  expect(props.saveFaveStar).toHaveBeenCalledWith(props.itemId, true);
+  expect(props.saveFaveStar).toBeCalledTimes(1);
+  expect(props.saveFaveStar).toBeCalledWith(props.itemId, true);
 
   rerender(<FaveStar {...props} />);
   expect(
     await findByRole('img', { name: 'favorite-unselected' }),
   ).toBeInTheDocument();
 
-  expect(props.saveFaveStar).toHaveBeenCalledTimes(1);
+  expect(props.saveFaveStar).toBeCalledTimes(1);
   userEvent.click(screen.getByRole('button'));
-  expect(props.saveFaveStar).toHaveBeenCalledTimes(2);
-  expect(props.saveFaveStar).toHaveBeenCalledWith(props.itemId, false);
+  expect(props.saveFaveStar).toBeCalledTimes(2);
+  expect(props.saveFaveStar).toBeCalledWith(props.itemId, false);
 });
 
 test('render content on tooltip', async () => {
@@ -74,7 +75,7 @@ test('render content on tooltip', async () => {
   expect(screen.getByRole('button')).toBeInTheDocument();
 });
 
-test('Call fetchFaveStar on first render and on itemId change', async () => {
+test('Call fetchFaveStar only on the first render', async () => {
   const props = {
     itemId: 3,
     fetchFaveStar: jest.fn(),
@@ -87,9 +88,9 @@ test('Call fetchFaveStar on first render and on itemId change', async () => {
   expect(
     await findByRole('img', { name: 'favorite-unselected' }),
   ).toBeInTheDocument();
-  expect(props.fetchFaveStar).toHaveBeenCalledTimes(1);
-  expect(props.fetchFaveStar).toHaveBeenCalledWith(props.itemId);
+  expect(props.fetchFaveStar).toBeCalledTimes(1);
+  expect(props.fetchFaveStar).toBeCalledWith(props.itemId);
 
   rerender(<FaveStar {...{ ...props, itemId: 2 }} />);
-  expect(props.fetchFaveStar).toHaveBeenCalledTimes(2);
+  expect(props.fetchFaveStar).toBeCalledTimes(1);
 });

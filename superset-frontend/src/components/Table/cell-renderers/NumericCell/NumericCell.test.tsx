@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { render, screen } from 'spec/helpers/testing-library';
 import NumericCell, { CurrencyCode, LocaleCode, Style } from './index';
 
@@ -25,7 +26,7 @@ test('renders with French locale and Euro currency format', () => {
       value={5678943}
       locale={LocaleCode.fr}
       options={{
-        style: Style.Currency,
+        style: Style.CURRENCY,
         currency: CurrencyCode.EUR,
       }}
     />,
@@ -39,7 +40,7 @@ test('renders with English US locale and USD currency format', () => {
       value={5678943}
       locale={LocaleCode.en_US}
       options={{
-        style: Style.Currency,
+        style: Style.CURRENCY,
         currency: CurrencyCode.USD,
       }}
     />,

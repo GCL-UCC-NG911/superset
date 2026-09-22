@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import PropTypes from 'prop-types';
 import { styled, reactify, useTheme } from '@superset-ui/core';
 import WorldMap from './WorldMap';

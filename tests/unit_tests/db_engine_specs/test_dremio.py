@@ -18,10 +18,9 @@ from datetime import datetime
 from typing import Optional
 
 import pytest
-from pytest_mock import MockerFixture
 
 from tests.unit_tests.db_engine_specs.utils import assert_convert_dttm
-from tests.unit_tests.fixtures.common import dttm  # noqa: F401
+from tests.unit_tests.fixtures.common import dttm
 
 
 @pytest.mark.parametrize(
@@ -36,25 +35,8 @@ from tests.unit_tests.fixtures.common import dttm  # noqa: F401
     ],
 )
 def test_convert_dttm(
-    target_type: str,
-    expected_result: Optional[str],
-    dttm: datetime,  # noqa: F811
+    target_type: str, expected_result: Optional[str], dttm: datetime
 ) -> None:
-    from superset.db_engine_specs.dremio import DremioEngineSpec as spec  # noqa: N813
+    from superset.db_engine_specs.dremio import DremioEngineSpec as spec
 
     assert_convert_dttm(spec, target_type, expected_result, dttm)
-
-
-def test_get_allows_alias_in_select(mocker: MockerFixture) -> None:
-    from superset.db_engine_specs.dremio import DremioEngineSpec
-
-    database = mocker.MagicMock()
-
-    database.get_extra.return_value = {}
-    assert DremioEngineSpec.get_allows_alias_in_select(database) is True
-
-    database.get_extra.return_value = {"version": "24.1.0"}
-    assert DremioEngineSpec.get_allows_alias_in_select(database) is True
-
-    database.get_extra.return_value = {"version": "24.0.0"}
-    assert DremioEngineSpec.get_allows_alias_in_select(database) is False

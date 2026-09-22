@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { formatNumber } from '@superset-ui/core';
 
 interface FormattedNumberProps {

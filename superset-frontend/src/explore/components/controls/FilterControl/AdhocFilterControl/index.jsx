@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {
   t,
@@ -45,11 +45,12 @@ import Icons from 'src/components/Icons';
 import Modal from 'src/components/Modal';
 import AdhocFilterPopoverTrigger from 'src/explore/components/controls/FilterControl/AdhocFilterPopoverTrigger';
 import AdhocFilterOption from 'src/explore/components/controls/FilterControl/AdhocFilterOption';
-import AdhocFilter from 'src/explore/components/controls/FilterControl/AdhocFilter';
+import AdhocFilter, {
+  CLAUSES,
+  EXPRESSION_TYPES,
+} from 'src/explore/components/controls/FilterControl/AdhocFilter';
 import adhocFilterType from 'src/explore/components/controls/FilterControl/adhocFilterType';
 import columnType from 'src/explore/components/controls/FilterControl/columnType';
-import { toQueryString } from 'src/utils/urlUtils';
-import { Clauses, ExpressionTypes } from '../types';
 
 const { warning } = Modal;
 
@@ -88,7 +89,7 @@ function isDictionaryForAdhocFilter(value) {
   return value && !(value instanceof AdhocFilter) && value.expressionType;
 }
 
-class AdhocFilterControl extends Component {
+class AdhocFilterControl extends React.Component {
   constructor(props) {
     super(props);
     this.optionsForSelect = this.optionsForSelect.bind(this);
@@ -138,20 +139,13 @@ class AdhocFilterControl extends Component {
       const dbId = datasource.database?.id;
       const {
         datasource_name: name,
-        catalog,
         schema,
         is_sqllab_view: isSqllabView,
       } = datasource;
 
       if (!isSqllabView && dbId && name && schema) {
         SupersetClient.get({
-          endpoint: `/api/v1/database/${dbId}/table_metadata/extra/${toQueryString(
-            {
-              name,
-              catalog,
-              schema,
-            },
-          )}`,
+          endpoint: `/api/v1/database/${dbId}/table_extra/${name}/${schema}/`,
         })
           .then(({ json }) => {
             if (json && json.partitions) {
@@ -266,33 +260,33 @@ class AdhocFilterControl extends Component {
     // via datasource saved metric
     if (option.saved_metric_name) {
       return new AdhocFilter({
-        expressionType: ExpressionTypes.Sql,
+        expressionType: EXPRESSION_TYPES.SQL,
         subject: this.getMetricExpression(option.saved_metric_name),
         operator:
-          OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.GreaterThan].operation,
+          OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.GREATER_THAN].operation,
         comparator: 0,
-        clause: Clauses.Having,
+        clause: CLAUSES.HAVING,
       });
     }
     // has a custom label, meaning it's custom column
     if (option.label) {
       return new AdhocFilter({
-        expressionType: ExpressionTypes.Sql,
+        expressionType: EXPRESSION_TYPES.SQL,
         subject: new AdhocMetric(option).translateToSql(),
         operator:
-          OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.GreaterThan].operation,
+          OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.GREATER_THAN].operation,
         comparator: 0,
-        clause: Clauses.Having,
+        clause: CLAUSES.HAVING,
       });
     }
     // add a new filter item
     if (option.column_name) {
       return new AdhocFilter({
-        expressionType: ExpressionTypes.Simple,
+        expressionType: EXPRESSION_TYPES.SIMPLE,
         subject: option.column_name,
-        operator: OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.Equals].operation,
+        operator: OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.EQUALS].operation,
         comparator: '',
-        clause: Clauses.Where,
+        clause: CLAUSES.WHERE,
         isNew: true,
       });
     }

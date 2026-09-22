@@ -16,11 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { t } from '@superset-ui/core';
 import { InfoTooltipWithTrigger } from '@superset-ui/chart-controls';
 import Button, { OnClickHandler } from 'src/components/Button';
 
-export interface ExploreResultsButtonProps {
+interface ExploreResultsButtonProps {
   database?: {
     allows_subquery?: boolean;
   };

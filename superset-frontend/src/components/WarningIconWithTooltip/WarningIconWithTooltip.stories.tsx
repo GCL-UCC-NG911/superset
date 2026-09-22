@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import WarningIconWithTooltip, { WarningIconWithTooltipProps } from '.';
 
 export default {
@@ -32,4 +33,12 @@ export const InteractiveWarningIcon = (args: WarningIconWithTooltipProps) => (
 InteractiveWarningIcon.args = {
   warningMarkdown: 'Markdown example',
   size: 20,
+};
+
+InteractiveWarningIcon.story = {
+  parameters: {
+    knobs: {
+      disable: true,
+    },
+  },
 };

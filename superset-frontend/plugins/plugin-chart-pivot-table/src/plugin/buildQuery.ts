@@ -16,10 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import omit from 'lodash/omit';
+
 import {
   AdhocColumn,
   buildQueryContext,
   ensureIsArray,
+  hasGenericChartAxes,
   isPhysicalColumn,
   QueryFormColumn,
   QueryFormOrderBy,
@@ -27,10 +30,7 @@ import {
 import { PivotTableQueryFormData } from '../types';
 
 export default function buildQuery(formData: PivotTableQueryFormData) {
-  const { groupbyColumns = [], groupbyRows = [], extra_form_data } = formData;
-  const time_grain_sqla =
-    extra_form_data?.time_grain_sqla || formData.time_grain_sqla;
-
+  const { groupbyColumns = [], groupbyRows = [] } = formData;
   // TODO: add deduping of AdhocColumns
   const columns = Array.from(
     new Set([
@@ -40,12 +40,12 @@ export default function buildQuery(formData: PivotTableQueryFormData) {
   ).map(col => {
     if (
       isPhysicalColumn(col) &&
-      time_grain_sqla &&
-      (formData?.temporal_columns_lookup?.[col] ||
-        formData.granularity_sqla === col)
+      formData.time_grain_sqla &&
+      hasGenericChartAxes &&
+      formData?.temporal_columns_lookup?.[col]
     ) {
       return {
-        timeGrain: time_grain_sqla,
+        timeGrain: formData.time_grain_sqla,
         columnType: 'BASE_AXIS',
         sqlExpression: col,
         label: col,
@@ -65,7 +65,9 @@ export default function buildQuery(formData: PivotTableQueryFormData) {
     }
     return [
       {
-        ...baseQueryObject,
+        ...(hasGenericChartAxes
+          ? omit(baseQueryObject, ['extras.time_grain_sqla'])
+          : baseQueryObject),
         orderby: orderBy,
         columns,
       },

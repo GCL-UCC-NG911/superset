@@ -134,7 +134,7 @@ const actionHandlers = {
     const {
       payload: { dropResult },
     } = action;
-    const { source, destination, dragging, position } = dropResult;
+    const { source, destination, dragging } = dropResult;
 
     if (!source || !destination || !dragging) return state;
 
@@ -142,7 +142,6 @@ const actionHandlers = {
       entitiesMap: state,
       source,
       destination,
-      position,
     });
 
     if (componentIsResizable(nextEntities[dragging.id])) {

@@ -23,7 +23,6 @@ import {
 } from '@superset-ui/core';
 import {
   ControlPanelConfig,
-  ControlPanelSectionConfig,
   expandControlConfig,
   isControlPanelSectionConfig,
 } from '@superset-ui/chart-controls';
@@ -39,12 +38,7 @@ const getMemoizedSectionsToRender = memoizeOne(
     } = controlPanelConfig;
 
     // default control panel sections
-    const sections: Record<
-      string,
-      | ControlPanelSectionConfig
-      | ControlPanelSectionConfig[]
-      | Partial<ControlPanelSectionConfig>
-    > = { ...SECTIONS };
+    const sections = { ...SECTIONS };
 
     // apply section overrides
     Object.entries(sectionOverrides).forEach(([section, overrides]) => {
@@ -66,7 +60,7 @@ const getMemoizedSectionsToRender = memoizeOne(
       ? ['granularity']
       : ['granularity_sqla', 'time_grain_sqla'];
 
-    return [datasourceAndVizType as ControlPanelSectionConfig]
+    return [datasourceAndVizType]
       .concat(controlPanelSections.filter(isControlPanelSectionConfig))
       .map(section => {
         const { controlSetRows } = section;

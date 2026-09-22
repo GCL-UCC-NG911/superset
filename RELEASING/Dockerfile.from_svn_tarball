@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-FROM python:3.10-slim-bookworm
+FROM python:3.8-buster
 
 RUN useradd --user-group --create-home --no-log-init --shell /bin/bash superset
 
@@ -29,16 +29,13 @@ RUN apt-get install -y apt-transport-https apt-utils
 
 # Install superset dependencies
 # https://superset.apache.org/docs/installation/installing-superset-from-scratch
-RUN apt-get install -y subversion build-essential libssl-dev \
-    libffi-dev python3-dev libsasl2-dev libldap2-dev libxi-dev chromium zstd
+RUN apt-get install -y build-essential libssl-dev \
+    libffi-dev python3-dev libsasl2-dev libldap2-dev libxi-dev chromium
 
 # Install nodejs for custom build
 # https://nodejs.org/en/download/package-manager/
-RUN set -eux; \
-    curl -sL https://deb.nodesource.com/setup_20.x | bash -; \
-    apt-get install -y nodejs; \
-    node --version;
-RUN if ! which npm; then apt-get install -y npm; fi
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
+    && apt-get install -y nodejs
 
 RUN mkdir -p /home/superset
 RUN chown superset /home/superset
@@ -49,11 +46,13 @@ ARG VERSION
 # Can fetch source from svn or copy tarball from local mounted directory
 RUN svn co https://dist.apache.org/repos/dist/dev/superset/$VERSION ./
 RUN tar -xvf *.tar.gz
-WORKDIR /home/superset/apache-superset-$VERSION/superset-frontend
+WORKDIR apache-superset-$VERSION
 
-RUN npm ci \
+RUN cd superset-frontend \
+    && npm ci \
     && npm run build \
     && rm -rf node_modules
+
 
 WORKDIR /home/superset/apache-superset-$VERSION
 RUN pip install --upgrade setuptools pip \
@@ -63,6 +62,6 @@ RUN pip install --upgrade setuptools pip \
 RUN flask fab babel-compile --target superset/translations
 
 ENV PATH=/home/superset/superset/bin:$PATH \
-    PYTHONPATH=/home/superset/superset/
+    PYTHONPATH=/home/superset/superset/:$PYTHONPATH
 COPY from_tarball_entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

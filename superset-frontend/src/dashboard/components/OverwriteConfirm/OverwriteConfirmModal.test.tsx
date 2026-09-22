@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import thunk from 'redux-thunk';
 import configureStore from 'redux-mock-store';
 import fetchMock from 'fetch-mock';
@@ -51,21 +52,14 @@ test('renders diff viewer when it contains overwriteConfirmMetadata', async () =
 
 test('requests update dashboard api when save button is clicked', async () => {
   const updateDashboardEndpoint = `glob:*/api/v1/dashboard/${overwriteConfirmMetadata.dashboardId}`;
-  const fetchDatasetsEndpoint = `glob:*/api/v1/dashboard/${overwriteConfirmMetadata.dashboardId}/datasets`;
-
-  // mock fetch datasets
-  fetchMock.get(fetchDatasetsEndpoint, []);
-
   fetchMock.put(updateDashboardEndpoint, {
     id: overwriteConfirmMetadata.dashboardId,
     last_modified_time: +new Date(),
     result: overwriteConfirmMetadata.data,
   });
   const store = mockStore({
-    dashboardLayout: { present: {} },
+    dashboardLayout: {},
     dashboardFilters: {},
-    dashboardInfo: { metadata: {} },
-    charts: {},
   });
   const { findByTestId } = render(
     <OverwriteConfirmModal

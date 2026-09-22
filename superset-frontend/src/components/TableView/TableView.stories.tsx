@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import TableView, { TableViewProps, EmptyWrapperType } from '.';
 
 export default {
@@ -83,8 +84,8 @@ InteractiveTableView.argTypes = {
   emptyWrapperType: {
     control: {
       type: 'select',
+      options: [EmptyWrapperType.Default, EmptyWrapperType.Small],
     },
-    options: [EmptyWrapperType.Default, EmptyWrapperType.Small],
   },
   pageSize: {
     control: {
@@ -96,6 +97,14 @@ InteractiveTableView.argTypes = {
     control: {
       type: 'number',
       min: 0,
+    },
+  },
+};
+
+InteractiveTableView.story = {
+  parameters: {
+    knobs: {
+      disable: true,
     },
   },
 };

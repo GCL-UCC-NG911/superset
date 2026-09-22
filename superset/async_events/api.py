@@ -21,9 +21,9 @@ from flask_appbuilder import expose
 from flask_appbuilder.api import safe
 from flask_appbuilder.security.decorators import permission_name, protect
 
-from superset.async_events.async_query_manager import AsyncQueryTokenException
 from superset.extensions import async_query_manager, event_logger
-from superset.views.base_api import BaseSupersetApi, statsd_metrics
+from superset.utils.async_query_manager import AsyncQueryTokenException
+from superset.views.base_api import BaseSupersetApi
 
 logger = logging.getLogger(__name__)
 
@@ -32,19 +32,17 @@ class AsyncEventsRestApi(BaseSupersetApi):
     resource_name = "async_event"
     allow_browser_login = True
 
-    @expose("/", methods=("GET",))
+    @expose("/", methods=["GET"])
     @event_logger.log_this
     @protect()
     @safe
-    @statsd_metrics
     @permission_name("list")
     def events(self) -> Response:
         """
-        Read off of the Redis async events stream, using the user's JWT token and
+        Reads off of the Redis async events stream, using the user's JWT token and
         optional query params for last event received.
         ---
         get:
-          summary: Read off of the Redis events stream
           description: >-
             Reads off of the Redis events stream, using the user's JWT token and
             optional query params for last event received.
@@ -89,9 +87,9 @@ class AsyncEventsRestApi(BaseSupersetApi):
               $ref: '#/components/responses/500'
         """
         try:
-            async_channel_id = async_query_manager.parse_channel_id_from_request(
-                request
-            )
+            async_channel_id = async_query_manager.parse_jwt_from_request(request)[
+                "channel"
+            ]
             last_event_id = request.args.get("last_id")
             events = async_query_manager.read_events(async_channel_id, last_event_id)
 

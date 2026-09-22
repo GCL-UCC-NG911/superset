@@ -16,7 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useArgs } from '@storybook/preview-api';
+import React from 'react';
+import { useArgs } from '@storybook/client-api';
 import Checkbox, { CheckboxProps } from '.';
 
 export default {
@@ -34,10 +35,10 @@ export const CheckboxGallery = () =>
     <div style={{ marginBottom: '16px' }} key={status}>
       <Checkbox
         onChange={() => {}}
-        checked={STATUSES[status as keyof typeof STATUSES]}
+        checked={STATUSES[status]}
         style={{ marginRight: '8px' }}
       />
-      {`I'm a${STATUSES[status as keyof typeof STATUSES] ? '' : 'n'} ${status} checkbox`}
+      {`I'm a${STATUSES[status] ? '' : 'n'} ${status} checkbox`}
     </div>
   ));
 

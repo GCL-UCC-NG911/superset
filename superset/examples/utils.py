@@ -16,11 +16,11 @@
 # under the License.
 import logging
 import re
-from importlib.resources import files
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 import yaml
+from pkg_resources import resource_isdir, resource_listdir, resource_stream
 
 from superset.commands.exceptions import CommandInvalidError
 from superset.commands.importers.v1.examples import ImportExamplesCommand
@@ -42,32 +42,30 @@ def load_examples_from_configs(
     command.run()
 
 
-def load_contents(load_test_data: bool = False) -> dict[str, Any]:
+def load_contents(load_test_data: bool = False) -> Dict[str, Any]:
     """Traverse configs directory and load contents"""
-    root = files("superset") / "examples/configs"
-    resource_names = (files("superset") / str(root)).iterdir()
-    queue = [root / str(resource_name) for resource_name in resource_names]
+    root = Path("examples/configs")
+    resource_names = resource_listdir("superset", str(root))
+    queue = [root / resource_name for resource_name in resource_names]
 
-    contents: dict[Path, str] = {}
+    contents: Dict[Path, str] = {}
     while queue:
         path_name = queue.pop()
         test_re = re.compile(r"\.test\.|metadata\.yaml$")
 
-        if (files("superset") / str(path_name)).is_dir():
+        if resource_isdir("superset", str(path_name)):
             queue.extend(
-                path_name / str(child_name)
-                for child_name in (files("superset") / str(path_name)).iterdir()
+                path_name / child_name
+                for child_name in resource_listdir("superset", str(path_name))
             )
-        elif Path(str(path_name)).suffix.lower() in YAML_EXTENSIONS:
+        elif path_name.suffix.lower() in YAML_EXTENSIONS:
             if load_test_data and test_re.search(str(path_name)) is None:
                 continue
-            contents[Path(str(path_name))] = (
-                files("superset") / str(path_name)
-            ).read_text("utf-8")
+            contents[path_name] = (
+                resource_stream("superset", str(path_name)).read().decode("utf-8")
+            )
 
-    return {
-        str(path.relative_to(str(root))): content for path, content in contents.items()
-    }
+    return {str(path.relative_to(root)): content for path, content in contents.items()}
 
 
 def load_configs_from_directory(
@@ -76,7 +74,7 @@ def load_configs_from_directory(
     """
     Load all the examples from a given directory.
     """
-    contents: dict[str, str] = {}
+    contents: Dict[str, str] = {}
     queue = [root]
     while queue:
         path_name = queue.pop()
@@ -88,15 +86,13 @@ def load_configs_from_directory(
 
     # removing "type" from the metadata allows us to import any exported model
     # from the unzipped directory directly
-    metadata = yaml.load(contents.get(METADATA_FILE_NAME, "{}"), Loader=yaml.Loader)  # noqa: S506
+    metadata = yaml.load(contents.get(METADATA_FILE_NAME, "{}"), Loader=None)
     if "type" in metadata:
         del metadata["type"]
     contents[METADATA_FILE_NAME] = yaml.dump(metadata)
 
     command = ImportExamplesCommand(
-        contents,
-        overwrite=overwrite,
-        force_data=force_data,
+        contents, overwrite=overwrite, force_data=force_data
     )
     try:
         command.run()

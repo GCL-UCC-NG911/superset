@@ -23,7 +23,7 @@ import {
   QueryFormData,
   QueryFormMetric,
 } from '@superset-ui/core';
-import type { CallbackDataParams } from 'echarts/types/src/util/types';
+import { CallbackDataParams } from 'echarts/types/src/util/types';
 import {
   BaseTransformedProps,
   ContextMenuTransformedProps,

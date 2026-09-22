@@ -16,10 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { configure as configureTranslation } from '@superset-ui/core';
+import React from 'react';
 import CertifiedBadge, { CertifiedBadgeProps } from '.';
-
-configureTranslation();
 
 export default {
   title: 'CertifiedBadgeWithTooltip',
@@ -33,4 +31,12 @@ InteractiveIcon.args = {
   certifiedBy: 'Trusted Authority',
   details: 'All requirements have been met.',
   size: 30,
+};
+
+InteractiveIcon.story = {
+  parameters: {
+    knobs: {
+      disable: true,
+    },
+  },
 };

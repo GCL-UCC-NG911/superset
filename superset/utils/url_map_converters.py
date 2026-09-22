@@ -14,16 +14,16 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-from typing import Any
+from typing import Any, List
 
 from werkzeug.routing import BaseConverter, Map
 
-from superset.tags.models import ObjectType
+from superset.tags.models import ObjectTypes
 
 
 class RegexConverter(BaseConverter):
-    def __init__(self, url_map: Map, *items: list[str]) -> None:
-        super().__init__(url_map)
+    def __init__(self, url_map: Map, *items: List[str]) -> None:
+        super().__init__(url_map)  # type: ignore
         self.regex = items[0]
 
 
@@ -31,7 +31,7 @@ class ObjectTypeConverter(BaseConverter):
     """Validate that object_type is indeed an object type."""
 
     def to_python(self, value: str) -> Any:
-        return ObjectType[value]
+        return ObjectTypes[value]
 
     def to_url(self, value: Any) -> str:
         return value.name

@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
@@ -26,7 +27,7 @@ import userEvent from '@testing-library/user-event';
 import { NO_TIME_RANGE } from '@superset-ui/core';
 import DateFilterLabel from '..';
 import { DateFilterControlProps } from '../types';
-import { DateFilterTestKey } from '../utils';
+import { DATE_FILTER_TEST_KEY } from '../utils';
 
 const mockStore = configureStore([thunk]);
 
@@ -55,7 +56,7 @@ test('DateFilter with default props', () => {
   // should be popover by default
   userEvent.click(screen.getByText(NO_TIME_RANGE));
   expect(
-    screen.getByTestId(DateFilterTestKey.PopoverOverlay),
+    screen.getByTestId(DATE_FILTER_TEST_KEY.popoverOverlay),
   ).toBeInTheDocument();
 });
 
@@ -64,7 +65,7 @@ test('DateFilter should be applied the overlayStyle props', () => {
   // should be Modal as overlay
   userEvent.click(screen.getByText(NO_TIME_RANGE));
   expect(
-    screen.getByTestId(DateFilterTestKey.ModalOverlay),
+    screen.getByTestId(DATE_FILTER_TEST_KEY.modalOverlay),
   ).toBeInTheDocument();
 });
 
@@ -81,7 +82,9 @@ test('DateFilter should be applied the global config time_filter from the store'
   expect(screen.getByText('Last week')).toBeInTheDocument();
 
   userEvent.click(screen.getByText('Last week'));
-  expect(screen.getByTestId(DateFilterTestKey.CommonFrame)).toBeInTheDocument();
+  expect(
+    screen.getByTestId(DATE_FILTER_TEST_KEY.commonFrame),
+  ).toBeInTheDocument();
 });
 
 test('Open and close popover', () => {

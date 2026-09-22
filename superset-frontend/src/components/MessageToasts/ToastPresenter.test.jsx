@@ -16,33 +16,36 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { fireEvent, render, waitFor } from 'spec/helpers/testing-library';
-
+import React from 'react';
+import { shallow } from 'enzyme';
+import Toast from 'src/components/MessageToasts/Toast';
 import ToastPresenter from 'src/components/MessageToasts/ToastPresenter';
 import mockMessageToasts from './mockMessageToasts';
 
-const props = {
-  toasts: mockMessageToasts,
-  removeToast() {},
-};
+describe('ToastPresenter', () => {
+  const props = {
+    toasts: mockMessageToasts,
+    removeToast() {},
+  };
 
-function setup(overrideProps) {
-  return render(<ToastPresenter {...props} {...overrideProps} />);
-}
+  function setup(overrideProps) {
+    const wrapper = shallow(<ToastPresenter {...props} {...overrideProps} />);
+    return wrapper;
+  }
 
-test('should render a div with id toast-presenter', () => {
-  const { container } = setup();
-  expect(container.querySelector('#toast-presenter')).toBeInTheDocument();
-});
+  it('should render a div with id toast-presenter', () => {
+    const wrapper = setup();
+    expect(wrapper.find('#toast-presenter')).toExist();
+  });
 
-test('should render a Toast for each toast object', () => {
-  const { getAllByRole } = setup();
-  expect(getAllByRole('alert')).toHaveLength(props.toasts.length);
-});
+  it('should render a Toast for each toast object', () => {
+    const wrapper = setup();
+    expect(wrapper.find(Toast)).toHaveLength(props.toasts.length);
+  });
 
-test('should pass removeToast to the Toast component', async () => {
-  const removeToast = jest.fn();
-  const { getAllByTestId } = setup({ removeToast });
-  fireEvent.click(getAllByTestId('close-button')[0]);
-  await waitFor(() => expect(removeToast).toHaveBeenCalledTimes(1));
+  it('should pass removeToast to the Toast component', () => {
+    const removeToast = () => {};
+    const wrapper = setup({ removeToast });
+    expect(wrapper.find(Toast).first().prop('onCloseToast')).toBe(removeToast);
+  });
 });

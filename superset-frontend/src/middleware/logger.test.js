@@ -20,18 +20,14 @@ import sinon from 'sinon';
 import { SupersetClient } from '@superset-ui/core';
 import logger from 'src/middleware/loggerMiddleware';
 import { LOG_EVENT } from 'src/logger/actions';
-import {
-  LOG_ACTIONS_LOAD_CHART,
-  LOG_ACTIONS_SPA_NAVIGATION,
-} from 'src/logger/LogUtils';
+import { LOG_ACTIONS_LOAD_CHART } from 'src/logger/LogUtils';
 
 describe('logger middleware', () => {
-  const dashboardId = 123;
   const next = sinon.spy();
   const mockStore = {
     getState: () => ({
       dashboardInfo: {
-        id: dashboardId,
+        id: 1,
       },
       impressionId: 'impression_id',
     }),
@@ -47,10 +43,6 @@ describe('logger middleware', () => {
     },
   };
 
-  const timeSandbox = sinon.createSandbox({
-    useFakeTimers: true,
-  });
-
   let postStub;
   beforeEach(() => {
     postStub = sinon.stub(SupersetClient, 'post');
@@ -58,7 +50,6 @@ describe('logger middleware', () => {
   afterEach(() => {
     next.resetHistory();
     postStub.restore();
-    timeSandbox.clock.reset();
   });
 
   it('should listen to LOG_EVENT action type', () => {
@@ -73,10 +64,11 @@ describe('logger middleware', () => {
   });
 
   it('should POST an event to /superset/log/ when called', () => {
+    const clock = sinon.useFakeTimers();
     logger(mockStore)(next)(action);
     expect(next.callCount).toBe(0);
 
-    timeSandbox.clock.tick(2000);
+    clock.tick(2000);
     expect(SupersetClient.post.callCount).toBe(1);
     expect(SupersetClient.post.getCall(0).args[0].endpoint).toMatch(
       '/superset/log/',
@@ -84,19 +76,12 @@ describe('logger middleware', () => {
   });
 
   it('should include ts, start_offset, event_name, impression_id, source, and source_id in every event', () => {
-    const fetchLog = logger(mockStore)(next);
-    fetchLog({
-      type: LOG_EVENT,
-      payload: {
-        eventName: LOG_ACTIONS_SPA_NAVIGATION,
-        eventData: { path: `/dashboard/${dashboardId}/` },
-      },
-    });
-    timeSandbox.clock.tick(2000);
-    fetchLog(action);
-    timeSandbox.clock.tick(2000);
-    expect(SupersetClient.post.callCount).toBe(2);
-    const { events } = SupersetClient.post.getCall(1).args[0].postPayload;
+    const clock = sinon.useFakeTimers();
+    logger(mockStore)(next)(action);
+    clock.tick(2000);
+
+    expect(SupersetClient.post.callCount).toBe(1);
+    const { events } = SupersetClient.post.getCall(0).args[0].postPayload;
     const mockEventdata = action.payload.eventData;
     const mockEventname = action.payload.eventName;
     expect(events[0]).toMatchObject({
@@ -106,7 +91,6 @@ describe('logger middleware', () => {
       source: 'dashboard',
       source_id: mockStore.getState().dashboardInfo.id,
       event_type: 'timing',
-      dashboard_id: mockStore.getState().dashboardInfo.id,
     });
 
     expect(typeof events[0].ts).toBe('number');
@@ -114,10 +98,11 @@ describe('logger middleware', () => {
   });
 
   it('should debounce a few log requests to one', () => {
+    const clock = sinon.useFakeTimers();
     logger(mockStore)(next)(action);
     logger(mockStore)(next)(action);
     logger(mockStore)(next)(action);
-    timeSandbox.clock.tick(2000);
+    clock.tick(2000);
 
     expect(SupersetClient.post.callCount).toBe(1);
     expect(
@@ -126,6 +111,7 @@ describe('logger middleware', () => {
   });
 
   it('should use navigator.sendBeacon if it exists', () => {
+    const clock = sinon.useFakeTimers();
     const beaconMock = jest.fn();
     Object.defineProperty(navigator, 'sendBeacon', {
       writable: true,
@@ -134,7 +120,7 @@ describe('logger middleware', () => {
 
     logger(mockStore)(next)(action);
     expect(beaconMock.mock.calls.length).toBe(0);
-    timeSandbox.clock.tick(2000);
+    clock.tick(2000);
 
     expect(beaconMock.mock.calls.length).toBe(1);
     const endpoint = beaconMock.mock.calls[0][0];
@@ -142,6 +128,7 @@ describe('logger middleware', () => {
   });
 
   it('should pass a guest token to sendBeacon if present', () => {
+    const clock = sinon.useFakeTimers();
     const beaconMock = jest.fn();
     Object.defineProperty(navigator, 'sendBeacon', {
       writable: true,
@@ -151,7 +138,7 @@ describe('logger middleware', () => {
 
     logger(mockStore)(next)(action);
     expect(beaconMock.mock.calls.length).toBe(0);
-    timeSandbox.clock.tick(2000);
+    clock.tick(2000);
     expect(beaconMock.mock.calls.length).toBe(1);
 
     const formData = beaconMock.mock.calls[0][1];

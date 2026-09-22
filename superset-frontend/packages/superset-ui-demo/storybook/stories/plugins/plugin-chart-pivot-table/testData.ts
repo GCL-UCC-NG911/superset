@@ -16,11 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { VizType } from '@superset-ui/core';
-
 export const basicFormData = {
   datasource: '1__table',
-  viz_type: VizType.PivotTable,
+  viz_type: 'pivot_table_v2',
   granularity_sqla: 'ts',
   groupbyColumns: ['location'],
   groupbyRows: ['program_language'],
@@ -93,7 +91,7 @@ export const basicData = {
   data: [
     {
       location: 'AMEA',
-      program_language: 'JavaScript',
+      program_language: 'Javscript',
       Count: 134,
       'Most Recent Data': '2022-07-25 13:00:00.000',
     },

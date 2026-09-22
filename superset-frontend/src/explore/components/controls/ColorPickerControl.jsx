@@ -16,10 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { SketchPicker } from 'react-color';
-import { getCategoricalSchemeRegistry, styled, css } from '@superset-ui/core';
+import { getCategoricalSchemeRegistry, styled } from '@superset-ui/core';
 import Popover from 'src/components/Popover';
 import ControlHeader from '../ControlHeader';
 
@@ -65,7 +65,7 @@ const styles = {
       'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkYGAQYcAP3uCTZhw1gGGYhAGBZIA/nYDCgBDAm9BGDWAAJyRCgLaBCAAgXwixzAS0pgAAAABJRU5ErkJggg==") left center',
   },
 };
-export default class ColorPickerControl extends Component {
+export default class ColorPickerControl extends React.Component {
   constructor(props) {
     super(props);
     this.onChange = this.onChange.bind(this);
@@ -78,16 +78,10 @@ export default class ColorPickerControl extends Component {
   renderPopover() {
     const presetColors = getCategoricalSchemeRegistry()
       .get()
-      .colors.filter((s, i) => i < 9);
+      .colors.filter((s, i) => i < 7);
     return (
       <div id="filter-popover" className="color-popover">
         <SketchPicker
-          css={css`
-            // We need to use important here as these are element level styles
-            padding: 0 !important;
-            box-shadow: none !important;
-          `}
-          width={235}
           color={this.props.value}
           onChange={this.onChange}
           presetColors={presetColors}

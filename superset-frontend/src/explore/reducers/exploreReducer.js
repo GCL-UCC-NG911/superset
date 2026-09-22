@@ -18,7 +18,6 @@
  */
 /* eslint camelcase: 0 */
 import { ensureIsArray } from '@superset-ui/core';
-import { omit, pick } from 'lodash';
 import { DYNAMIC_PLUGIN_CONTROLS_READY } from 'src/components/Chart/chartAction';
 import { getControlsState } from 'src/explore/store';
 import {
@@ -48,24 +47,6 @@ export default function exploreReducer(state = {}, action) {
       return {
         ...state,
         isDatasourceMetaLoading: true,
-      };
-    },
-    [actions.START_METADATA_LOADING]() {
-      return {
-        ...state,
-        isDatasourceMetaLoading: true,
-      };
-    },
-    [actions.STOP_METADATA_LOADING]() {
-      return {
-        ...state,
-        isDatasourceMetaLoading: false,
-      };
-    },
-    [actions.SYNC_DATASOURCE_METADATA]() {
-      return {
-        ...state,
-        datasource: action.datasource,
       };
     },
     [actions.UPDATE_FORM_DATA_BY_DATASOURCE]() {
@@ -131,15 +112,10 @@ export default function exploreReducer(state = {}, action) {
       const vizType = new_form_data.viz_type;
 
       // if the controlName is metrics, and the metric column name is updated,
-      // need to update column config as well to keep the previous config.
+      // need to update column config as well to keep the previou config.
       if (controlName === 'metrics' && old_metrics_data && new_column_config) {
         value.forEach((item, index) => {
-          const itemExist = old_metrics_data.some(
-            oldItem => oldItem?.label === item?.label,
-          );
-
           if (
-            !itemExist &&
             item?.label !== old_metrics_data[index]?.label &&
             !!new_column_config[old_metrics_data[index]?.label]
           ) {
@@ -153,11 +129,11 @@ export default function exploreReducer(state = {}, action) {
       }
 
       // Use the processed control config (with overrides and everything)
-      // if `controlName` does not exist in current controls,
+      // if `controlName` does not existing in current controls,
       const controlConfig =
         state.controls[action.controlName] ||
         getControlConfig(action.controlName, vizType) ||
-        null;
+        {};
 
       // will call validators again
       const control = {
@@ -173,7 +149,7 @@ export default function exploreReducer(state = {}, action) {
         ...state,
         controls: {
           ...state.controls,
-          ...(controlConfig && { [controlName]: control }),
+          [controlName]: control,
           ...(controlName === 'metrics' && { column_config }),
         },
       };
@@ -220,12 +196,10 @@ export default function exploreReducer(state = {}, action) {
         triggerRender: control.renderTrigger && !hasErrors,
         controls: {
           ...currentControlsState,
-          ...(controlConfig && {
-            [action.controlName]: {
-              ...control,
-              validationErrors: errors,
-            },
-          }),
+          [action.controlName]: {
+            ...control,
+            validationErrors: errors,
+          },
           ...rerenderedControls,
         },
       };
@@ -263,32 +237,6 @@ export default function exploreReducer(state = {}, action) {
         can_download: action.can_download,
         can_overwrite: action.can_overwrite,
       };
-    },
-    [actions.SET_STASH_FORM_DATA]() {
-      const { form_data, hiddenFormData } = state;
-      const { fieldNames, isHidden } = action;
-      if (isHidden) {
-        return {
-          ...state,
-          hiddenFormData: {
-            ...hiddenFormData,
-            ...pick(form_data, fieldNames),
-          },
-          form_data: omit(form_data, fieldNames),
-        };
-      }
-
-      const restoredField = pick(hiddenFormData, fieldNames);
-      return Object.keys(restoredField).length === 0
-        ? state
-        : {
-            ...state,
-            form_data: {
-              ...form_data,
-              ...restoredField,
-            },
-            hiddenFormData: omit(hiddenFormData, fieldNames),
-          };
     },
     [actions.SLICE_UPDATED]() {
       return {

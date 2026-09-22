@@ -16,8 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useCallback, useEffect, useMemo, useState, ReactNode } from 'react';
-
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { AdhocColumn, t, isAdhocColumn } from '@superset-ui/core';
 import { ColumnMeta, isColumnMeta } from '@superset-ui/chart-controls';
@@ -35,9 +34,8 @@ interface ColumnSelectPopoverTriggerProps {
   visible?: boolean;
   togglePopover?: (visible: boolean) => void;
   closePopover?: () => void;
-  children: ReactNode;
+  children: React.ReactNode;
   isTemporal?: boolean;
-  disabledTabs?: Set<string>;
 }
 
 const defaultPopoverLabel = t('My column');
@@ -50,7 +48,6 @@ const ColumnSelectPopoverTrigger = ({
   isControlledComponent,
   children,
   isTemporal,
-  disabledTabs,
   ...props
 }: ColumnSelectPopoverTriggerProps) => {
   // @ts-ignore
@@ -106,12 +103,10 @@ const ColumnSelectPopoverTrigger = ({
           setDatasetModal={setDatasetModal}
           onClose={handleClosePopover}
           onChange={onColumnEdit}
-          hasCustomLabel={hasCustomLabel}
           label={popoverLabel}
           setLabel={setPopoverLabel}
           getCurrentTab={getCurrentTab}
           isTemporal={isTemporal}
-          disabledTabs={disabledTabs}
         />
       </ExplorePopoverContent>
     ),
@@ -119,22 +114,17 @@ const ColumnSelectPopoverTrigger = ({
       columns,
       editedColumn,
       getCurrentTab,
-      hasCustomLabel,
       handleClosePopover,
       isTemporal,
       onColumnEdit,
       popoverLabel,
-      disabledTabs,
     ],
   );
 
-  const onLabelChange = useCallback(
-    (e: any) => {
-      setPopoverLabel(e.target.value);
-      setHasCustomLabel(true);
-    },
-    [setPopoverLabel, setHasCustomLabel],
-  );
+  const onLabelChange = useCallback((e: any) => {
+    setPopoverLabel(e.target.value);
+    setHasCustomLabel(true);
+  }, []);
 
   const popoverTitle = useMemo(
     () => (

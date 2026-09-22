@@ -36,12 +36,16 @@ module.exports = {
     ],
     [
       '@babel/preset-react',
-      {
-        development: process.env.BABEL_ENV === 'development',
-        runtime: 'automatic',
-      },
+      { development: process.env.BABEL_ENV === 'development' },
     ],
     '@babel/preset-typescript',
+    [
+      '@emotion/babel-preset-css-prop',
+      {
+        autoLabel: 'dev-only',
+        labelFormat: '[local]',
+      },
+    ],
   ],
   plugins: [
     'lodash',
@@ -54,13 +58,6 @@ module.exports = {
     // only used in packages/superset-ui-core/src/chart/components/reactify.tsx
     ['babel-plugin-typescript-to-proptypes', { loose: true }],
     'react-hot-loader/babel',
-    [
-      '@emotion/babel-plugin',
-      {
-        autoLabel: 'dev-only',
-        labelFormat: '[local]',
-      },
-    ],
   ],
   env: {
     // Setup a different config for tests as they run in node instead of a browser
@@ -73,23 +70,13 @@ module.exports = {
             corejs: 3,
             loose: true,
             shippedProposals: true,
-            modules: 'auto',
+            modules: 'commonjs',
             targets: { node: 'current' },
           },
         ],
-        [
-          '@babel/preset-react',
-          {
-            development: process.env.BABEL_ENV === 'development',
-            runtime: 'automatic',
-          },
-        ],
-        '@babel/preset-typescript',
+        ['@emotion/babel-preset-css-prop'],
       ],
-      plugins: [
-        'babel-plugin-dynamic-import-node',
-        '@babel/plugin-transform-modules-commonjs',
-      ],
+      plugins: ['babel-plugin-dynamic-import-node'],
     },
     // build instrumented code for testing code coverage with Cypress
     instrumented: {

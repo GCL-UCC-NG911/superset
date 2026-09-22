@@ -16,14 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { t } from '@superset-ui/core';
 import {
   ControlPanelConfig,
-  ControlSubSectionHeader,
   D3_FORMAT_DOCS,
   D3_NUMBER_FORMAT_DESCRIPTION_VALUES_TEXT,
   D3_FORMAT_OPTIONS,
   D3_TIME_FORMAT_OPTIONS,
+  sections,
   getStandardizedControls,
 } from '@superset-ui/chart-controls';
 import { DEFAULT_FORM_DATA } from './types';
@@ -33,6 +34,7 @@ const { labelType, numberFormat, showLabels, showUpperLabels, dateFormat } =
 
 const config: ControlPanelConfig = {
   controlPanelSections: [
+    sections.legacyRegularTime,
     {
       label: t('Query'),
       expanded: true,
@@ -40,7 +42,18 @@ const config: ControlPanelConfig = {
         ['groupby'],
         ['metric'],
         ['row_limit'],
-        ['sort_by_metric'],
+        [
+          {
+            name: 'sort_by_metric',
+            config: {
+              type: 'CheckboxControl',
+              label: t('Sort by metric'),
+              description: t(
+                'Whether to sort results by the selected metric in descending order.',
+              ),
+            },
+          },
+        ],
         ['adhoc_filters'],
       ],
     },
@@ -49,7 +62,7 @@ const config: ControlPanelConfig = {
       expanded: true,
       controlSetRows: [
         ['color_scheme'],
-        [<ControlSubSectionHeader>{t('Labels')}</ControlSubSectionHeader>],
+        [<div className="section-header">{t('Labels')}</div>],
         [
           {
             name: 'show_labels',
@@ -105,7 +118,6 @@ const config: ControlPanelConfig = {
             },
           },
         ],
-        ['currency_format'],
         [
           {
             name: 'date_format',

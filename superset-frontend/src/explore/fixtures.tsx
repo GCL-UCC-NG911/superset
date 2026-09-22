@@ -17,7 +17,8 @@
  * under the License.
  */
 
-import { DatasourceType, t, VizType } from '@superset-ui/core';
+import React from 'react';
+import { DatasourceType, t } from '@superset-ui/core';
 import {
   ColumnMeta,
   ColumnOption,
@@ -114,7 +115,7 @@ export const exploreInitialData: ExplorePageInitialData = {
     datasource: '8__table',
     metric: 'count',
     slice_id: 371,
-    viz_type: VizType.Table,
+    viz_type: 'table',
   },
   slice: {
     cache_timeout: null,
@@ -126,7 +127,7 @@ export const exploreInitialData: ExplorePageInitialData = {
       datasource: '8__table',
       metric: 'count',
       slice_id: 371,
-      viz_type: VizType.Table,
+      viz_type: 'table',
     },
   },
   dataset: {
@@ -134,8 +135,7 @@ export const exploreInitialData: ExplorePageInitialData = {
     type: DatasourceType.Table,
     columns: [{ column_name: 'a' }],
     metrics: [{ metric_name: 'first' }, { metric_name: 'second' }],
-    column_formats: {},
-    currency_formats: {},
+    column_format: {},
     verbose_map: {},
     main_dttm_col: '',
     datasource_name: '8__table',
@@ -146,20 +146,19 @@ export const exploreInitialData: ExplorePageInitialData = {
 export const fallbackExploreInitialData: ExplorePageInitialData = {
   form_data: {
     datasource: '0__table',
-    viz_type: VizType.Table,
+    viz_type: 'table',
   },
   dataset: {
     id: 0,
     type: DatasourceType.Table,
     columns: [],
     metrics: [],
-    column_formats: {},
-    currency_formats: {},
+    column_format: {},
     verbose_map: {},
     main_dttm_col: '',
     owners: [],
-    datasource_name: '',
-    name: '',
+    datasource_name: 'missing_datasource',
+    name: 'missing_datasource',
     description: null,
   },
   slice: null,

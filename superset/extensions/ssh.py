@@ -15,16 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import logging
+import importlib
 from io import StringIO
 from typing import TYPE_CHECKING
 
-import sshtunnel
 from flask import Flask
 from paramiko import RSAKey
+from sshtunnel import open_tunnel, SSHTunnelForwarder
 
 from superset.databases.utils import make_url_safe
-from superset.utils.class_utils import load_class_from_name
 
 if TYPE_CHECKING:
     from superset.databases.ssh_tunnel.models import SSHTunnel
@@ -34,11 +33,9 @@ class SSHManager:
     def __init__(self, app: Flask) -> None:
         super().__init__()
         self.local_bind_address = app.config["SSH_TUNNEL_LOCAL_BIND_ADDRESS"]
-        sshtunnel.TUNNEL_TIMEOUT = app.config["SSH_TUNNEL_TIMEOUT_SEC"]
-        sshtunnel.SSH_TIMEOUT = app.config["SSH_TUNNEL_PACKET_TIMEOUT_SEC"]
 
-    def build_sqla_url(
-        self, sqlalchemy_url: str, server: sshtunnel.SSHTunnelForwarder
+    def build_sqla_url(  # pylint: disable=no-self-use
+        self, sqlalchemy_url: str, server: SSHTunnelForwarder
     ) -> str:
         # override any ssh tunnel configuration object
         url = make_url_safe(sqlalchemy_url)
@@ -51,14 +48,13 @@ class SSHManager:
         self,
         ssh_tunnel: "SSHTunnel",
         sqlalchemy_database_uri: str,
-    ) -> sshtunnel.SSHTunnelForwarder:
+    ) -> SSHTunnelForwarder:
         url = make_url_safe(sqlalchemy_database_uri)
         params = {
             "ssh_address_or_host": (ssh_tunnel.server_address, ssh_tunnel.server_port),
             "ssh_username": ssh_tunnel.username,
-            "remote_bind_address": (url.host, url.port),
+            "remote_bind_address": (url.host, url.port),  # bind_port, bind_host
             "local_bind_address": (self.local_bind_address,),
-            "debug_level": logging.getLogger("flask_appbuilder").level,
         }
 
         if ssh_tunnel.password:
@@ -70,7 +66,7 @@ class SSHManager:
             )
             params["ssh_pkey"] = private_key
 
-        return sshtunnel.open_tunnel(**params)
+        return open_tunnel(**params)
 
 
 class SSHManagerFactory:
@@ -78,9 +74,18 @@ class SSHManagerFactory:
         self._ssh_manager = None
 
     def init_app(self, app: Flask) -> None:
-        self._ssh_manager = load_class_from_name(
-            app.config["SSH_TUNNEL_MANAGER_CLASS"]
-        )(app)
+        ssh_manager_fqclass = app.config["SSH_TUNNEL_MANAGER_CLASS"]
+        ssh_manager_classname = ssh_manager_fqclass[
+            ssh_manager_fqclass.rfind(".") + 1 :
+        ]
+        ssh_manager_module_name = ssh_manager_fqclass[
+            0 : ssh_manager_fqclass.rfind(".")
+        ]
+        ssh_manager_class = getattr(
+            importlib.import_module(ssh_manager_module_name), ssh_manager_classname
+        )
+
+        self._ssh_manager = ssh_manager_class(app)
 
     @property
     def instance(self) -> SSHManager:

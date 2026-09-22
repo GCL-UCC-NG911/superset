@@ -15,14 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 import logging
+from typing import Type
 
 from flask import Response
 from flask_appbuilder.api import expose, protect, safe
 
-from superset.commands.dashboard.filter_state.create import CreateFilterStateCommand
-from superset.commands.dashboard.filter_state.delete import DeleteFilterStateCommand
-from superset.commands.dashboard.filter_state.get import GetFilterStateCommand
-from superset.commands.dashboard.filter_state.update import UpdateFilterStateCommand
+from superset.dashboards.filter_state.commands.create import CreateFilterStateCommand
+from superset.dashboards.filter_state.commands.delete import DeleteFilterStateCommand
+from superset.dashboards.filter_state.commands.get import GetFilterStateCommand
+from superset.dashboards.filter_state.commands.update import UpdateFilterStateCommand
 from superset.extensions import event_logger
 from superset.temporary_cache.api import TemporaryCacheRestApi
 
@@ -34,19 +35,19 @@ class DashboardFilterStateRestApi(TemporaryCacheRestApi):
     resource_name = "dashboard"
     openapi_spec_tag = "Dashboard Filter State"
 
-    def get_create_command(self) -> type[CreateFilterStateCommand]:
+    def get_create_command(self) -> Type[CreateFilterStateCommand]:
         return CreateFilterStateCommand
 
-    def get_update_command(self) -> type[UpdateFilterStateCommand]:
+    def get_update_command(self) -> Type[UpdateFilterStateCommand]:
         return UpdateFilterStateCommand
 
-    def get_get_command(self) -> type[GetFilterStateCommand]:
+    def get_get_command(self) -> Type[GetFilterStateCommand]:
         return GetFilterStateCommand
 
-    def get_delete_command(self) -> type[DeleteFilterStateCommand]:
+    def get_delete_command(self) -> Type[DeleteFilterStateCommand]:
         return DeleteFilterStateCommand
 
-    @expose("/<int:pk>/filter_state", methods=("POST",))
+    @expose("/<int:pk>/filter_state", methods=["POST"])
     @protect()
     @safe
     @event_logger.log_this_with_context(
@@ -54,10 +55,11 @@ class DashboardFilterStateRestApi(TemporaryCacheRestApi):
         log_to_statsd=False,
     )
     def post(self, pk: int) -> Response:
-        """Create a dashboard's filter state.
+        """Stores a new value.
         ---
         post:
-          summary: Create a dashboard's filter state
+          description: >-
+            Stores a new value.
           parameters:
           - in: path
             schema:
@@ -95,7 +97,7 @@ class DashboardFilterStateRestApi(TemporaryCacheRestApi):
         """
         return super().post(pk)
 
-    @expose("/<int:pk>/filter_state/<string:key>", methods=("PUT",))
+    @expose("/<int:pk>/filter_state/<string:key>", methods=["PUT"])
     @protect()
     @safe
     @event_logger.log_this_with_context(
@@ -103,10 +105,11 @@ class DashboardFilterStateRestApi(TemporaryCacheRestApi):
         log_to_statsd=False,
     )
     def put(self, pk: int, key: str) -> Response:
-        """Update a dashboard's filter state value.
+        """Updates an existing value.
         ---
         put:
-          summary: Update a dashboard's filter state value
+          description: >-
+            Updates an existing value.
           parameters:
           - in: path
             schema:
@@ -150,7 +153,7 @@ class DashboardFilterStateRestApi(TemporaryCacheRestApi):
         """
         return super().put(pk, key)
 
-    @expose("/<int:pk>/filter_state/<string:key>", methods=("GET",))
+    @expose("/<int:pk>/filter_state/<string:key>", methods=["GET"])
     @protect()
     @safe
     @event_logger.log_this_with_context(
@@ -158,10 +161,11 @@ class DashboardFilterStateRestApi(TemporaryCacheRestApi):
         log_to_statsd=False,
     )
     def get(self, pk: int, key: str) -> Response:
-        """Get a dashboard's filter state value.
+        """Retrives a value.
         ---
         get:
-          summary: Get a dashboard's filter state value
+          description: >-
+            Retrives a value.
           parameters:
           - in: path
             schema:
@@ -195,7 +199,7 @@ class DashboardFilterStateRestApi(TemporaryCacheRestApi):
         """
         return super().get(pk, key)
 
-    @expose("/<int:pk>/filter_state/<string:key>", methods=("DELETE",))
+    @expose("/<int:pk>/filter_state/<string:key>", methods=["DELETE"])
     @protect()
     @safe
     @event_logger.log_this_with_context(
@@ -203,10 +207,11 @@ class DashboardFilterStateRestApi(TemporaryCacheRestApi):
         log_to_statsd=False,
     )
     def delete(self, pk: int, key: str) -> Response:
-        """Delete a dashboard's filter state value.
+        """Deletes a value.
         ---
         delete:
-          summary: Delete a dashboard's filter state value
+          description: >-
+            Deletes a value.
           parameters:
           - in: path
             schema:

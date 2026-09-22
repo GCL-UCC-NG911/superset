@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 import math
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from pandas import Series
 
@@ -26,7 +26,7 @@ AGGREGATES_MULTIPLE = {
 }
 
 
-def series_to_list(series: Series) -> list[Any]:
+def series_to_list(series: Series) -> List[Any]:
     """
     Converts a `Series` to a regular list, and replaces non-numeric values to
     Nones.
@@ -43,8 +43,8 @@ def series_to_list(series: Series) -> list[Any]:
 
 
 def round_floats(
-    floats: list[Optional[float]], precision: int
-) -> list[Optional[float]]:
+    floats: List[Optional[float]], precision: int
+) -> List[Optional[float]]:
     """
     Round list of floats to certain precision
 

@@ -16,58 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import Slider, { SliderSingleProps, SliderRangeProps } from '.';
+import React from 'react';
+import Slider, { SliderSingleProps } from '.';
 
 export default {
   title: 'Slider',
   component: Slider,
 };
 
-const tooltipPlacement = [
-  'top',
-  'left',
-  'bottom',
-  'right',
-  'topLeft',
-  'topRight',
-  'bottomLeft',
-  'bottomRight',
-  'leftTop',
-  'leftBottom',
-  'rightTop',
-  'rightBottom',
-] as const;
-
-export const InteractiveSlider = ({
-  tooltipOpen,
-  tooltipPosition,
-  ...args
-}: SliderSingleProps & {
-  tooltipOpen: boolean;
-  tooltipPosition: (typeof tooltipPlacement)[number];
-}) => (
-  <Slider
-    {...args}
-    tooltip={{
-      ...args.tooltip,
-      open: tooltipOpen,
-      placement: tooltipPosition,
-    }}
-    style={{ width: 400, height: 400 }}
-  />
-);
-
-export const InteractiveRangeSlider = ({
-  tooltipOpen,
-  draggableTrack,
-  ...args
-}: SliderRangeProps & { tooltipOpen: boolean; draggableTrack: boolean }) => (
-  <Slider
-    {...args}
-    tooltip={{ open: tooltipOpen }}
-    range={{ draggableTrack }}
-    style={{ width: 400, height: 400 }}
-  />
+export const InteractiveSlider = (args: SliderSingleProps) => (
+  <Slider {...args} style={{ width: 400, height: 400 }} />
 );
 
 InteractiveSlider.args = {
@@ -75,33 +33,25 @@ InteractiveSlider.args = {
   max: 100,
   defaultValue: 70,
   step: 1,
-  marks: {},
-  disabled: false,
-  reverse: false,
-  vertical: false,
-  autoFocus: false,
-  keyboard: true,
-  dots: false,
-  included: true,
-  tooltipPosition: 'bottom',
 };
 
 InteractiveSlider.argTypes = {
   onChange: { action: 'onChange' },
-  onChangeComplete: { action: 'onChangeComplete' },
-  tooltipOpen: {
+  disabled: {
     control: { type: 'boolean' },
   },
-  tooltipPosition: {
-    options: tooltipPlacement,
-    control: { type: 'select' },
+  reverse: {
+    control: { type: 'boolean' },
+  },
+  vertical: {
+    control: { type: 'boolean' },
   },
 };
 
-InteractiveRangeSlider.args = {
-  ...InteractiveSlider.args,
-  defaultValue: [50, 70],
-  draggableTrack: false,
+InteractiveSlider.story = {
+  parameters: {
+    knobs: {
+      disable: true,
+    },
+  },
 };
-
-InteractiveRangeSlider.argTypes = InteractiveSlider.argTypes;

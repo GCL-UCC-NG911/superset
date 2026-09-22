@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import Card, { CardProps } from '.';
 
 export default {
@@ -43,6 +44,14 @@ InteractiveCard.argTypes = {
   },
   theme: {
     table: {
+      disable: true,
+    },
+  },
+};
+
+InteractiveCard.story = {
+  parameters: {
+    knobs: {
       disable: true,
     },
   },

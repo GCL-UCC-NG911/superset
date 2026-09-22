@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Any
+from typing import Any, Dict, List
 
 from click.core import Context
 
@@ -31,10 +31,10 @@ except ModuleNotFoundError:
 RECEIVER_EMAIL = "dev@superset.apache.org"
 PROJECT_NAME = "Superset"
 PROJECT_MODULE = "superset"
-PROJECT_DESCRIPTION = "Apache Superset is a modern, enterprise-ready business intelligence web application."  # noqa: E501
+PROJECT_DESCRIPTION = "Apache Superset is a modern, enterprise-ready business intelligence web application"
 
 
-def string_comma_to_list(message: str) -> list[str]:
+def string_comma_to_list(message: str) -> List[str]:
     if not message:
         return []
     return [element.strip() for element in message.split(",")]
@@ -52,7 +52,7 @@ def render_template(template_file: str, **kwargs: Any) -> str:
     return template.render(kwargs)
 
 
-class BaseParameters:
+class BaseParameters(object):
     def __init__(
         self,
         version: str,
@@ -60,7 +60,7 @@ class BaseParameters:
     ) -> None:
         self.version = version
         self.version_rc = version_rc
-        self.template_arguments: dict[str, Any] = {}
+        self.template_arguments: Dict[str, Any] = {}
 
     def __repr__(self) -> str:
         return f"Apache Credentials: {self.version}/{self.version_rc}"

@@ -17,28 +17,28 @@
  * under the License.
  */
 
-import '@testing-library/jest-dom';
+import React from 'react';
+import { shallow } from 'enzyme';
 import { TooltipFrame } from '@superset-ui/core';
-import { render, screen } from '@testing-library/react';
 
 describe('TooltipFrame', () => {
   it('sets className', () => {
-    const { container } = render(
+    const wrapper = shallow(
       <TooltipFrame className="test-class">
         <span>Hi!</span>
       </TooltipFrame>,
     );
-    expect(screen.getByText('Hi!')).toBeInTheDocument();
-    expect(container.querySelector('.test-class')).toBeInTheDocument();
+    expect(wrapper.hasClass('test-class')).toEqual(true);
   });
 
   it('renders', () => {
-    const { container } = render(
+    const wrapper = shallow(
       <TooltipFrame>
         <span>Hi!</span>
       </TooltipFrame>,
     );
-    expect(container.querySelectorAll('span')).toHaveLength(1);
-    expect(container.querySelector('span')).toHaveTextContent('Hi!');
+    const span = wrapper.find('span');
+    expect(span).toHaveLength(1);
+    expect(span.text()).toEqual('Hi!');
   });
 });

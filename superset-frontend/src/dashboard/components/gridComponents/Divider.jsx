@@ -16,11 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { PureComponent } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { css, styled } from '@superset-ui/core';
 
-import { Draggable } from '../dnd/DragDroppable';
+import DragDroppable from '../dnd/DragDroppable';
 import HoverMenu from '../menu/HoverMenu';
 import DeleteComponentButton from '../DeleteComponentButton';
 import { componentShape } from '../../util/propShapes';
@@ -62,7 +62,7 @@ const DividerLine = styled.div`
   `}
 `;
 
-class Divider extends PureComponent {
+class Divider extends React.PureComponent {
   constructor(props) {
     super(props);
     this.handleDeleteComponent = this.handleDeleteComponent.bind(this);
@@ -84,7 +84,7 @@ class Divider extends PureComponent {
     } = this.props;
 
     return (
-      <Draggable
+      <DragDroppable
         component={component}
         parentComponent={parentComponent}
         orientation="row"
@@ -93,17 +93,20 @@ class Divider extends PureComponent {
         onDrop={handleComponentDrop}
         editMode={editMode}
       >
-        {({ dragSourceRef }) => (
+        {({ dropIndicatorProps, dragSourceRef }) => (
           <div ref={dragSourceRef}>
             {editMode && (
               <HoverMenu position="left">
                 <DeleteComponentButton onDelete={this.handleDeleteComponent} />
               </HoverMenu>
             )}
+
             <DividerLine className="dashboard-component dashboard-component-divider" />
+
+            {dropIndicatorProps && <div {...dropIndicatorProps} />}
           </div>
         )}
-      </Draggable>
+      </DragDroppable>
     );
   }
 }

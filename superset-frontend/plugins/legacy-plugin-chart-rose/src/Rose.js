@@ -46,7 +46,6 @@ const propTypes = {
   numberFormat: PropTypes.string,
   useRichTooltip: PropTypes.bool,
   useAreaProportions: PropTypes.bool,
-  colorScheme: PropTypes.string,
 };
 
 function copyArc(d) {
@@ -124,13 +123,7 @@ function Rose(element, props) {
             color: colorFn(v.name, sliceId),
             highlight: v.id === d.arcId,
           }))
-      : [
-          {
-            key: d.name,
-            value: d.val,
-            color: colorFn(d.name, sliceId),
-          },
-        ];
+      : [{ key: d.name, value: d.val, color: colorFn(d.name, sliceId) }];
 
     return {
       key: 'Date',

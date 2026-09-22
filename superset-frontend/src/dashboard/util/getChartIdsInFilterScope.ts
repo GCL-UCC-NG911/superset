@@ -18,22 +18,27 @@
  */
 import { NativeFilterScope } from '@superset-ui/core';
 import { CHART_TYPE } from './componentTypes';
-import { LayoutItem } from '../types';
+import { ChartsState, Layout } from '../types';
 
 export function getChartIdsInFilterScope(
   filterScope: NativeFilterScope,
-  chartIds: number[],
-  layoutItems: LayoutItem[],
+  charts: ChartsState,
+  layout: Layout,
 ) {
-  return chartIds.filter(
-    chartId =>
-      !filterScope.excluded.includes(chartId) &&
-      layoutItems
-        .find(
-          layoutItem =>
-            layoutItem?.type === CHART_TYPE &&
-            layoutItem.meta?.chartId === chartId,
-        )
-        ?.parents?.some(elementId => filterScope.rootPath.includes(elementId)),
-  );
+  const layoutItems = Object.values(layout);
+  return Object.values(charts)
+    .filter(
+      chart =>
+        !filterScope.excluded.includes(chart.id) &&
+        layoutItems
+          .find(
+            layoutItem =>
+              layoutItem?.type === CHART_TYPE &&
+              layoutItem.meta?.chartId === chart.id,
+          )
+          ?.parents?.some(elementId =>
+            filterScope.rootPath.includes(elementId),
+          ),
+    )
+    .map(chart => chart.id);
 }

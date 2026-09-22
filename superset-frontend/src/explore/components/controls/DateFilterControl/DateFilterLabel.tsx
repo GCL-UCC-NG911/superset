@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactNode, useState, useEffect, useMemo } from 'react';
+import React, { ReactNode, useState, useEffect, useMemo } from 'react';
 import {
   css,
   styled,
@@ -24,24 +24,24 @@ import {
   useTheme,
   NO_TIME_RANGE,
   SupersetTheme,
-  useCSSTextTruncation,
-  fetchTimeRange,
 } from '@superset-ui/core';
 import Button from 'src/components/Button';
 import ControlHeader from 'src/explore/components/ControlHeader';
 import Modal from 'src/components/Modal';
-import { Divider } from 'src/components/Divider';
+import { Divider } from 'src/components';
 import Icons from 'src/components/Icons';
 import Select from 'src/components/Select/Select';
 import { Tooltip } from 'src/components/Tooltip';
 import { useDebouncedEffect } from 'src/explore/exploreUtils';
 import { SLOW_DEBOUNCE } from 'src/constants';
 import { noOp } from 'src/utils/common';
+import { useCSSTextTruncation } from 'src/hooks/useTruncation';
 import ControlPopover from '../ControlPopover/ControlPopover';
 
 import { DateFilterControlProps, FrameType } from './types';
 import {
-  DateFilterTestKey,
+  DATE_FILTER_TEST_KEY,
+  fetchTimeRange,
   FRAME_OPTIONS,
   guessFrame,
   useDefaultTimeFilter,
@@ -53,7 +53,6 @@ import {
   AdvancedFrame,
   DateLabel,
 } from './components';
-import { CurrentCalendarFrame } from './components/CurrentCalendarFrame';
 
 const StyledRangeType = styled(Select)`
   width: 272px;
@@ -65,7 +64,7 @@ const ContentStyleWrapper = styled.div`
       margin-top: 8px;
     }
 
-    .antd5-input-number {
+    .ant-input-number {
       width: 100%;
     }
 
@@ -75,7 +74,7 @@ const ContentStyleWrapper = styled.div`
       width: 100%;
     }
 
-    .antd5-divider-horizontal {
+    .ant-divider-horizontal {
       margin: 16px 0;
     }
 
@@ -84,7 +83,14 @@ const ContentStyleWrapper = styled.div`
       font-weight: ${theme.typography.weights.medium};
       color: ${theme.colors.grayscale.light2};
       line-height: 16px;
+      text-transform: uppercase;
       margin: 8px 0;
+    }
+
+    .vertical-radio {
+      display: block;
+      height: 40px;
+      line-height: 40px;
     }
 
     .section-title {
@@ -146,7 +152,6 @@ const getTooltipTitle = (
 
 export default function DateFilterLabel(props: DateFilterControlProps) {
   const {
-    name,
     onChange,
     onOpenPopover = noOp,
     onClosePopover = noOp,
@@ -196,7 +201,6 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
         if (
           guessedFrame === 'Common' ||
           guessedFrame === 'Calendar' ||
-          guessedFrame === 'Current' ||
           guessedFrame === 'No filter'
         ) {
           setActualTimeRange(value);
@@ -292,31 +296,19 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
       {frame === 'Calendar' && (
         <CalendarFrame value={timeRangeValue} onChange={setTimeRangeValue} />
       )}
-      {frame === 'Current' && (
-        <CurrentCalendarFrame
-          value={timeRangeValue}
-          onChange={setTimeRangeValue}
-        />
-      )}
       {frame === 'Advanced' && (
         <AdvancedFrame value={timeRangeValue} onChange={setTimeRangeValue} />
       )}
       {frame === 'Custom' && (
-        <CustomFrame
-          value={timeRangeValue}
-          onChange={setTimeRangeValue}
-          isOverflowingFilterBar={isOverflowingFilterBar}
-        />
+        <CustomFrame value={timeRangeValue} onChange={setTimeRangeValue} />
       )}
-      {frame === 'No filter' && <div data-test={DateFilterTestKey.NoFilter} />}
+      {frame === 'No filter' && (
+        <div data-test={DATE_FILTER_TEST_KEY.noFilter} />
+      )}
       <Divider />
       <div>
         <div className="section-title">{t('Actual time range')}</div>
-        {validTimeRange && (
-          <div>
-            {evalResponse === 'No filter' ? t('No filter') : evalResponse}
-          </div>
-        )}
+        {validTimeRange && <div>{evalResponse}</div>}
         {!validTimeRange && (
           <IconWrapper className="warning">
             <Icons.ErrorSolidSmall iconColor={theme.colors.error.base} />
@@ -331,7 +323,7 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
           cta
           key="cancel"
           onClick={onHide}
-          data-test={DateFilterTestKey.CancelButton}
+          data-test={DATE_FILTER_TEST_KEY.cancelButton}
         >
           {t('CANCEL')}
         </Button>
@@ -341,7 +333,7 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
           disabled={!validTimeRange}
           key="apply"
           onClick={onSave}
-          data-test={DateFilterTestKey.ApplyButton}
+          data-test={DATE_FILTER_TEST_KEY.applyButton}
         >
           {t('APPLY')}
         </Button>
@@ -375,13 +367,10 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
     >
       <Tooltip placement="top" title={tooltipTitle}>
         <DateLabel
-          name={name}
-          aria-labelledby={`filter-name-${props.name}`}
-          aria-describedby={`date-label-${props.name}`}
           label={actualTimeRange}
           isActive={show}
           isPlaceholder={actualTimeRange === NO_TIME_RANGE}
-          data-test={DateFilterTestKey.PopoverOverlay}
+          data-test={DATE_FILTER_TEST_KEY.popoverOverlay}
           ref={labelRef}
         />
       </Tooltip>
@@ -392,18 +381,15 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
     <>
       <Tooltip placement="top" title={tooltipTitle}>
         <DateLabel
-          name={name}
-          aria-labelledby={`filter-name-${props.name}`}
-          aria-describedby={`date-label-${props.name}`}
           onClick={toggleOverlay}
           label={actualTimeRange}
           isActive={show}
           isPlaceholder={actualTimeRange === NO_TIME_RANGE}
-          data-test={DateFilterTestKey.ModalOverlay}
+          data-test={DATE_FILTER_TEST_KEY.modalOverlay}
           ref={labelRef}
         />
       </Tooltip>
-      {/* the zIndex value is from trying so that the Modal doesn't overlay the AdhocFilter */}
+      {/* the zIndex value is from trying so that the Modal doesn't overlay the AdhocFilter when GENERIC_CHART_AXES is enabled */}
       <Modal
         title={title}
         show={show}

@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { RunQueryButton, RunQueryButtonProps } from '.';
 
 export default {
@@ -38,4 +39,12 @@ InteractiveRunQueryButtonProps.args = {
 InteractiveRunQueryButtonProps.argTypes = {
   onQuery: { action: 'onQuery' },
   onStop: { action: 'onStop' },
+};
+
+InteractiveRunQueryButtonProps.story = {
+  parameters: {
+    knobs: {
+      disable: true,
+    },
+  },
 };

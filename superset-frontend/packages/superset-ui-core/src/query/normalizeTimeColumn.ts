@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { omit } from 'lodash';
+import omit from 'lodash/omit';
 
 import {
   AdhocColumn,
@@ -70,7 +70,10 @@ export function normalizeTimeColumn(
       };
     }
 
-    const newQueryObject = omit(queryObject, ['is_timeseries']);
+    const newQueryObject = omit(queryObject, [
+      'extras.time_grain_sqla',
+      'is_timeseries',
+    ]);
     newQueryObject.columns = mutatedColumns;
 
     return newQueryObject;

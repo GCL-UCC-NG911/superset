@@ -1,3 +1,5 @@
+import { logging } from '@superset-ui/core';
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,8 +18,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { logging } from '@superset-ui/core';
-
 export default function updateComponentParentsList({
   currentComponent,
   layout = {},
@@ -32,14 +32,11 @@ export default function updateComponentParentsList({
 
       if (Array.isArray(currentComponent.children)) {
         currentComponent.children.forEach(childId => {
-          if (layout[childId]) {
-            // eslint-disable-next-line no-param-reassign
-            layout[childId] = {
-              ...layout[childId],
-              parents: parentsList,
-            };
+          const child = layout[childId];
+          if (child) {
+            child.parents = parentsList; // eslint-disable-line no-param-reassign
             updateComponentParentsList({
-              currentComponent: layout[childId],
+              currentComponent: child,
               layout,
             });
           } else {

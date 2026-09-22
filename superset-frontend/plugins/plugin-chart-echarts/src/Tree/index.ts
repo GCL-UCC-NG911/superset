@@ -16,21 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { t } from '@superset-ui/core';
+import { t, ChartMetadata, ChartPlugin } from '@superset-ui/core';
 import controlPanel from './controlPanel';
 import transformProps from './transformProps';
 import thumbnail from './images/thumbnail.png';
 import example from './images/tree.png';
 import buildQuery from './buildQuery';
-import { EchartsChartPlugin } from '../types';
 
-export default class EchartsTreeChartPlugin extends EchartsChartPlugin {
+export default class EchartsTreeChartPlugin extends ChartPlugin {
   constructor() {
     super({
       buildQuery,
       controlPanel,
       loadChart: () => import('./EchartsTree'),
-      metadata: {
+      metadata: new ChartMetadata({
         category: t('Part of a Whole'),
         credits: ['https://echarts.apache.org'],
         description: t(
@@ -44,10 +43,9 @@ export default class EchartsTreeChartPlugin extends EchartsChartPlugin {
           t('Multi-Levels'),
           t('Relational'),
           t('Structural'),
-          t('Featured'),
         ],
         thumbnail,
-      },
+      }),
       transformProps,
     });
   }

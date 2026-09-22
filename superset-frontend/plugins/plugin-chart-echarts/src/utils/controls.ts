@@ -19,7 +19,8 @@
 
 import { validateNumber } from '@superset-ui/core';
 
-export function parseAxisBound(
+// eslint-disable-next-line import/prefer-default-export
+export function parseYAxisBound(
   bound?: string | number | null,
 ): number | undefined {
   if (bound === undefined || bound === null || Number.isNaN(Number(bound))) {
@@ -29,7 +30,7 @@ export function parseAxisBound(
 }
 
 export function parseNumbersList(value: string, delim = ';') {
-  if (!value?.trim()) return [];
+  if (!value || !value.trim()) return [];
   return value.split(delim).map(num => {
     if (validateNumber(num)) throw new Error('All values must be numeric');
     return Number(num);

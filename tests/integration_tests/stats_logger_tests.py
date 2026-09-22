@@ -15,7 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 """Unit tests for Superset"""
-
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
@@ -43,7 +42,7 @@ class TestStatsdStatsLogger(TestCase):
         self.verify_client_calls(stats_logger, client)
 
     def test_init_with_params(self):
-        with patch("superset.stats_logger.StatsClient") as MockStatsdClient:  # noqa: N806
+        with patch("superset.stats_logger.StatsClient") as MockStatsdClient:
             mock_client = MockStatsdClient.return_value
 
             stats_logger = StatsdStatsLogger()

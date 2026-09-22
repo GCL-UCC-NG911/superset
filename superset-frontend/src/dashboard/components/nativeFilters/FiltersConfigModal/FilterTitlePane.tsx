@@ -16,12 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useRef, FC } from 'react';
-
+import React, { useRef } from 'react';
 import { NativeFilterType, styled, t, useTheme } from '@superset-ui/core';
-import { Button } from 'src/components';
-import Icons from 'src/components/Icons';
-
+import { AntdDropdown } from 'src/components';
+import { MainNav as Menu } from 'src/components/Menu';
 import FilterTitleContainer from './FilterTitleContainer';
 import { FilterRemoval } from './types';
 
@@ -38,15 +36,28 @@ interface Props {
   erroredFilters: string[];
 }
 
+const StyledAddBox = styled.div`
+  ${({ theme }) => `
+  cursor: pointer;
+  margin: ${theme.gridUnit * 4}px;
+  color: ${theme.colors.primary.base};
+  &:hover {
+    color: ${theme.colors.primary.dark1};
+  }
+`}
+`;
 const TabsContainer = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: ${({ theme }) => theme.gridUnit * 3}px;
-  padding-top: 2px;
 `;
 
-const FilterTitlePane: FC<Props> = ({
+const options = [
+  { label: t('Filter'), type: NativeFilterType.NATIVE_FILTER },
+  { label: t('Divider'), type: NativeFilterType.DIVIDER },
+];
+
+const FilterTitlePane: React.FC<Props> = ({
   getFilterTitle,
   onChange,
   onAdd,
@@ -58,9 +69,8 @@ const FilterTitlePane: FC<Props> = ({
   removedFilters,
   erroredFilters,
 }) => {
-  const theme = useTheme();
-
   const filtersContainerRef = useRef<HTMLDivElement>(null);
+  const theme = useTheme();
 
   const handleOnAdd = (type: NativeFilterType) => {
     onAdd(type);
@@ -77,12 +87,33 @@ const FilterTitlePane: FC<Props> = ({
       });
     }, 0);
   };
+  const menu = (
+    <Menu mode="horizontal">
+      {options.map(item => (
+        <Menu.Item onClick={() => handleOnAdd(item.type)}>
+          {item.label}
+        </Menu.Item>
+      ))}
+    </Menu>
+  );
   return (
     <TabsContainer>
+      <AntdDropdown
+        overlay={menu}
+        arrow
+        placement="topLeft"
+        trigger={['hover']}
+      >
+        <StyledAddBox>
+          <div data-test="new-dropdown-icon" className="fa fa-plus" />{' '}
+          <span>{t('Add filters and dividers')}</span>
+        </StyledAddBox>
+      </AntdDropdown>
       <div
         css={{
           height: '100%',
           overflowY: 'auto',
+          marginLeft: theme.gridUnit * 3,
         }}
       >
         <FilterTitleContainer
@@ -97,33 +128,6 @@ const FilterTitlePane: FC<Props> = ({
           onRearrange={onRearrange}
           restoreFilter={restoreFilter}
         />
-      </div>
-      <div
-        css={{
-          display: 'flex',
-          justifyContent: 'space-around',
-          alignItems: 'flex-start',
-          paddingTop: theme.gridUnit * 3,
-        }}
-      >
-        <Button
-          buttonSize="default"
-          buttonStyle="secondary"
-          icon={<Icons.Filter iconSize="m" />}
-          data-test="add-new-filter-button"
-          onClick={() => handleOnAdd(NativeFilterType.NativeFilter)}
-        >
-          {t('Add Filter')}
-        </Button>
-        <Button
-          buttonSize="default"
-          buttonStyle="secondary"
-          icon={<Icons.PicCenterOutlined iconSize="m" />}
-          data-test="add-new-divider-button"
-          onClick={() => handleOnAdd(NativeFilterType.Divider)}
-        >
-          {t('Add Divider')}
-        </Button>
       </div>
     </TabsContainer>
   );

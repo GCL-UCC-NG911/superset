@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import RefreshLabel, { RefreshLabelProps } from '.';
 
 export default {
@@ -32,4 +33,12 @@ InteractiveRefreshLabel.args = {
 
 InteractiveRefreshLabel.argTypes = {
   onClick: { action: 'onClick' },
+};
+
+InteractiveRefreshLabel.story = {
+  parameters: {
+    knobs: {
+      disable: true,
+    },
+  },
 };

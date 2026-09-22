@@ -16,14 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactNode } from 'react';
+import React from 'react';
 import { t } from '@superset-ui/core';
 import Alert from 'src/components/Alert';
 import Button, { OnClickHandler } from 'src/components/Button';
 
 export interface ConfirmationAlertProps {
   title: string;
-  children: ReactNode;
+  children: React.ReactNode;
   onConfirm: OnClickHandler;
   onDismiss: OnClickHandler;
 }
@@ -42,8 +42,7 @@ export function CancelConfirmationAlert({
       message={title}
       css={{
         textAlign: 'left',
-        flex: 1,
-        '& .antd5-alert-action': { alignSelf: 'center' },
+        '& .ant-alert-action': { alignSelf: 'center' },
       }}
       description={children}
       action={
@@ -61,7 +60,6 @@ export function CancelConfirmationAlert({
             buttonSize="small"
             buttonStyle="primary"
             onClick={onConfirm}
-            data-test="native-filter-modal-confirm-cancel-button"
           >
             {t('Yes, cancel')}
           </Button>

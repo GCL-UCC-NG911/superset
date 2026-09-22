@@ -17,25 +17,26 @@
  * under the License.
  */
 /* eslint-disable no-param-reassign */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AppSection,
   DataMask,
+  DataRecordValue,
   ensureIsArray,
   ExtraFormData,
   GenericDataType,
   getColumnLabel,
   JsonObject,
-  finestTemporalGrainFormatter,
+  smartDateDetailedFormatter,
   t,
   tn,
 } from '@superset-ui/core';
 import { LabeledValue as AntdLabeledValue } from 'antd/lib/select';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import { useImmerReducer } from 'use-immer';
 import { Select } from 'src/components';
 import { SLOW_DEBOUNCE } from 'src/constants';
-import { hasOption, propertyComparator } from 'src/components/Select/utils';
+import { propertyComparator } from 'src/components/Select/utils';
 import { FilterBarOrientation } from 'src/dashboard/types';
 import { PluginFilterSelectProps, SelectValue } from './types';
 import { FilterPluginStyle, StatusMessage, StyledFormItem } from '../common';
@@ -45,11 +46,15 @@ type DataMaskAction =
   | { type: 'ownState'; ownState: JsonObject }
   | {
       type: 'filterState';
+      __cache: JsonObject;
       extraFormData: ExtraFormData;
       filterState: { value: SelectValue; label?: string };
     };
 
-function reducer(draft: DataMask, action: DataMaskAction) {
+function reducer(
+  draft: DataMask & { __cache?: JsonObject },
+  action: DataMaskAction,
+) {
   switch (action.type) {
     case 'ownState':
       draft.ownState = {
@@ -58,18 +63,10 @@ function reducer(draft: DataMask, action: DataMaskAction) {
       };
       return draft;
     case 'filterState':
-      if (
-        JSON.stringify(draft.extraFormData) !==
-        JSON.stringify(action.extraFormData)
-      ) {
-        draft.extraFormData = action.extraFormData;
-      }
-      if (
-        JSON.stringify(draft.filterState) !== JSON.stringify(action.filterState)
-      ) {
-        draft.filterState = { ...draft.filterState, ...action.filterState };
-      }
-
+      draft.extraFormData = action.extraFormData;
+      // eslint-disable-next-line no-underscore-dangle
+      draft.__cache = action.__cache;
+      draft.filterState = { ...draft.filterState, ...action.filterState };
       return draft;
     default:
       return draft;
@@ -111,7 +108,6 @@ export default function PluginFilterSelect(props: PluginFilterSelectProps) {
   );
   const [col] = groupby;
   const [initialColtypeMap] = useState(coltypeMap);
-  const [search, setSearch] = useState('');
   const [dataMask, dispatchDataMask] = useImmerReducer(reducer, {
     extraFormData: {},
     filterState,
@@ -120,9 +116,9 @@ export default function PluginFilterSelect(props: PluginFilterSelectProps) {
   const labelFormatter = useMemo(
     () =>
       getDataRecordFormatter({
-        timeFormatter: finestTemporalGrainFormatter(data.map(el => el[col])),
+        timeFormatter: smartDateDetailedFormatter,
       }),
-    [data, col],
+    [],
   );
 
   const updateDataMask = useCallback(
@@ -131,8 +127,10 @@ export default function PluginFilterSelect(props: PluginFilterSelectProps) {
         enableEmptyFilter && !inverseSelection && !values?.length;
 
       const suffix = inverseSelection && values?.length ? t(' (excluded)') : '';
+
       dispatchDataMask({
         type: 'filterState',
+        __cache: filterState,
         extraFormData: getSelectExtraFormData(
           col,
           values,
@@ -147,7 +145,7 @@ export default function PluginFilterSelect(props: PluginFilterSelectProps) {
                 .join(', ')}${suffix}`
             : undefined,
           value:
-            appSection === AppSection.FilterConfigModal && defaultToFirstItem
+            appSection === AppSection.FILTER_CONFIG_MODAL && defaultToFirstItem
               ? undefined
               : values,
         },
@@ -167,30 +165,51 @@ export default function PluginFilterSelect(props: PluginFilterSelectProps) {
     ],
   );
 
-  const isDisabled =
-    appSection === AppSection.FilterConfigModal && defaultToFirstItem;
+  useEffect(() => {
+    updateDataMask(filterState.value);
+  }, [JSON.stringify(filterState.value)]);
 
-  const onSearch = useMemo(
-    () =>
-      debounce((search: string) => {
-        setSearch(search);
-        if (searchAllOptions) {
-          dispatchDataMask({
-            type: 'ownState',
-            ownState: {
-              coltypeMap: initialColtypeMap,
-              search,
-            },
-          });
-        }
-      }, SLOW_DEBOUNCE),
-    [dispatchDataMask, initialColtypeMap, searchAllOptions],
+  const isDisabled =
+    appSection === AppSection.FILTER_CONFIG_MODAL && defaultToFirstItem;
+
+  const debouncedOwnStateFunc = useCallback(
+    debounce((val: string) => {
+      dispatchDataMask({
+        type: 'ownState',
+        ownState: {
+          coltypeMap: initialColtypeMap,
+          search: val,
+        },
+      });
+    }, SLOW_DEBOUNCE),
+    [],
   );
 
+  const searchWrapper = useCallback(
+    (val: string) => {
+      if (searchAllOptions) {
+        debouncedOwnStateFunc(val);
+      }
+    },
+    [debouncedOwnStateFunc, searchAllOptions],
+  );
+
+  const clearSuggestionSearch = useCallback(() => {
+    if (searchAllOptions) {
+      dispatchDataMask({
+        type: 'ownState',
+        ownState: {
+          coltypeMap: initialColtypeMap,
+          search: null,
+        },
+      });
+    }
+  }, [dispatchDataMask, initialColtypeMap, searchAllOptions]);
+
   const handleBlur = useCallback(() => {
+    clearSuggestionSearch();
     unsetFocusedFilter();
-    onSearch('');
-  }, [onSearch, unsetFocusedFilter]);
+  }, [clearSuggestionSearch, unsetFocusedFilter]);
 
   const handleChange = useCallback(
     (value?: SelectValue | number | string) => {
@@ -203,53 +222,6 @@ export default function PluginFilterSelect(props: PluginFilterSelectProps) {
       }
     },
     [updateDataMask],
-  );
-
-  const placeholderText =
-    data.length === 0
-      ? t('No data')
-      : tn('%s option', '%s options', data.length, data.length);
-
-  const formItemExtra = useMemo(() => {
-    if (filterState.validateMessage) {
-      return (
-        <StatusMessage status={filterState.validateStatus}>
-          {filterState.validateMessage}
-        </StatusMessage>
-      );
-    }
-    return undefined;
-  }, [filterState.validateMessage, filterState.validateStatus]);
-
-  const uniqueOptions = useMemo(() => {
-    const allOptions = new Set([...data.map(el => el[col])]);
-    return [...allOptions].map((value: string) => ({
-      label: labelFormatter(value, datatype),
-      value,
-      isNewOption: false,
-    }));
-  }, [data, datatype, col, labelFormatter]);
-
-  const options = useMemo(() => {
-    if (search && !multiSelect && !hasOption(search, uniqueOptions, true)) {
-      uniqueOptions.unshift({
-        label: search,
-        value: search,
-        isNewOption: true,
-      });
-    }
-    return uniqueOptions;
-  }, [multiSelect, search, uniqueOptions]);
-
-  const sortComparator = useCallback(
-    (a: AntdLabeledValue, b: AntdLabeledValue) => {
-      const labelComparator = propertyComparator('label');
-      if (formData.sortAscending) {
-        return labelComparator(a, b);
-      }
-      return labelComparator(b, a);
-    },
-    [formData.sortAscending],
   );
 
   useEffect(() => {
@@ -279,12 +251,51 @@ export default function PluginFilterSelect(props: PluginFilterSelectProps) {
     updateDataMask,
     data,
     groupby,
-    JSON.stringify(filterState.value),
+    JSON.stringify(filterState),
   ]);
 
   useEffect(() => {
     setDataMask(dataMask);
   }, [JSON.stringify(dataMask)]);
+
+  const placeholderText =
+    data.length === 0
+      ? t('No data')
+      : tn('%s option', '%s options', data.length, data.length);
+
+  const formItemExtra = useMemo(() => {
+    if (filterState.validateMessage) {
+      return (
+        <StatusMessage status={filterState.validateStatus}>
+          {filterState.validateMessage}
+        </StatusMessage>
+      );
+    }
+    return undefined;
+  }, [filterState.validateMessage, filterState.validateStatus]);
+
+  const options = useMemo(() => {
+    const options: { label: string; value: DataRecordValue }[] = [];
+    data.forEach(row => {
+      const [value] = groupby.map(col => row[col]);
+      options.push({
+        label: labelFormatter(value, datatype),
+        value,
+      });
+    });
+    return options;
+  }, [data, datatype, groupby, labelFormatter]);
+
+  const sortComparator = useCallback(
+    (a: AntdLabeledValue, b: AntdLabeledValue) => {
+      const labelComparator = propertyComparator('label');
+      if (formData.sortAscending) {
+        return labelComparator(a, b);
+      }
+      return labelComparator(b, a);
+    },
+    [formData.sortAscending],
+  );
 
   return (
     <FilterPluginStyle height={height} width={width}>
@@ -293,10 +304,8 @@ export default function PluginFilterSelect(props: PluginFilterSelectProps) {
         extra={formItemExtra}
       >
         <Select
-          name={formData.nativeFilterId}
           allowClear
-          allowNewOptions={!searchAllOptions}
-          allowSelectAll={!searchAllOptions}
+          allowNewOptions
           // @ts-ignore
           value={filterState.value || []}
           disabled={isDisabled}
@@ -309,8 +318,8 @@ export default function PluginFilterSelect(props: PluginFilterSelectProps) {
           showSearch={showSearch}
           mode={multiSelect ? 'multiple' : 'single'}
           placeholder={placeholderText}
-          onClear={() => onSearch('')}
-          onSearch={onSearch}
+          onSearch={searchWrapper}
+          onSelect={clearSuggestionSearch}
           onBlur={handleBlur}
           onFocus={setFocusedFilter}
           onMouseEnter={setHoveredFilter}
@@ -319,8 +328,9 @@ export default function PluginFilterSelect(props: PluginFilterSelectProps) {
           onChange={handleChange}
           ref={inputRef}
           loading={isRefreshing}
-          oneLine={filterBarOrientation === FilterBarOrientation.Horizontal}
+          oneLine={filterBarOrientation === FilterBarOrientation.HORIZONTAL}
           invertSelection={inverseSelection}
+          // @ts-ignore
           options={options}
           sortComparator={sortComparator}
           onDropdownVisibleChange={setFilterActive}

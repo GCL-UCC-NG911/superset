@@ -16,19 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { StoryFn, Meta } from '@storybook/react';
+import React from 'react';
+import { ComponentStory, ComponentMeta } from '@storybook/react';
 import { TimeFormats } from '@superset-ui/core';
 import TimeCell from '.';
 
 export default {
   title: 'Design System/Components/Table/Cell Renderers/TimeCell',
   component: TimeCell,
-} as Meta<typeof TimeCell>;
+} as ComponentMeta<typeof TimeCell>;
 
-export const Basic: StoryFn<typeof TimeCell> = args => <TimeCell {...args} />;
+export const Basic: ComponentStory<typeof TimeCell> = args => (
+  <TimeCell {...args} />
+);
 
 Basic.args = {
-  value: new Date('2015-07-02T16:16:00Z').getTime(),
+  value: Date.now(),
 };
 
 Basic.argTypes = {

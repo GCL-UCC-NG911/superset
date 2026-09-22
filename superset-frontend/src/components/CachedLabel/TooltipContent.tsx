@@ -17,18 +17,18 @@
  * under the License.
  */
 
-import { FC } from 'react';
-import { extendedDayjs } from 'src/utils/dates';
+import React from 'react';
+import moment from 'moment';
 import { t } from '@superset-ui/core';
 
 interface Props {
   cachedTimestamp?: string;
 }
-export const TooltipContent: FC<Props> = ({ cachedTimestamp }) => {
+export const TooltipContent: React.FC<Props> = ({ cachedTimestamp }) => {
   const cachedText = cachedTimestamp ? (
     <span>
       {t('Loaded data cached')}
-      <b> {extendedDayjs.utc(cachedTimestamp).fromNow()}</b>
+      <b> {moment.utc(cachedTimestamp).fromNow()}</b>
     </span>
   ) : (
     t('Loaded from cache')

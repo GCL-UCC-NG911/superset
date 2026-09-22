@@ -16,34 +16,41 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { fireEvent, render, screen } from 'spec/helpers/testing-library';
 
+import React from 'react';
+import { render, screen } from 'spec/helpers/testing-library';
+import { shallow } from 'enzyme';
+import TextAreaControl from 'src/explore/components/controls/TextAreaControl';
 import Field from './Field';
 
-const defaultProps = {
-  fieldKey: 'mock',
-  value: '',
-  label: 'mock',
-  description: 'description',
-  control: <input type="text" data-test="mock-text-control" />,
-  onChange: jest.fn(),
-  compact: false,
-  inline: false,
-};
+describe('Field', () => {
+  const defaultProps = {
+    fieldKey: 'mock',
+    value: '',
+    label: 'mock',
+    description: 'description',
+    control: <TextAreaControl />,
+    onChange: jest.fn(),
+    compact: false,
+    inline: false,
+  };
 
-test('should render', () => {
-  const { container } = render(<Field {...defaultProps} />);
-  expect(container).toBeInTheDocument();
-});
+  it('should render', () => {
+    const { container } = render(<Field {...defaultProps} />);
+    expect(container).toBeInTheDocument();
+  });
 
-test('should call onChange', () => {
-  const { getByTestId } = render(<Field {...defaultProps} />);
-  const textArea = getByTestId('mock-text-control');
-  fireEvent.change(textArea, { target: { value: 'x' } });
-  expect(defaultProps.onChange).toHaveBeenCalled();
-});
+  it('should call onChange', () => {
+    const wrapper = shallow(<Field {...defaultProps} />);
+    const textArea = wrapper.find(TextAreaControl);
+    textArea.simulate('change', { target: { value: 'x' } });
+    expect(defaultProps.onChange).toHaveBeenCalled();
+  });
 
-test('should render compact', () => {
-  render(<Field {...defaultProps} compact />);
-  expect(screen.queryByText(defaultProps.description)).not.toBeInTheDocument();
+  it('should render compact', () => {
+    render(<Field {...defaultProps} compact />);
+    expect(
+      screen.queryByText(defaultProps.description),
+    ).not.toBeInTheDocument();
+  });
 });

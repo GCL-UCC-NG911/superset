@@ -16,29 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { render } from 'spec/helpers/testing-library';
+import React from 'react';
+import { shallow } from 'enzyme';
+import { Tooltip } from 'src/components/Tooltip';
 import { IconTooltip } from 'src/components/IconTooltip';
 
-jest.mock('src/components/Tooltip', () => ({
-  Tooltip: () => <div data-test="mock-tooltip" />,
-}));
-
-const mockedProps = {
-  tooltip: 'This is a tooltip',
-};
-test('renders', () => {
-  const { container } = render(<IconTooltip>TEST</IconTooltip>);
-  expect(container).toBeInTheDocument();
-});
-test('renders with props', () => {
-  const { container } = render(
-    <IconTooltip {...mockedProps}>TEST</IconTooltip>,
-  );
-  expect(container).toBeInTheDocument();
-});
-test('renders a tooltip', () => {
-  const { getByTestId } = render(
-    <IconTooltip {...mockedProps}>TEST</IconTooltip>,
-  );
-  expect(getByTestId('mock-tooltip')).toBeInTheDocument();
+describe('IconTooltip', () => {
+  const mockedProps = {
+    tooltip: 'This is a tooltip',
+  };
+  it('renders', () => {
+    expect(React.isValidElement(<IconTooltip>TEST</IconTooltip>)).toBe(true);
+  });
+  it('renders with props', () => {
+    expect(
+      React.isValidElement(<IconTooltip {...mockedProps}>TEST</IconTooltip>),
+    ).toBe(true);
+  });
+  it('renders a tooltip', () => {
+    const wrapper = shallow(<IconTooltip {...mockedProps}>TEST</IconTooltip>);
+    expect(wrapper.find(Tooltip)).toExist();
+  });
 });

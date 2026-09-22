@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { FC } from 'react';
+import React, { FC } from 'react';
 import AceEditor, { IAceEditorProps } from 'react-ace';
 
 // must go after AceEditor import

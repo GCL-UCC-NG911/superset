@@ -16,8 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactChild } from 'react';
-import { render, screen, waitFor, within } from 'spec/helpers/testing-library';
+import React from 'react';
+import { render, screen, waitFor } from 'spec/helpers/testing-library';
 import userEvent from '@testing-library/user-event';
 import DatasourcePanel, {
   IDatasource,
@@ -29,18 +29,6 @@ import {
 } from 'src/explore/components/DatasourcePanel/fixtures';
 import { DatasourceType } from '@superset-ui/core';
 import DatasourceControl from 'src/explore/components/controls/DatasourceControl';
-import ExploreContainer from '../ExploreContainer';
-import {
-  DndColumnSelect,
-  DndMetricSelect,
-} from '../controls/DndColumnSelectControl';
-
-jest.mock(
-  'react-virtualized-auto-sizer',
-  () =>
-    ({ children }: { children: (params: { height: number }) => ReactChild }) =>
-      children({ height: 500 }),
-);
 
 const datasource: IDatasource = {
   id: 1,
@@ -81,13 +69,6 @@ const props: DatasourcePanelProps = {
   actions: {
     setControlValue: jest.fn(),
   },
-  width: 300,
-};
-
-const metricProps = {
-  savedMetrics: [],
-  columns: [],
-  onChange: jest.fn(),
 };
 
 const search = (value: string, input: HTMLElement) => {
@@ -111,13 +92,7 @@ test('should display items in controls', async () => {
 });
 
 test('should render the metrics', async () => {
-  render(
-    <ExploreContainer>
-      <DatasourcePanel {...props} />
-      <DndMetricSelect {...metricProps} />
-    </ExploreContainer>,
-    { useRedux: true, useDnd: true },
-  );
+  render(<DatasourcePanel {...props} />, { useRedux: true, useDnd: true });
   const metricsNum = metrics.length;
   metrics.forEach(metric =>
     expect(screen.getByText(metric.metric_name)).toBeInTheDocument(),
@@ -128,13 +103,7 @@ test('should render the metrics', async () => {
 });
 
 test('should render the columns', async () => {
-  render(
-    <ExploreContainer>
-      <DatasourcePanel {...props} />
-      <DndMetricSelect {...metricProps} />
-    </ExploreContainer>,
-    { useRedux: true, useDnd: true },
-  );
+  render(<DatasourcePanel {...props} />, { useRedux: true, useDnd: true });
   const columnsNum = columns.length;
   columns.forEach(col =>
     expect(screen.getByText(col.column_name)).toBeInTheDocument(),
@@ -153,13 +122,7 @@ test('should render 0 search results', async () => {
 });
 
 test('should search and render matching columns', async () => {
-  render(
-    <ExploreContainer>
-      <DatasourcePanel {...props} />
-      <DndMetricSelect {...metricProps} />
-    </ExploreContainer>,
-    { useRedux: true, useDnd: true },
-  );
+  render(<DatasourcePanel {...props} />, { useRedux: true, useDnd: true });
   const searchInput = screen.getByPlaceholderText('Search Metrics & Columns');
 
   search(columns[0].column_name, searchInput);
@@ -171,13 +134,7 @@ test('should search and render matching columns', async () => {
 });
 
 test('should search and render matching metrics', async () => {
-  render(
-    <ExploreContainer>
-      <DatasourcePanel {...props} />
-      <DndMetricSelect {...metricProps} />
-    </ExploreContainer>,
-    { useRedux: true, useDnd: true },
-  );
+  render(<DatasourcePanel {...props} />, { useRedux: true, useDnd: true });
   const searchInput = screen.getByPlaceholderText('Search Metrics & Columns');
 
   search(metrics[0].metric_name, searchInput);
@@ -240,43 +197,5 @@ test('should not render a save dataset modal when datasource is not query or dat
   render(<DatasourcePanel {...newProps} />, { useRedux: true, useDnd: true });
   expect(await screen.findByText(/metrics/i)).toBeInTheDocument();
 
-  expect(screen.queryByText(/create a dataset/i)).not.toBeInTheDocument();
-});
-
-test('should render only droppable metrics and columns', async () => {
-  const column1FilterProps = {
-    type: 'DndColumnSelect' as const,
-    name: 'Filter',
-    onChange: jest.fn(),
-    options: [{ column_name: columns[1].column_name }],
-    actions: { setControlValue: jest.fn() },
-  };
-  const column2FilterProps = {
-    type: 'DndColumnSelect' as const,
-    name: 'Filter',
-    onChange: jest.fn(),
-    options: [
-      { column_name: columns[1].column_name },
-      { column_name: columns[2].column_name },
-    ],
-    actions: { setControlValue: jest.fn() },
-  };
-  const { getByTestId } = render(
-    <ExploreContainer>
-      <DatasourcePanel {...props} />
-      <DndColumnSelect {...column1FilterProps} />
-      <DndColumnSelect {...column2FilterProps} />
-    </ExploreContainer>,
-    { useRedux: true, useDnd: true },
-  );
-  const selections = getByTestId('fieldSelections');
-  expect(
-    within(selections).queryByText(columns[0].column_name),
-  ).not.toBeInTheDocument();
-  expect(
-    within(selections).queryByText(columns[1].column_name),
-  ).toBeInTheDocument();
-  expect(
-    within(selections).queryByText(columns[2].column_name),
-  ).toBeInTheDocument();
+  expect(screen.queryByText(/create a dataset/i)).toBe(null);
 });

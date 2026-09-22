@@ -16,14 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { nanoid } from 'nanoid';
+import shortid from 'shortid';
 
 export function addToObject(state, arrKey, obj) {
   const newObject = { ...state[arrKey] };
   const copiedObject = { ...obj };
 
   if (!copiedObject.id) {
-    copiedObject.id = nanoid();
+    copiedObject.id = shortid.generate();
   }
   newObject[copiedObject.id] = copiedObject;
   return { ...state, [arrKey]: newObject };
@@ -63,7 +63,7 @@ export function removeFromArr(state, arrKey, obj, idKey = 'id') {
 export function addToArr(state, arrKey, obj) {
   const newObj = { ...obj };
   if (!newObj.id) {
-    newObj.id = nanoid();
+    newObj.id = shortid.generate();
   }
   const newState = {};
   newState[arrKey] = [...state[arrKey], newObj];

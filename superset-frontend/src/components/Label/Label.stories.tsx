@@ -16,20 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { action } from '@storybook/addon-actions';
-import { Meta, StoryFn } from '@storybook/react';
-import Label, { Type, DatasetTypeLabel, PublishedLabel } from './index';
+import Label, { Type } from './index';
 
-// Define the default export with Storybook configuration
 export default {
   title: 'Label',
   component: Label,
-  excludeStories: ['options'],
-} as Meta<typeof Label>;
+  excludeStories: 'options',
+};
 
-// Explicitly type the options array as an array of `Type`
 export const options: Type[] = [
   'default',
+  'alert',
   'info',
   'success',
   'warning',
@@ -38,60 +37,34 @@ export const options: Type[] = [
   'secondary',
 ];
 
-// Define the props for the `LabelGallery` component
-interface LabelGalleryProps {
-  hasOnClick?: boolean;
-  monospace?: boolean;
-}
+export const LabelGallery = () => (
+  <>
+    <h4>Non-interactive</h4>
+    {Object.values(options).map((opt: Type) => (
+      <Label key={opt} type={opt}>
+        {`style: "${opt}"`}
+      </Label>
+    ))}
+    <br />
+    <h4>Interactive</h4>
+    {Object.values(options).map((opt: Type) => (
+      <Label key={opt} type={opt} onClick={action('clicked')}>
+        {`style: "${opt}"`}
+      </Label>
+    ))}
+  </>
+);
 
-// Use the `StoryFn` type for LabelGallery
-export const LabelGallery: StoryFn<LabelGalleryProps> = (
-  props: LabelGalleryProps,
-) => {
-  const onClick = props.hasOnClick ? action('clicked') : undefined;
-
+export const InteractiveLabel = (args: any) => {
+  const { hasOnClick, label, ...rest } = args;
   return (
-    <>
-      <h4>Non-interactive</h4>
-      {options.map((opt: Type) => (
-        <Label key={opt} type={opt}>
-          {`style: "${opt}"`}
-        </Label>
-      ))}
-      <br />
-      <h4>Interactive</h4>
-      {options.map((opt: Type) => (
-        <Label key={opt} type={opt} {...props} onClick={onClick}>
-          {`style: "${opt}"`}
-        </Label>
-      ))}
-      <h4>Reusable Labels</h4>
-      <h5>DatasetType</h5>
-      <div>
-        <DatasetTypeLabel datasetType="physical" />
-        <DatasetTypeLabel datasetType="virtual" />
-      </div>
-      <h5>PublishedLabel</h5>
-      <PublishedLabel isPublished />
-      <PublishedLabel isPublished={false} />
-    </>
+    <Label onClick={hasOnClick ? action('clicked') : undefined} {...rest}>
+      {label}
+    </Label>
   );
 };
 
-// Define default arguments for Storybook
-LabelGallery.args = {
+InteractiveLabel.args = {
   hasOnClick: true,
-  monospace: false,
-};
-
-// Define argument types for Storybook controls
-LabelGallery.argTypes = {
-  monospace: {
-    name: 'monospace',
-    control: { type: 'boolean' },
-  },
-  hasOnClick: {
-    name: 'hasOnClick',
-    control: { type: 'boolean' },
-  },
+  label: 'Example',
 };

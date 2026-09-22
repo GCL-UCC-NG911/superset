@@ -29,8 +29,8 @@ const queryMode: ControlConfig<'RadioButtonControl'> = {
   label: t('Query mode'),
   default: null,
   options: [
-    [QueryMode.Aggregate, QueryModeLabel[QueryMode.Aggregate]],
-    [QueryMode.Raw, QueryModeLabel[QueryMode.Raw]],
+    [QueryMode.aggregate, QueryModeLabel[QueryMode.aggregate]],
+    [QueryMode.raw, QueryModeLabel[QueryMode.raw]],
   ],
   mapStateToProps: ({ controls }) => ({ value: getQueryMode(controls) }),
   rerender: ['all_columns', 'groupby', 'metrics', 'percent_metrics'],

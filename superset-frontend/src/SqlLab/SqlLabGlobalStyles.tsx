@@ -17,6 +17,7 @@
  * under the License.
  */
 
+import React from 'react';
 import { Global } from '@emotion/react';
 import { css } from '@superset-ui/core';
 

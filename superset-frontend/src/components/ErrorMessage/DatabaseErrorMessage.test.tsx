@@ -17,17 +17,17 @@
  * under the License.
  */
 
-import { ErrorLevel, ErrorSource, ErrorTypeEnum } from '@superset-ui/core';
+import React from 'react';
 import { render, screen } from 'spec/helpers/testing-library';
 import userEvent from '@testing-library/user-event';
 import DatabaseErrorMessage from './DatabaseErrorMessage';
+import { ErrorLevel, ErrorSource, ErrorTypeEnum } from './types';
 
 jest.mock(
   'src/components/Icons/Icon',
   () =>
-    ({ fileName }: { fileName: string }) => (
-      <span role="img" aria-label={fileName.replace('_', '-')} />
-    ),
+    ({ fileName }: { fileName: string }) =>
+      <span role="img" aria-label={fileName.replace('_', '-')} />,
 );
 
 const mockedProps = {
@@ -55,14 +55,7 @@ const mockedProps = {
 };
 
 test('should render', () => {
-  const nullExtraProps = {
-    ...mockedProps,
-    error: {
-      ...mockedProps.error,
-      extra: null,
-    },
-  };
-  const { container } = render(<DatabaseErrorMessage {...nullExtraProps} />);
+  const { container } = render(<DatabaseErrorMessage {...mockedProps} />);
   expect(container).toBeInTheDocument();
 });
 

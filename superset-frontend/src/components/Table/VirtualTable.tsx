@@ -16,25 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import AntTable, {
-  TablePaginationConfig,
-  TableProps as AntTableProps,
-} from 'antd/lib/table';
+import { Table as AntTable } from 'antd';
 import classNames from 'classnames';
 import { useResizeDetector } from 'react-resize-detector';
-import { useEffect, useRef, useState, useCallback, CSSProperties } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { VariableSizeGrid as Grid } from 'react-window';
-import { useTheme, styled, safeHtmlSpan } from '@superset-ui/core';
+import { StyledComponent } from '@emotion/styled';
+import { useTheme, styled } from '@superset-ui/core';
+import { TablePaginationConfig } from 'antd/lib/table';
+import { TableProps, TableSize, ETableAction } from './index';
 
-import { TableSize, ETableAction } from './index';
-
-interface VirtualTableProps<RecordType> extends AntTableProps<RecordType> {
-  height?: number;
-  allowHTML?: boolean;
-}
-
-const StyledCell = styled('div')<{ height?: number }>(
+const StyledCell: StyledComponent<any> = styled('div')<any>(
   ({ theme, height }) => `
   white-space: nowrap;
   overflow: hidden;
@@ -48,11 +40,12 @@ const StyledCell = styled('div')<{ height?: number }>(
 `,
 );
 
-const StyledTable = styled(AntTable)<{ height?: number }>(
+const StyledTable: StyledComponent<any> = styled(AntTable)<any>(
   ({ theme }) => `
     th.ant-table-cell {
       font-weight: ${theme.typography.weights.bold};
       color: ${theme.colors.grayscale.dark1};
+      user-select: none;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -60,29 +53,16 @@ const StyledTable = styled(AntTable)<{ height?: number }>(
 
     .ant-pagination-item-active {
       border-color: ${theme.colors.primary.base};
-      }
     }
-    .ant-table.ant-table-small {
-      font-size: ${theme.typography.sizes.s}px;
-    }
+  }
 `,
 );
 
 const SMALL = 39;
 const MIDDLE = 47;
 
-const VirtualTable = <RecordType extends object>(
-  props: VirtualTableProps<RecordType>,
-) => {
-  const {
-    columns,
-    pagination,
-    onChange,
-    height,
-    scroll,
-    size,
-    allowHTML = false,
-  } = props;
+const VirtualTable = (props: TableProps) => {
+  const { columns, pagination, onChange, height, scroll, size } = props;
   const [tableWidth, setTableWidth] = useState<number>(0);
   const onResize = useCallback((width: number) => {
     setTableWidth(width);
@@ -177,7 +157,7 @@ const VirtualTable = <RecordType extends object>(
       {},
       {},
       {
-        action: ETableAction.Paginate,
+        action: ETableAction.PAGINATE,
         currentDataSource: [],
       },
     );
@@ -186,7 +166,7 @@ const VirtualTable = <RecordType extends object>(
   const renderVirtualList = (rawData: object[], { ref, onScroll }: any) => {
     // eslint-disable-next-line no-param-reassign
     ref.current = connectObject;
-    const cellSize = size === TableSize.Middle ? MIDDLE : SMALL;
+    const cellSize = size === TableSize.MIDDLE ? MIDDLE : SMALL;
     return (
       <Grid
         ref={gridRef}
@@ -211,7 +191,7 @@ const VirtualTable = <RecordType extends object>(
         }: {
           columnIndex: number;
           rowIndex: number;
-          style: CSSProperties;
+          style: React.CSSProperties;
         }) => {
           const data: any = rawData?.[rowIndex];
           // Set default content
@@ -222,10 +202,6 @@ const VirtualTable = <RecordType extends object>(
           if (typeof render === 'function') {
             // Use render function to generate formatted content using column's render function
             content = render(content, data, rowIndex);
-          }
-
-          if (allowHTML && typeof content === 'string') {
-            content = safeHtmlSpan(content);
           }
 
           return (
@@ -262,7 +238,7 @@ const VirtualTable = <RecordType extends object>(
         components={{
           body: renderVirtualList,
         }}
-        pagination={pagination ? modifiedPagination : false}
+        pagination={modifiedPagination}
       />
     </div>
   );

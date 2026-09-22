@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import prettyMilliseconds, { Options } from 'pretty-ms';
+import prettyMsFormatter from 'pretty-ms';
 import NumberFormatter from '../NumberFormatter';
 
 export default function createDurationFormatter(
@@ -26,14 +26,13 @@ export default function createDurationFormatter(
     id?: string;
     label?: string;
     multiplier?: number;
-  } & Options = {},
+  } & prettyMsFormatter.Options = {},
 ) {
   const { description, id, label, multiplier = 1, ...prettyMsOptions } = config;
 
   return new NumberFormatter({
     description,
-    formatFunc: value =>
-      prettyMilliseconds(value * multiplier, prettyMsOptions),
+    formatFunc: value => prettyMsFormatter(value * multiplier, prettyMsOptions),
     id: id ?? 'duration_format',
     label: label ?? `Duration formatter`,
   });

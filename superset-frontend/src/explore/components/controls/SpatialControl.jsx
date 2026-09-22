@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Row, Col } from 'src/components';
 import { t } from '@superset-ui/core';
@@ -47,7 +47,7 @@ const defaultProps = {
   choices: [],
 };
 
-export default class SpatialControl extends Component {
+export default class SpatialControl extends React.Component {
   constructor(props) {
     super(props);
     const v = props.value || {};

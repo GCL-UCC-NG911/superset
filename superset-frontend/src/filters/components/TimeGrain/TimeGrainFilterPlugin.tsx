@@ -23,7 +23,7 @@ import {
   TimeGranularity,
   tn,
 } from '@superset-ui/core';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Select } from 'src/components';
 import { FormItemProps } from 'antd/lib/form';
 import { FilterPluginStyle, StyledFormItem, StatusMessage } from '../common';
@@ -121,7 +121,6 @@ export default function PluginFilterTimegrain(
         {...formItemData}
       >
         <Select
-          name={formData.nativeFilterId}
           allowClear
           value={value}
           placeholder={placeholderText}

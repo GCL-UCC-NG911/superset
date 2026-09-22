@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { css } from '@superset-ui/core';
 import { useResizeDetector } from 'react-resize-detector';
 import MetadataBar, { MetadataBarProps, MetadataType } from '.';
@@ -60,29 +61,37 @@ export const Basic = ({
   );
 };
 
+Basic.story = {
+  parameters: {
+    knobs: {
+      disable: true,
+    },
+  },
+};
+
 Basic.args = {
   items: [
     {
-      type: MetadataType.Sql,
+      type: MetadataType.SQL,
       title: 'Click to view query',
     },
     {
-      type: MetadataType.Owner,
+      type: MetadataType.OWNER,
       createdBy: 'Jane Smith',
       owners: ['John Doe', 'Mary Wilson'],
       createdOn: A_WEEK_AGO,
     },
     {
-      type: MetadataType.LastModified,
+      type: MetadataType.LAST_MODIFIED,
       value: A_WEEK_AGO,
       modifiedBy: 'Jane Smith',
     },
     {
-      type: MetadataType.Tags,
+      type: MetadataType.TAGS,
       values: ['management', 'research', 'poc'],
     },
     {
-      type: MetadataType.Dashboards,
+      type: MetadataType.DASHBOARDS,
       title: 'Added to 452 dashboards',
       description:
         'To preview the list of dashboards go to "More" settings on the right.',

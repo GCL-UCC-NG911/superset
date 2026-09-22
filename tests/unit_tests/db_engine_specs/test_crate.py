@@ -20,7 +20,7 @@ from typing import Optional
 import pytest
 
 from tests.unit_tests.db_engine_specs.utils import assert_convert_dttm
-from tests.unit_tests.fixtures.common import dttm  # noqa: F401
+from tests.unit_tests.fixtures.common import dttm
 
 
 def test_epoch_to_dttm() -> None:
@@ -59,15 +59,13 @@ def test_alter_new_orm_column() -> None:
 @pytest.mark.parametrize(
     "target_type,expected_result",
     [
-        ("TimeStamp", "CAST('2019-01-02T03:04:05.678900' AS TIMESTAMP)"),
+        ("TimeStamp", "1546398245678.9"),
         ("UnknownType", None),
     ],
 )
 def test_convert_dttm(
-    target_type: str,
-    expected_result: Optional[str],
-    dttm: datetime,  # noqa: F811
+    target_type: str, expected_result: Optional[str], dttm: datetime
 ) -> None:
-    from superset.db_engine_specs.crate import CrateEngineSpec as spec  # noqa: N813
+    from superset.db_engine_specs.crate import CrateEngineSpec as spec
 
     assert_convert_dttm(spec, target_type, expected_result, dttm)

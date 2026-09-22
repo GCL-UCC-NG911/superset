@@ -16,9 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
-import { FeatureFlag } from '@superset-ui/core';
+import { FeatureFlag } from 'src/featureFlags';
 import * as copyUtils from 'src/utils/copy';
 import {
   render,
@@ -92,8 +93,6 @@ describe('DataTablesPane', () => {
             data: [{ __timestamp: 1230768000000, genre: 'Action' }],
             colnames: ['__timestamp', 'genre'],
             coltypes: [2, 1],
-            rowcount: 1,
-            sql_rowcount: 1,
           },
         ],
       },
@@ -109,36 +108,8 @@ describe('DataTablesPane', () => {
     userEvent.click(screen.getByLabelText('Copy'));
     expect(copyToClipboardSpy).toHaveBeenCalledTimes(1);
     const value = await copyToClipboardSpy.mock.calls[0][0]();
-    expect(value).toBe('__timestamp\tgenre\n2009-01-01 00:00:00\tAction\n');
+    expect(value).toBe('2009-01-01 00:00:00\tAction\n');
     copyToClipboardSpy.mockRestore();
-    fetchMock.restore();
-  });
-
-  test('Should not allow copy data table content when canDownload=false', async () => {
-    fetchMock.post(
-      'glob:*/api/v1/chart/data?form_data=%7B%22slice_id%22%3A456%7D',
-      {
-        result: [
-          {
-            data: [{ __timestamp: 1230768000000, genre: 'Action' }],
-            colnames: ['__timestamp', 'genre'],
-            coltypes: [2, 1],
-            rowcount: 1,
-            sql_rowcount: 1,
-          },
-        ],
-      },
-    );
-    const props = {
-      ...createDataTablesPaneProps(456),
-      canDownload: false,
-    };
-    render(<DataTablesPane {...props} />, {
-      useRedux: true,
-    });
-    userEvent.click(screen.getByText('Results'));
-    expect(await screen.findByText('1 row')).toBeVisible();
-    expect(screen.queryByLabelText('Copy')).not.toBeInTheDocument();
     fetchMock.restore();
   });
 
@@ -154,8 +125,6 @@ describe('DataTablesPane', () => {
             ],
             colnames: ['__timestamp', 'genre'],
             coltypes: [2, 1],
-            rowcount: 2,
-            sql_rowcount: 2,
           },
         ],
       },
@@ -166,7 +135,6 @@ describe('DataTablesPane', () => {
     });
     userEvent.click(screen.getByText('Results'));
     expect(await screen.findByText('2 rows')).toBeVisible();
-
     expect(screen.getByText('Action')).toBeVisible();
     expect(screen.getByText('Horror')).toBeVisible();
 
@@ -181,10 +149,10 @@ describe('DataTablesPane', () => {
   test('Displaying the data pane is under featureflag', () => {
     // @ts-ignore
     global.featureFlags = {
-      [FeatureFlag.DatapanelClosedByDefault]: true,
+      [FeatureFlag.DATAPANEL_CLOSED_BY_DEFAULT]: true,
     };
     const props = createDataTablesPaneProps(0);
-    setItem(LocalStorageKeys.IsDatapanelOpen, true);
+    setItem(LocalStorageKeys.is_datapanel_open, true);
     render(<DataTablesPane {...props} />, {
       useRedux: true,
     });

@@ -16,58 +16,41 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import * as uiCore from '@superset-ui/core';
-
-it('initializes feature flags', () => {
-  Object.defineProperty(window, 'featureFlags', {
-    value: undefined,
-  });
-  uiCore.initFeatureFlags();
-  expect(window.featureFlags).toEqual({});
-});
-
-it('initializes feature flags with predefined values', () => {
-  Object.defineProperty(window, 'featureFlags', {
-    value: undefined,
-  });
-  const featureFlags = {
-    DRILL_BY: false,
-  };
-  uiCore.initFeatureFlags(featureFlags);
-  expect(window.featureFlags).toEqual(featureFlags);
-});
-
-it('does nothing if feature flags are already initialized', () => {
-  const featureFlags = { DRILL_BY: false };
-  Object.defineProperty(window, 'featureFlags', {
-    value: featureFlags,
-  });
-  uiCore.initFeatureFlags({ DRILL_BY: true });
-  expect(window.featureFlags).toEqual(featureFlags);
-});
+import mockConsole from 'jest-mock-console';
+import { isFeatureEnabled, FeatureFlag } from '@superset-ui/core';
 
 it('returns false and raises console error if feature flags have not been initialized', () => {
-  const logging = jest.spyOn(uiCore.logging, 'error');
+  mockConsole();
   Object.defineProperty(window, 'featureFlags', {
     value: undefined,
   });
-  expect(uiCore.isFeatureEnabled(uiCore.FeatureFlag.DrillBy)).toEqual(false);
-  expect(uiCore.logging.error).toHaveBeenCalled();
-  expect(logging).toHaveBeenCalledWith('Failed to query feature flag DRILL_BY');
+
+  expect(isFeatureEnabled(FeatureFlag.ALLOW_DASHBOARD_DOMAIN_SHARDING)).toEqual(
+    false,
+  );
+  expect(console.error).toHaveBeenCalled();
+  // @ts-expect-error
+  expect(console.error.mock.calls[0][0]).toEqual(
+    'Failed to query feature flag ALLOW_DASHBOARD_DOMAIN_SHARDING',
+  );
 });
 
 it('returns false for unset feature flag', () => {
   Object.defineProperty(window, 'featureFlags', {
     value: {},
   });
-  expect(uiCore.isFeatureEnabled(uiCore.FeatureFlag.DrillBy)).toEqual(false);
+
+  expect(isFeatureEnabled(FeatureFlag.ALLOW_DASHBOARD_DOMAIN_SHARDING)).toEqual(
+    false,
+  );
 });
 
 it('returns true for set feature flag', () => {
   Object.defineProperty(window, 'featureFlags', {
     value: {
-      DRILL_BY: true,
+      CLIENT_CACHE: true,
     },
   });
-  expect(uiCore.isFeatureEnabled(uiCore.FeatureFlag.DrillBy)).toEqual(true);
+
+  expect(isFeatureEnabled(FeatureFlag.CLIENT_CACHE)).toEqual(true);
 });

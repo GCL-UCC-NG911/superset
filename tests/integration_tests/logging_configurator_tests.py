@@ -52,4 +52,4 @@ class TestLoggingConfigurator(unittest.TestCase):
         cfg.configure_logging(MagicMock(), True)
 
         logging.info("test", extra={"testattr": "foo"})
-        assert handler.received
+        self.assertTrue(handler.received)

@@ -48,17 +48,15 @@ function findParentId(structure: IStructure): string | null {
   return parentId;
 }
 
-const cache: Record<string, string | null> = {};
-
+const cache = {};
 export default function findParentIdWithCache(
   structure: IStructure,
 ): string | null {
   let parentId = null;
   if (structure) {
     const { childId, layout = {} } = structure;
-    const cachedValue = cache[childId];
-    if (cachedValue) {
-      const lastParent = layout?.[cachedValue] || {};
+    if (cache[childId]) {
+      const lastParent = layout?.[cache[childId]] || {};
       if (lastParent?.children && lastParent?.children?.includes?.(childId)) {
         return lastParent.id;
       }

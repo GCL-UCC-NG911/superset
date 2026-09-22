@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { ensureIsArray, styled, t } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
 import { ContentType, MetadataType } from '.';
@@ -53,7 +54,7 @@ const config = (contentType: ContentType) => {
    */
 
   switch (type) {
-    case MetadataType.Dashboards:
+    case MetadataType.DASHBOARDS:
       return {
         icon: Icons.FundProjectionScreenOutlined,
         title: contentType.title,
@@ -64,13 +65,13 @@ const config = (contentType: ContentType) => {
         ) : undefined,
       };
 
-    case MetadataType.Description:
+    case MetadataType.DESCRIPTION:
       return {
         icon: Icons.BookOutlined,
         title: contentType.value,
       };
 
-    case MetadataType.LastModified:
+    case MetadataType.LAST_MODIFIED:
       return {
         icon: Icons.EditOutlined,
         title: contentType.value,
@@ -82,43 +83,41 @@ const config = (contentType: ContentType) => {
         ),
       };
 
-    case MetadataType.Owner:
+    case MetadataType.OWNER:
       return {
         icon: Icons.UserOutlined,
         title: contentType.createdBy,
         tooltip: (
           <div>
             <Info header={t('Created by')} text={contentType.createdBy} />
-            {!!contentType.owners && (
-              <Info header={t('Owners')} text={contentType.owners} />
-            )}
+            <Info header={t('Owners')} text={contentType.owners} />
             <Info header={t('Created on')} text={contentType.createdOn} />
           </div>
         ),
       };
 
-    case MetadataType.Rows:
+    case MetadataType.ROWS:
       return {
         icon: Icons.InsertRowBelowOutlined,
         title: contentType.title,
         tooltip: contentType.title,
       };
 
-    case MetadataType.Sql:
+    case MetadataType.SQL:
       return {
         icon: Icons.ConsoleSqlOutlined,
         title: contentType.title,
         tooltip: contentType.title,
       };
 
-    case MetadataType.Table:
+    case MetadataType.TABLE:
       return {
         icon: Icons.Table,
         title: contentType.title,
         tooltip: contentType.title,
       };
 
-    case MetadataType.Tags:
+    case MetadataType.TAGS:
       return {
         icon: Icons.TagsOutlined,
         title: contentType.values.join(', '),

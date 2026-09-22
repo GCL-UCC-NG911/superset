@@ -16,11 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+/* eslint-disable no-unused-expressions */
+import React from 'react';
 import sinon from 'sinon';
 import { shallow } from 'enzyme';
 import { supersetTheme } from '@superset-ui/core';
 
-import AdhocFilter from 'src/explore/components/controls/FilterControl/AdhocFilter';
+import AdhocFilter, {
+  EXPRESSION_TYPES,
+  CLAUSES,
+} from 'src/explore/components/controls/FilterControl/AdhocFilter';
 import { LabelsContainer } from 'src/explore/components/controls/OptionControls';
 import {
   AGGREGATES,
@@ -29,18 +34,17 @@ import {
 } from 'src/explore/constants';
 import AdhocMetric from 'src/explore/components/controls/MetricControl/AdhocMetric';
 import AdhocFilterControl from '.';
-import { Clauses, ExpressionTypes } from '../types';
 
 const simpleAdhocFilter = new AdhocFilter({
-  expressionType: ExpressionTypes.Simple,
+  expressionType: EXPRESSION_TYPES.SIMPLE,
   subject: 'value',
-  operator: OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.GreaterThan].operation,
+  operator: OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.GREATER_THAN].operation,
   comparator: '10',
-  clause: Clauses.Where,
+  clause: CLAUSES.WHERE,
 });
 
 const sumValueAdhocMetric = new AdhocMetric({
-  expressionType: ExpressionTypes.Simple,
+  expressionType: EXPRESSION_TYPES.SIMPLE,
   column: { type: 'VARCHAR(255)', column_name: 'source' },
   aggregate: AGGREGATES.SUM,
 });
@@ -90,12 +94,12 @@ describe('AdhocFilterControl', () => {
     expect(
       adhocFilter.equals(
         new AdhocFilter({
-          expressionType: ExpressionTypes.Sql,
+          expressionType: EXPRESSION_TYPES.SQL,
           subject: savedMetric.expression,
           operator:
-            OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.GreaterThan].operation,
+            OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.GREATER_THAN].operation,
           comparator: 0,
-          clause: Clauses.Having,
+          clause: CLAUSES.HAVING,
         }),
       ),
     ).toBe(true);
@@ -110,12 +114,12 @@ describe('AdhocFilterControl', () => {
     expect(
       adhocFilter.equals(
         new AdhocFilter({
-          expressionType: ExpressionTypes.Sql,
+          expressionType: EXPRESSION_TYPES.SQL,
           subject: sumValueAdhocMetric.label,
           operator:
-            OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.GreaterThan].operation,
+            OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.GREATER_THAN].operation,
           comparator: 0,
-          clause: Clauses.Having,
+          clause: CLAUSES.HAVING,
         }),
       ),
     ).toBe(true);
@@ -134,11 +138,11 @@ describe('AdhocFilterControl', () => {
     expect(
       newAdhocFilter.equals(
         new AdhocFilter({
-          expressionType: ExpressionTypes.Simple,
+          expressionType: EXPRESSION_TYPES.SIMPLE,
           subject: columns[0].column_name,
-          operator: OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.Equals].operation,
+          operator: OPERATOR_ENUM_TO_OPERATOR_TYPE[Operators.EQUALS].operation,
           comparator: '',
-          clause: Clauses.Where,
+          clause: CLAUSES.WHERE,
         }),
       ),
     ).toBe(true);

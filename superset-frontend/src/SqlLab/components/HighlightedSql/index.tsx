@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import SyntaxHighlighter from 'react-syntax-highlighter/dist/cjs/light';
 import sql from 'react-syntax-highlighter/dist/cjs/languages/hljs/sql';
 import github from 'react-syntax-highlighter/dist/cjs/styles/hljs/github';
@@ -24,7 +25,7 @@ import ModalTrigger from 'src/components/ModalTrigger';
 
 SyntaxHighlighter.registerLanguage('sql', sql);
 
-export interface HighlightedSqlProps {
+interface HighlightedSqlProps {
   sql: string;
   rawSql?: string;
   maxWidth?: number;

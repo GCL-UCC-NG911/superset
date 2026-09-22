@@ -21,9 +21,9 @@ import { makeApi } from '@superset-ui/core';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 export enum ResourceStatus {
-  Loading = 'loading',
-  Complete = 'complete',
-  Error = 'error',
+  LOADING = 'loading',
+  COMPLETE = 'complete',
+  ERROR = 'error',
 }
 
 /**
@@ -33,8 +33,8 @@ export enum ResourceStatus {
 export type Resource<T> = LoadingState | CompleteState<T> | ErrorState;
 
 // Trying out something a little different: a separate type per status.
-// This should let TypeScript know whether a Resource has a result or error.
-// It's possible that I'm expecting too much from TypeScript here.
+// This should let Typescript know whether a Resource has a result or error.
+// It's possible that I'm expecting too much from Typescript here.
 // If this ends up causing problems, we can change the type to:
 //
 // export type Resource<T> = {
@@ -44,25 +44,25 @@ export type Resource<T> = LoadingState | CompleteState<T> | ErrorState;
 // }
 
 type LoadingState = {
-  status: ResourceStatus.Loading;
+  status: ResourceStatus.LOADING;
   result: null;
   error: null;
 };
 
 type CompleteState<T> = {
-  status: ResourceStatus.Complete;
+  status: ResourceStatus.COMPLETE;
   result: T;
   error: null;
 };
 
 type ErrorState = {
-  status: ResourceStatus.Error;
+  status: ResourceStatus.ERROR;
   result: null;
   error: Error;
 };
 
 const initialState: LoadingState = {
-  status: ResourceStatus.Loading,
+  status: ResourceStatus.LOADING,
   result: null,
   error: null,
 };
@@ -112,7 +112,7 @@ export function useApiResourceFullBody<RESULT>(
       .then(result => {
         if (!cancelled) {
           setResource({
-            status: ResourceStatus.Complete,
+            status: ResourceStatus.COMPLETE,
             result,
             error: null,
           });
@@ -121,7 +121,7 @@ export function useApiResourceFullBody<RESULT>(
       .catch(error => {
         if (!cancelled) {
           setResource({
-            status: ResourceStatus.Error,
+            status: ResourceStatus.ERROR,
             result: null,
             error,
           });
@@ -149,7 +149,7 @@ export function useTransformedResource<IN, OUT>(
   transformFn: (result: IN) => OUT,
 ): Resource<OUT> {
   return useMemo(() => {
-    if (resource.status !== ResourceStatus.Complete) {
+    if (resource.status !== ResourceStatus.COMPLETE) {
       // While incomplete, there is no result - no need to transform.
       return resource;
     }
@@ -160,7 +160,7 @@ export function useTransformedResource<IN, OUT>(
       };
     } catch (e) {
       return {
-        status: ResourceStatus.Error,
+        status: ResourceStatus.ERROR,
         result: null,
         error: e,
       };

@@ -41,7 +41,17 @@ class DefaultLoggingConfigurator(  # pylint: disable=too-few-public-methods
         if app_config["SILENCE_FAB"]:
             logging.getLogger("flask_appbuilder").setLevel(logging.ERROR)
 
-        # basicConfig() will set up a default StreamHandler on stderr
+        # configure superset app logger
+        superset_logger = logging.getLogger("superset")
+        if debug_mode:
+            superset_logger.setLevel(logging.DEBUG)
+        else:
+            # In production mode, add log handler to sys.stderr.
+            superset_logger.addHandler(logging.StreamHandler())
+            superset_logger.setLevel(logging.INFO)
+
+        logging.getLogger("pyhive.presto").setLevel(logging.INFO)
+
         logging.basicConfig(format=app_config["LOG_FORMAT"])
         logging.getLogger().setLevel(app_config["LOG_LEVEL"])
 
@@ -55,4 +65,4 @@ class DefaultLoggingConfigurator(  # pylint: disable=too-few-public-methods
             )
             logging.getLogger().addHandler(handler)
 
-        logger.debug("logging was configured successfully")
+        logger.info("logging was configured successfully")

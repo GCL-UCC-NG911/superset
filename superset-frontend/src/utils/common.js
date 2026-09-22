@@ -30,7 +30,7 @@ export const NULL_STRING = '<NULL>';
 export const TRUE_STRING = 'TRUE';
 export const FALSE_STRING = 'FALSE';
 
-// dayjs time format strings
+// moment time format strings
 export const SHORT_DATE = 'MMM D, YYYY';
 export const SHORT_TIME = 'h:m a';
 
@@ -78,20 +78,14 @@ export function optionFromValue(opt) {
   return { value: optionValue(opt), label: optionLabel(opt) };
 }
 
-function getColumnName(column) {
-  return column.name || column;
-}
-
 export function prepareCopyToClipboardTabularData(data, columns) {
-  let result = columns.length
-    ? `${columns.map(getColumnName).join('\t')}\n`
-    : '';
+  let result = '';
   for (let i = 0; i < data.length; i += 1) {
     const row = {};
     for (let j = 0; j < columns.length; j += 1) {
       // JavaScript does not maintain the order of a mixed set of keys (i.e integers and strings)
       // the below function orders the keys based on the column names.
-      const key = getColumnName(columns[j]);
+      const key = columns[j].name || columns[j];
       if (key in data[i]) {
         row[j] = data[i][key];
       } else {

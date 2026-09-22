@@ -336,7 +336,7 @@ describe('Registry', () => {
         it('warns when overwrite', () => {
           const restoreConsole = mockConsole();
           const registry = new Registry({
-            overwritePolicy: OverwritePolicy.Warn,
+            overwritePolicy: OverwritePolicy.WARN,
           });
           registry.registerValue('a', 'testValue');
           expect(() => registry.registerValue('a', 'testValue2')).not.toThrow();
@@ -349,7 +349,7 @@ describe('Registry', () => {
         it('warns when overwrite', () => {
           const restoreConsole = mockConsole();
           const registry = new Registry({
-            overwritePolicy: OverwritePolicy.Warn,
+            overwritePolicy: OverwritePolicy.WARN,
           });
           registry.registerLoader('a', () => 'testValue');
           expect(() =>
@@ -365,7 +365,7 @@ describe('Registry', () => {
       describe('.registerValue(key, value)', () => {
         it('throws error when overwrite', () => {
           const registry = new Registry({
-            overwritePolicy: OverwritePolicy.Prohibit,
+            overwritePolicy: OverwritePolicy.PROHIBIT,
           });
           registry.registerValue('a', 'testValue');
           expect(() => registry.registerValue('a', 'testValue2')).toThrow();
@@ -374,7 +374,7 @@ describe('Registry', () => {
       describe('.registerLoader(key, loader)', () => {
         it('warns when overwrite', () => {
           const registry = new Registry({
-            overwritePolicy: OverwritePolicy.Prohibit,
+            overwritePolicy: OverwritePolicy.PROHIBIT,
           });
           registry.registerLoader('a', () => 'testValue');
           expect(() =>
@@ -396,31 +396,31 @@ describe('Registry', () => {
 
     it('calls the listener when a value is registered', () => {
       registry.registerValue('foo', 'bar');
-      expect(listener).toHaveBeenCalledWith(['foo']);
+      expect(listener).toBeCalledWith(['foo']);
     });
 
     it('calls the listener when a loader is registered', () => {
       registry.registerLoader('foo', () => 'bar');
-      expect(listener).toHaveBeenCalledWith(['foo']);
+      expect(listener).toBeCalledWith(['foo']);
     });
 
     it('calls the listener when a value is overridden', () => {
       registry.registerValue('foo', 'bar');
       listener.mockClear();
       registry.registerValue('foo', 'baz');
-      expect(listener).toHaveBeenCalledWith(['foo']);
+      expect(listener).toBeCalledWith(['foo']);
     });
 
     it('calls the listener when a value is removed', () => {
       registry.registerValue('foo', 'bar');
       listener.mockClear();
       registry.remove('foo');
-      expect(listener).toHaveBeenCalledWith(['foo']);
+      expect(listener).toBeCalledWith(['foo']);
     });
 
     it('does not call the listener when a value is not actually removed', () => {
       registry.remove('foo');
-      expect(listener).not.toHaveBeenCalled();
+      expect(listener).not.toBeCalled();
     });
 
     it('calls the listener when registry is cleared', () => {
@@ -428,13 +428,13 @@ describe('Registry', () => {
       registry.registerLoader('fluz', () => 'baz');
       listener.mockClear();
       registry.clear();
-      expect(listener).toHaveBeenCalledWith(['foo', 'fluz']);
+      expect(listener).toBeCalledWith(['foo', 'fluz']);
     });
 
     it('removes listeners correctly', () => {
       registry.removeListener(listener);
       registry.registerValue('foo', 'bar');
-      expect(listener).not.toHaveBeenCalled();
+      expect(listener).not.toBeCalled();
     });
 
     describe('with a broken listener', () => {
@@ -456,10 +456,10 @@ describe('Registry', () => {
         registry.addListener(lastListener);
         registry.registerValue('foo', 'bar');
 
-        expect(listener).toHaveBeenCalledWith(['foo']);
-        expect(errorListener).toHaveBeenCalledWith(['foo']);
-        expect(lastListener).toHaveBeenCalledWith(['foo']);
-        expect(console.error).toHaveBeenCalled();
+        expect(listener).toBeCalledWith(['foo']);
+        expect(errorListener).toBeCalledWith(['foo']);
+        expect(lastListener).toBeCalledWith(['foo']);
+        expect(console.error).toBeCalled();
       });
     });
   });

@@ -16,21 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import {
+import React, {
   CSSProperties,
   useCallback,
   useLayoutEffect,
   useMemo,
   useState,
-  MouseEvent,
-  KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
-
 import {
   ColumnInstance,
   ColumnWithLooseAccessor,
   DefaultSortTypes,
-  Row,
 } from 'react-table';
 import { extent as d3Extent, max as d3Max } from 'd3-array';
 import { FaSort } from '@react-icons/all-files/fa/FaSort';
@@ -43,30 +39,15 @@ import {
   DTTM_ALIAS,
   ensureIsArray,
   GenericDataType,
-  getSelectedText,
   getTimeFormatterForGranularity,
   BinaryQueryObjectFilterClause,
   styled,
   css,
   t,
   tn,
-  useTheme,
 } from '@superset-ui/core';
-import { Dropdown, Menu, Tooltip } from '@superset-ui/chart-controls';
-import {
-  CheckOutlined,
-  InfoCircleOutlined,
-  DownOutlined,
-  MinusCircleOutlined,
-  PlusCircleOutlined,
-  TableOutlined,
-} from '@ant-design/icons';
-import { isEmpty } from 'lodash';
-import {
-  ColorSchemeEnum,
-  DataColumnMeta,
-  TableChartTransformedProps,
-} from './types';
+
+import { DataColumnMeta, TableChartTransformedProps } from './types';
 import DataTable, {
   DataTableProps,
   SearchInputProps,
@@ -87,20 +68,14 @@ interface TableSize {
   height: number;
 }
 
-const ACTION_KEYS = {
-  enter: 'Enter',
-  spacebar: 'Spacebar',
-  space: ' ',
-};
-
 /**
  * Return sortType based on data type
  */
 function getSortTypeByDataType(dataType: GenericDataType): DefaultSortTypes {
-  if (dataType === GenericDataType.Temporal) {
+  if (dataType === GenericDataType.TEMPORAL) {
     return 'datetime';
   }
-  if (dataType === GenericDataType.String) {
+  if (dataType === GenericDataType.STRING) {
     return 'alphanumeric';
   }
   return 'basic';
@@ -181,7 +156,6 @@ function SearchInput({ count, value, onChange }: SearchInputProps) {
     <span className="dt-global-filter">
       {t('Search')}{' '}
       <input
-        aria-label={t('Search %s records', count)}
         className="form-control input-sm"
         placeholder={tn('search.num_records', count)}
         value={value}
@@ -197,23 +171,15 @@ function SelectPageSize({
   onChange,
 }: SelectPageSizeRendererProps) {
   return (
-    <span
-      className="dt-select-page-size form-inline"
-      role="group"
-      aria-label={t('Select page size')}
-    >
-      <label htmlFor="pageSizeSelect" className="sr-only">
-        {t('Select page size')}
-      </label>
-      {t('Show')}{' '}
+    <span className="dt-select-page-size form-inline">
+      {t('page_size.show')}{' '}
       <select
-        id="pageSizeSelect"
         className="form-control input-sm"
         value={current}
+        onBlur={() => {}}
         onChange={e => {
           onChange(Number((e.target as HTMLSelectElement).value));
         }}
-        aria-label={t('Show entries per page')}
       >
         {options.map(option => {
           const [size, text] = Array.isArray(option)
@@ -226,7 +192,7 @@ function SelectPageSize({
           );
         })}
       </select>{' '}
-      {t('entries per page')}
+      {t('page_size.entries')}
     </span>
   );
 }
@@ -261,19 +227,9 @@ export default function TableChart<D extends DataRecord = DataRecord>(
     sticky = true, // whether to use sticky header
     columnColorFormatters,
     allowRearrangeColumns = false,
-    allowRenderHtml = true,
     onContextMenu,
     emitCrossFilters,
-    isUsingTimeComparison,
-    basicColorFormatters,
-    basicColorColumnFormatters,
   } = props;
-  const comparisonColumns = [
-    { key: 'all', label: t('Display all') },
-    { key: '#', label: '#' },
-    { key: '△', label: '△' },
-    { key: '%', label: '%' },
-  ];
   const timestampFormatter = useCallback(
     value => getTimeFormatterForGranularity(timeGrain)(value),
     [timeGrain],
@@ -284,12 +240,57 @@ export default function TableChart<D extends DataRecord = DataRecord>(
   });
   // keep track of whether column order changed, so that column widths can too
   const [columnOrderToggle, setColumnOrderToggle] = useState(false);
-  const [showComparisonDropdown, setShowComparisonDropdown] = useState(false);
-  const [selectedComparisonColumns, setSelectedComparisonColumns] = useState([
-    comparisonColumns[0].key,
-  ]);
-  const [hideComparisonKeys, setHideComparisonKeys] = useState<string[]>([]);
-  const theme = useTheme();
+
+  const handleChange = useCallback(
+    (filters: { [x: string]: DataRecordValue[] }) => {
+      if (!emitCrossFilters) {
+        return;
+      }
+
+      const groupBy = Object.keys(filters);
+      const groupByValues = Object.values(filters);
+      const labelElements: string[] = [];
+      groupBy.forEach(col => {
+        const isTimestamp = col === DTTM_ALIAS;
+        const filterValues = ensureIsArray(filters?.[col]);
+        if (filterValues.length) {
+          const valueLabels = filterValues.map(value =>
+            isTimestamp ? timestampFormatter(value) : value,
+          );
+          labelElements.push(`${valueLabels.join(', ')}`);
+        }
+      });
+      setDataMask({
+        extraFormData: {
+          filters:
+            groupBy.length === 0
+              ? []
+              : groupBy.map(col => {
+                  const val = ensureIsArray(filters?.[col]);
+                  if (!val.length)
+                    return {
+                      col,
+                      op: 'IS NULL',
+                    };
+                  return {
+                    col,
+                    op: 'IN',
+                    val: val.map(el =>
+                      el instanceof Date ? el.getTime() : el!,
+                    ),
+                    grain: col === DTTM_ALIAS ? timeGrain : undefined,
+                  };
+                }),
+        },
+        filterState: {
+          label: labelElements.join(', '),
+          value: groupByValues.length ? groupByValues : null,
+          filters: filters && Object.keys(filters).length ? filters : null,
+        },
+      });
+    },
+    [emitCrossFilters, setDataMask],
+  );
 
   // only take relevant page size options
   const pageSizeOptions = useMemo(() => {
@@ -301,10 +302,8 @@ export default function TableChart<D extends DataRecord = DataRecord>(
 
   const getValueRange = useCallback(
     function getValueRange(key: string, alignPositiveNegative: boolean) {
-      const nums = data
-        ?.map(row => row?.[key])
-        .filter(value => typeof value === 'number') as number[];
-      if (data && nums.length === data.length) {
+      if (typeof data?.[0]?.[key] === 'number') {
+        const nums = data.map(row => row[key]) as number[];
         return (
           alignPositiveNegative
             ? [0, d3Max(nums.map(Math.abs))]
@@ -323,374 +322,42 @@ export default function TableChart<D extends DataRecord = DataRecord>(
     [filters],
   );
 
-  const getCrossFilterDataMask = (key: string, value: DataRecordValue) => {
-    let updatedFilters = { ...(filters || {}) };
-    if (filters && isActiveFilterValue(key, value)) {
-      updatedFilters = {};
-    } else {
-      updatedFilters = {
-        [key]: [value],
-      };
-    }
-    if (
-      Array.isArray(updatedFilters[key]) &&
-      updatedFilters[key].length === 0
-    ) {
-      delete updatedFilters[key];
-    }
-
-    const groupBy = Object.keys(updatedFilters);
-    const groupByValues = Object.values(updatedFilters);
-    const labelElements: string[] = [];
-    groupBy.forEach(col => {
-      const isTimestamp = col === DTTM_ALIAS;
-      const filterValues = ensureIsArray(updatedFilters?.[col]);
-      if (filterValues.length) {
-        const valueLabels = filterValues.map(value =>
-          isTimestamp ? timestampFormatter(value) : value,
-        );
-        labelElements.push(`${valueLabels.join(', ')}`);
-      }
-    });
-
-    return {
-      dataMask: {
-        extraFormData: {
-          filters:
-            groupBy.length === 0
-              ? []
-              : groupBy.map(col => {
-                  const val = ensureIsArray(updatedFilters?.[col]);
-                  if (!val.length)
-                    return {
-                      col,
-                      op: 'IS NULL' as const,
-                    };
-                  return {
-                    col,
-                    op: 'IN' as const,
-                    val: val.map(el =>
-                      el instanceof Date ? el.getTime() : el!,
-                    ),
-                    grain: col === DTTM_ALIAS ? timeGrain : undefined,
-                  };
-                }),
-        },
-        filterState: {
-          label: labelElements.join(', '),
-          value: groupByValues.length ? groupByValues : null,
-          filters:
-            updatedFilters && Object.keys(updatedFilters).length
-              ? updatedFilters
-              : null,
-        },
-      },
-      isCurrentValueSelected: isActiveFilterValue(key, value),
-    };
-  };
-
   const toggleFilter = useCallback(
     function toggleFilter(key: string, val: DataRecordValue) {
-      if (!emitCrossFilters) {
-        return;
+      let updatedFilters = { ...(filters || {}) };
+      if (filters && isActiveFilterValue(key, val)) {
+        updatedFilters = {};
+      } else {
+        updatedFilters = {
+          [key]: [val],
+        };
       }
-      setDataMask(getCrossFilterDataMask(key, val).dataMask);
+      if (
+        Array.isArray(updatedFilters[key]) &&
+        updatedFilters[key].length === 0
+      ) {
+        delete updatedFilters[key];
+      }
+      handleChange(updatedFilters);
     },
-    [emitCrossFilters, getCrossFilterDataMask, setDataMask],
+    [filters, handleChange, isActiveFilterValue],
   );
 
   const getSharedStyle = (column: DataColumnMeta): CSSProperties => {
     const { isNumeric, config = {} } = column;
-    const textAlign =
-      config.horizontalAlign ||
-      (isNumeric && !isUsingTimeComparison ? 'right' : 'left');
+    const textAlign = config.horizontalAlign
+      ? config.horizontalAlign
+      : isNumeric
+      ? 'right'
+      : 'left';
     return {
       textAlign,
     };
   };
 
-  const comparisonLabels = [t('Main'), '#', '△', '%'];
-  const filteredColumnsMeta = useMemo(() => {
-    if (!isUsingTimeComparison) {
-      return columnsMeta;
-    }
-    const allColumns = comparisonColumns[0].key;
-    const main = comparisonLabels[0];
-    const showAllColumns = selectedComparisonColumns.includes(allColumns);
-
-    return columnsMeta.filter(({ label, key }) => {
-      // Extract the key portion after the space, assuming the format is always "label key"
-      const keyPortion = key.substring(label.length);
-      const isKeyHidded = hideComparisonKeys.includes(keyPortion);
-      const isLableMain = label === main;
-
-      return (
-        isLableMain ||
-        (!isKeyHidded &&
-          (!comparisonLabels.includes(label) ||
-            showAllColumns ||
-            selectedComparisonColumns.includes(label)))
-      );
-    });
-  }, [
-    columnsMeta,
-    comparisonColumns,
-    comparisonLabels,
-    isUsingTimeComparison,
-    hideComparisonKeys,
-    selectedComparisonColumns,
-  ]);
-
-  const handleContextMenu =
-    onContextMenu && !isRawRecords
-      ? (
-          value: D,
-          cellPoint: {
-            key: string;
-            value: DataRecordValue;
-            isMetric?: boolean;
-          },
-          clientX: number,
-          clientY: number,
-        ) => {
-          const drillToDetailFilters: BinaryQueryObjectFilterClause[] = [];
-          filteredColumnsMeta.forEach(col => {
-            if (!col.isMetric) {
-              const dataRecordValue = value[col.key];
-              drillToDetailFilters.push({
-                col: col.key,
-                op: '==',
-                val: dataRecordValue as string | number | boolean,
-                formattedVal: formatColumnValue(col, dataRecordValue)[1],
-              });
-            }
-          });
-          onContextMenu(clientX, clientY, {
-            drillToDetail: drillToDetailFilters,
-            crossFilter: cellPoint.isMetric
-              ? undefined
-              : getCrossFilterDataMask(cellPoint.key, cellPoint.value),
-            drillBy: cellPoint.isMetric
-              ? undefined
-              : {
-                  filters: [
-                    {
-                      col: cellPoint.key,
-                      op: '==',
-                      val: cellPoint.value as string | number | boolean,
-                    },
-                  ],
-                  groupbyFieldName: 'groupby',
-                },
-          });
-        }
-      : undefined;
-
-  const getHeaderColumns = (
-    columnsMeta: DataColumnMeta[],
-    enableTimeComparison?: boolean,
-  ) => {
-    const resultMap: Record<string, number[]> = {};
-
-    if (!enableTimeComparison) {
-      return resultMap;
-    }
-
-    columnsMeta.forEach((element, index) => {
-      // Check if element's label is one of the comparison labels
-      if (comparisonLabels.includes(element.label)) {
-        // Extract the key portion after the space, assuming the format is always "label key"
-        const keyPortion = element.key.substring(element.label.length);
-
-        // If the key portion is not in the map, initialize it with the current index
-        if (!resultMap[keyPortion]) {
-          resultMap[keyPortion] = [index];
-        } else {
-          // Add the index to the existing array
-          resultMap[keyPortion].push(index);
-        }
-      }
-    });
-
-    return resultMap;
-  };
-
-  const renderTimeComparisonDropdown = (): JSX.Element => {
-    const allKey = comparisonColumns[0].key;
-    const handleOnClick = (data: any) => {
-      const { key } = data;
-      // Toggle 'All' key selection
-      if (key === allKey) {
-        setSelectedComparisonColumns([allKey]);
-      } else if (selectedComparisonColumns.includes(allKey)) {
-        setSelectedComparisonColumns([key]);
-      } else {
-        // Toggle selection for other keys
-        setSelectedComparisonColumns(
-          selectedComparisonColumns.includes(key)
-            ? selectedComparisonColumns.filter(k => k !== key) // Deselect if already selected
-            : [...selectedComparisonColumns, key],
-        ); // Select if not already selected
-      }
-    };
-
-    const handleOnBlur = () => {
-      if (selectedComparisonColumns.length === 3) {
-        setSelectedComparisonColumns([comparisonColumns[0].key]);
-      }
-    };
-
-    return (
-      <Dropdown
-        placement="bottomRight"
-        visible={showComparisonDropdown}
-        onVisibleChange={(flag: boolean) => {
-          setShowComparisonDropdown(flag);
-        }}
-        overlay={
-          <Menu
-            multiple
-            onClick={handleOnClick}
-            onBlur={handleOnBlur}
-            selectedKeys={selectedComparisonColumns}
-          >
-            <div
-              css={css`
-                max-width: 242px;
-                padding: 0 ${theme.gridUnit * 2}px;
-                color: ${theme.colors.grayscale.base};
-                font-size: ${theme.typography.sizes.s}px;
-              `}
-            >
-              {t(
-                'Select columns that will be displayed in the table. You can multiselect columns.',
-              )}
-            </div>
-            {comparisonColumns.map(column => (
-              <Menu.Item key={column.key}>
-                <span
-                  css={css`
-                    color: ${theme.colors.grayscale.dark2};
-                  `}
-                >
-                  {column.label}
-                </span>
-                <span
-                  css={css`
-                    float: right;
-                    font-size: ${theme.typography.sizes.s}px;
-                  `}
-                >
-                  {selectedComparisonColumns.includes(column.key) && (
-                    <CheckOutlined />
-                  )}
-                </span>
-              </Menu.Item>
-            ))}
-          </Menu>
-        }
-        trigger={['click']}
-      >
-        <span>
-          <TableOutlined /> <DownOutlined />
-        </span>
-      </Dropdown>
-    );
-  };
-
-  const renderGroupingHeaders = (): JSX.Element => {
-    // TODO: Make use of ColumnGroup to render the aditional headers
-    const headers: any = [];
-    let currentColumnIndex = 0;
-
-    Object.entries(groupHeaderColumns || {}).forEach(([key, value]) => {
-      // Calculate the number of placeholder columns needed before the current header
-      const startPosition = value[0];
-      const colSpan = value.length;
-      // Retrieve the originalLabel from the first column in this group
-      const originalLabel = columnsMeta[value[0]]?.originalLabel || key;
-
-      // Add placeholder <th> for columns before this header
-      for (let i = currentColumnIndex; i < startPosition; i += 1) {
-        headers.push(
-          <th
-            key={`placeholder-${i}`}
-            style={{ borderBottom: 0 }}
-            aria-label={`Header-${i}`}
-          />,
-        );
-      }
-
-      // Add the current header <th>
-      headers.push(
-        <th key={`header-${key}`} colSpan={colSpan} style={{ borderBottom: 0 }}>
-          {originalLabel}
-          <span
-            css={css`
-              float: right;
-              & svg {
-                color: ${theme.colors.grayscale.base} !important;
-              }
-            `}
-          >
-            {hideComparisonKeys.includes(key) ? (
-              <PlusCircleOutlined
-                onClick={() =>
-                  setHideComparisonKeys(
-                    hideComparisonKeys.filter(k => k !== key),
-                  )
-                }
-              />
-            ) : (
-              <MinusCircleOutlined
-                onClick={() =>
-                  setHideComparisonKeys([...hideComparisonKeys, key])
-                }
-              />
-            )}
-          </span>
-        </th>,
-      );
-
-      // Update the current column index
-      currentColumnIndex = startPosition + colSpan;
-    });
-
-    return (
-      <tr
-        css={css`
-          th {
-            border-right: 2px solid ${theme.colors.grayscale.light2};
-          }
-          th:first-child {
-            border-left: none;
-          }
-          th:last-child {
-            border-right: none;
-          }
-        `}
-      >
-        {headers}
-      </tr>
-    );
-  };
-
-  const groupHeaderColumns = useMemo(
-    () => getHeaderColumns(filteredColumnsMeta, isUsingTimeComparison),
-    [filteredColumnsMeta, isUsingTimeComparison],
-  );
-
   const getColumnConfigs = useCallback(
     (column: DataColumnMeta, i: number): ColumnWithLooseAccessor<D> => {
-      const {
-        key,
-        label,
-        isNumeric,
-        dataType,
-        isMetric,
-        isPercentMetric,
-        config = {},
-      } = column;
+      const { key, label, isNumeric, dataType, isMetric, config = {} } = column;
       const columnWidth = Number.isNaN(Number(config.columnWidth))
         ? config.columnWidth
         : Number(config.columnWidth);
@@ -714,33 +381,17 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         Array.isArray(columnColorFormatters) &&
         columnColorFormatters.length > 0;
 
-      const hasBasicColorFormatters =
-        isUsingTimeComparison &&
-        Array.isArray(basicColorFormatters) &&
-        basicColorFormatters.length > 0;
-
       const valueRange =
-        !hasBasicColorFormatters &&
         !hasColumnColorFormatters &&
         (config.showCellBars === undefined
           ? showCellBars
           : config.showCellBars) &&
-        (isMetric || isRawRecords || isPercentMetric) &&
+        (isMetric || isRawRecords) &&
         getValueRange(key, alignPositiveNegative);
 
       let className = '';
-      if (emitCrossFilters && !isMetric) {
+      if (emitCrossFilters) {
         className += ' dt-is-filter';
-      }
-
-      if (!isMetric && !isPercentMetric) {
-        className += ' right-border-only';
-      } else if (comparisonLabels.includes(label)) {
-        const groupinHeader = key.substring(label.length);
-        const columnsUnderHeader = groupHeaderColumns[groupinHeader] || [];
-        if (i === columnsUnderHeader[columnsUnderHeader.length - 1]) {
-          className += ' right-border-only';
-        }
       }
 
       return {
@@ -749,47 +400,22 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         // typing is incorrect in current version of `@types/react-table`
         // so we ask TS not to check.
         accessor: ((datum: D) => datum[key]) as never,
-        Cell: ({ value, row }: { value: DataRecordValue; row: Row<D> }) => {
+        Cell: ({ value }: { value: DataRecordValue }) => {
           const [isHtml, text] = formatColumnValue(column, value);
-          const html = isHtml && allowRenderHtml ? { __html: text } : undefined;
+          const html = isHtml ? { __html: text } : undefined;
 
           let backgroundColor;
-          let arrow = '';
-          const originKey = column.key.substring(column.label.length).trim();
-          if (!hasColumnColorFormatters && hasBasicColorFormatters) {
-            backgroundColor =
-              basicColorFormatters[row.index][originKey]?.backgroundColor;
-            arrow =
-              column.label === comparisonLabels[0]
-                ? basicColorFormatters[row.index][originKey]?.mainArrow
-                : '';
-          }
-
           if (hasColumnColorFormatters) {
             columnColorFormatters!
               .filter(formatter => formatter.column === column.key)
               .forEach(formatter => {
-                const formatterResult =
-                  value || value === 0
-                    ? formatter.getColorFromValue(value as number)
-                    : false;
+                const formatterResult = value
+                  ? formatter.getColorFromValue(value as number)
+                  : false;
                 if (formatterResult) {
                   backgroundColor = formatterResult;
                 }
               });
-          }
-
-          if (
-            basicColorColumnFormatters &&
-            basicColorColumnFormatters?.length > 0
-          ) {
-            backgroundColor =
-              basicColorColumnFormatters[row.index][column.key]
-                ?.backgroundColor || backgroundColor;
-            arrow =
-              column.label === comparisonLabels[0]
-                ? basicColorColumnFormatters[row.index][column.key]?.mainArrow
-                : '';
           }
 
           const StyledCell = styled.td`
@@ -823,60 +449,18 @@ export default function TableChart<D extends DataRecord = DataRecord>(
               `}
           `;
 
-          let arrowStyles = css`
-            color: ${basicColorFormatters &&
-            basicColorFormatters[row.index][originKey]?.arrowColor ===
-              ColorSchemeEnum.Green
-              ? theme.colors.success.base
-              : theme.colors.error.base};
-            margin-right: ${theme.gridUnit}px;
-          `;
-
-          if (
-            basicColorColumnFormatters &&
-            basicColorColumnFormatters?.length > 0
-          ) {
-            arrowStyles = css`
-              color: ${basicColorColumnFormatters[row.index][column.key]
-                ?.arrowColor === ColorSchemeEnum.Green
-                ? theme.colors.success.base
-                : theme.colors.error.base};
-              margin-right: ${theme.gridUnit}px;
-            `;
-          }
-
           const cellProps = {
-            'aria-labelledby': `header-${column.key}`,
-            role: 'cell',
             // show raw number in title in case of numeric values
             title: typeof value === 'number' ? String(value) : undefined,
             onClick:
-              emitCrossFilters && !valueRange && !isMetric
-                ? () => {
-                    // allow selecting text in a cell
-                    if (!getSelectedText()) {
-                      toggleFilter(key, value);
-                    }
-                  }
+              emitCrossFilters && !valueRange
+                ? () => toggleFilter(key, value)
                 : undefined,
-            onContextMenu: (e: MouseEvent) => {
-              if (handleContextMenu) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleContextMenu(
-                  row.original,
-                  { key, value, isMetric },
-                  e.nativeEvent.clientX,
-                  e.nativeEvent.clientY,
-                );
-              }
-            },
             className: [
               className,
               value == null ? 'dt-is-null' : '',
               isActiveFilterValue(key, value) ? ' dt-is-active-filter' : '',
             ].join(' '),
-            tabIndex: 0,
           };
           if (html) {
             if (truncateLongCells) {
@@ -903,12 +487,9 @@ export default function TableChart<D extends DataRecord = DataRecord>(
                   /* The following classes are added to support custom CSS styling */
                   className={cx(
                     'cell-bar',
-                    typeof value === 'number' && value < 0
-                      ? 'negative'
-                      : 'positive',
+                    value && value < 0 ? 'negative' : 'positive',
                   )}
                   css={cellBarStyles}
-                  role="presentation"
                 />
               )}
               {truncateLongCells ? (
@@ -916,34 +497,22 @@ export default function TableChart<D extends DataRecord = DataRecord>(
                   className="dt-truncate-cell"
                   style={columnWidth ? { width: columnWidth } : undefined}
                 >
-                  {arrow && <span css={arrowStyles}>{arrow}</span>}
                   {text}
                 </div>
               ) : (
-                <>
-                  {arrow && <span css={arrowStyles}>{arrow}</span>}
-                  {text}
-                </>
+                text
               )}
             </StyledCell>
           );
         },
         Header: ({ column: col, onClick, style, onDragStart, onDrop }) => (
           <th
-            id={`header-${column.key}`}
             title={t('Shift + Click to sort by multiple columns')}
             className={[className, col.isSorted ? 'is-sorted' : ''].join(' ')}
             style={{
               ...sharedStyle,
               ...style,
             }}
-            onKeyDown={(e: ReactKeyboardEvent<HTMLElement>) => {
-              // programatically sort column on keypress
-              if (Object.values(ACTION_KEYS).includes(e.key)) {
-                col.toggleSortBy();
-              }
-            }}
-            role="columnheader button"
             onClick={onClick}
             data-column-name={col.id}
             {...(allowRearrangeColumns && {
@@ -953,7 +522,6 @@ export default function TableChart<D extends DataRecord = DataRecord>(
               onDragEnter: e => e.preventDefault(),
               onDrop,
             })}
-            tabIndex={0}
           >
             {/* can't use `columnWidth &&` because it may also be zero */}
             {config.columnWidth ? (
@@ -979,29 +547,9 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         ),
         Footer: totals ? (
           i === 0 ? (
-            <th key={`footer-summary-${i}`}>
-              <div
-                css={css`
-                  display: flex;
-                  align-items: center;
-                  & svg {
-                    margin-left: ${theme.gridUnit}px;
-                    color: ${theme.colors.grayscale.dark1} !important;
-                  }
-                `}
-              >
-                {t('Summary')}
-                <Tooltip
-                  overlay={t(
-                    'Show total aggregations of selected metrics. Note that row limit does not apply to the result.',
-                  )}
-                >
-                  <InfoCircleOutlined />
-                </Tooltip>
-              </div>
-            </th>
+            <th>{t('Totals')}</th>
           ) : (
-            <td key={`footer-total-${i}`} style={sharedStyle}>
+            <td style={sharedStyle}>
               <strong>{formatColumnValue(column, totals[key])[1]}</strong>
             </td>
           )
@@ -1027,8 +575,8 @@ export default function TableChart<D extends DataRecord = DataRecord>(
   );
 
   const columns = useMemo(
-    () => filteredColumnsMeta.map(getColumnConfigs),
-    [filteredColumnsMeta, getColumnConfigs],
+    () => columnsMeta.map(getColumnConfigs),
+    [columnsMeta, getColumnConfigs],
   );
 
   const handleServerPaginationChange = useCallback(
@@ -1047,7 +595,7 @@ export default function TableChart<D extends DataRecord = DataRecord>(
 
   useLayoutEffect(() => {
     // After initial load the table should resize only when the new sizes
-    // Are not only scrollbar updates, otherwise, the table would twitch
+    // Are not only scrollbar updates, otherwise, the table would twicth
     const scrollBarSize = getScrollBarSize();
     const { width: tableWidth, height: tableHeight } = tableSize;
     // Table is increasing its original size
@@ -1073,6 +621,25 @@ export default function TableChart<D extends DataRecord = DataRecord>(
 
   const { width: widthFromState, height: heightFromState } = tableSize;
 
+  const handleContextMenu =
+    onContextMenu && !isRawRecords
+      ? (value: D, clientX: number, clientY: number) => {
+          const filters: BinaryQueryObjectFilterClause[] = [];
+          columnsMeta.forEach(col => {
+            if (!col.isMetric) {
+              const dataRecordValue = value[col.key];
+              filters.push({
+                col: col.key,
+                op: '==',
+                val: dataRecordValue as string | number | boolean,
+                formattedVal: formatColumnValue(col, dataRecordValue)[1],
+              });
+            }
+          });
+          onContextMenu(clientX, clientY, filters);
+        }
+      : undefined;
+
   return (
     <Styles>
       <DataTable<D>
@@ -1095,12 +662,7 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         selectPageSize={pageSize !== null && SelectPageSize}
         // not in use in Superset, but needed for unit tests
         sticky={sticky}
-        renderGroupingHeaders={
-          !isEmpty(groupHeaderColumns) ? renderGroupingHeaders : undefined
-        }
-        renderTimeComparisonDropdown={
-          isUsingTimeComparison ? renderTimeComparisonDropdown : undefined
-        }
+        onContextMenu={handleContextMenu}
       />
     </Styles>
   );

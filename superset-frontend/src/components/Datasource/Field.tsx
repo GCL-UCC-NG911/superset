@@ -16,8 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useCallback, ReactNode, ReactElement, cloneElement } from 'react';
-
+import React, { useCallback } from 'react';
 import { css, SupersetTheme } from '@superset-ui/core';
 import { Tooltip } from 'src/components/Tooltip';
 import { FormItem, FormLabel } from 'src/components/Form';
@@ -33,8 +32,8 @@ interface FieldProps<V> {
   fieldKey: string;
   value?: V;
   label: string;
-  description?: ReactNode;
-  control: ReactElement;
+  description?: React.ReactNode;
+  control: React.ReactElement;
   onChange: (fieldKey: string, newValue: V) => void;
   compact: boolean;
   inline: boolean;
@@ -57,7 +56,7 @@ export default function Field<V>({
     [onChange, fieldKey],
   );
 
-  const hookedControl = cloneElement(control, {
+  const hookedControl = React.cloneElement(control, {
     value,
     onChange: onControlChange,
   });

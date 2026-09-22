@@ -23,12 +23,12 @@ from flask_appbuilder.hooks import before_request
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 
 from superset import is_feature_enabled
-from superset.commands.dashboard.embedded.exceptions import (
+from superset.constants import MODEL_API_RW_METHOD_PERMISSION_MAP, RouteMethod
+from superset.dashboards.schemas import EmbeddedDashboardResponseSchema
+from superset.embedded.dao import EmbeddedDAO
+from superset.embedded_dashboard.commands.exceptions import (
     EmbeddedDashboardNotFoundError,
 )
-from superset.constants import MODEL_API_RW_METHOD_PERMISSION_MAP, RouteMethod
-from superset.daos.dashboard import EmbeddedDashboardDAO
-from superset.dashboards.schemas import EmbeddedDashboardResponseSchema
 from superset.extensions import event_logger
 from superset.models.embedded_dashboard import EmbeddedDashboard
 from superset.reports.logs.schemas import openapi_spec_methods_override
@@ -58,7 +58,7 @@ class EmbeddedDashboardRestApi(BaseSupersetModelRestApi):
 
     embedded_response_schema = EmbeddedDashboardResponseSchema()
 
-    @expose("/<uuid>", methods=("GET",))
+    @expose("/<uuid>", methods=["GET"])
     @protect()
     @safe
     @statsd_metrics
@@ -68,10 +68,12 @@ class EmbeddedDashboardRestApi(BaseSupersetModelRestApi):
     )
     # pylint: disable=arguments-differ, arguments-renamed)
     def get(self, uuid: str) -> Response:
-        """Get the dashboard's embedded configuration.
+        """Response
+        Returns the dashboard's embedded configuration
         ---
         get:
-          summary: Get the dashboard's embedded configuration
+          description: >-
+            Returns the dashboard's embedded configuration
           parameters:
           - in: path
             schema:
@@ -96,7 +98,7 @@ class EmbeddedDashboardRestApi(BaseSupersetModelRestApi):
               $ref: '#/components/responses/500'
         """
         try:
-            embedded = EmbeddedDashboardDAO.find_by_id(uuid)
+            embedded = EmbeddedDAO.find_by_id(uuid)
             if not embedded:
                 raise EmbeddedDashboardNotFoundError()
             result = self.embedded_response_schema.dump(embedded)

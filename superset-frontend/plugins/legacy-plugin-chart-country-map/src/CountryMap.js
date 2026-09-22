@@ -37,7 +37,6 @@ const propTypes = {
   width: PropTypes.number,
   height: PropTypes.number,
   country: PropTypes.string,
-  colorScheme: PropTypes.string,
   linearColorScheme: PropTypes.string,
   mapBaseUrl: PropTypes.string,
   numberFormat: PropTypes.string,

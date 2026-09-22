@@ -23,7 +23,6 @@
 
 import { QueryFormData } from '@superset-ui/core';
 import Owner from './Owner';
-import Tag from './TagType';
 
 export type ChartLinkedDashboard = {
   id: number;
@@ -45,7 +44,6 @@ export interface Chart {
   cache_timeout: number | null;
   thumbnail_url?: string;
   owners?: Owner[];
-  tags?: Tag[];
   last_saved_at?: string;
   last_saved_by?: {
     id: number;
@@ -74,8 +72,6 @@ export type Slice = {
   query_context?: object;
   is_managed_externally: boolean;
   owners?: number[];
-  datasource?: string;
-  datasource_id?: number;
 };
 
 export default Chart;

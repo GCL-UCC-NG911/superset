@@ -16,22 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import {
-  Children,
-  ReactElement,
-  ReactNode,
-  Fragment,
-  MouseEventHandler,
-} from 'react';
-
+import React, { Children, ReactElement } from 'react';
+import { kebabCase } from 'lodash';
 import { mix } from 'polished';
 import cx from 'classnames';
-import { Button as AntdButton } from 'antd-v5';
+import { AntdButton } from 'src/components';
 import { useTheme } from '@superset-ui/core';
-import { Tooltip, TooltipProps } from 'src/components/Tooltip';
-import { ButtonProps as AntdButtonProps } from 'antd-v5/lib/button';
+import { Tooltip } from 'src/components/Tooltip';
+import { ButtonProps as AntdButtonProps } from 'antd/lib/button';
+import { TooltipProps } from 'antd/lib/tooltip';
 
-export type OnClickHandler = MouseEventHandler<HTMLElement>;
+export type OnClickHandler = React.MouseEventHandler<HTMLElement>;
 
 export type ButtonStyle =
   | 'primary'
@@ -48,32 +43,13 @@ export type ButtonSize = 'default' | 'small' | 'xsmall';
 
 export type ButtonProps = Omit<AntdButtonProps, 'css'> &
   Pick<TooltipProps, 'placement'> & {
-    tooltip?: ReactNode;
+    tooltip?: string;
     className?: string;
     buttonSize?: ButtonSize;
     buttonStyle?: ButtonStyle;
     cta?: boolean;
     showMarginRight?: boolean;
   };
-
-const decideType = (buttonStyle: ButtonStyle) => {
-  const typeMap: Record<
-    ButtonStyle,
-    'primary' | 'default' | 'dashed' | 'link'
-  > = {
-    primary: 'primary',
-    danger: 'primary',
-    warning: 'primary',
-    success: 'primary',
-    secondary: 'default',
-    default: 'default',
-    tertiary: 'default',
-    dashed: 'dashed',
-    link: 'link',
-  };
-
-  return typeMap[buttonStyle];
-};
 
 export default function Button(props: ButtonProps) {
   const {
@@ -92,7 +68,7 @@ export default function Button(props: ButtonProps) {
 
   const theme = useTheme();
   const { colors, transitionTiming, borderRadius, typography } = theme;
-  const { primary, grayscale, success, warning } = colors;
+  const { primary, grayscale, success, warning, error } = colors;
 
   let height = 32;
   let padding = 18;
@@ -104,19 +80,25 @@ export default function Button(props: ButtonProps) {
     padding = 10;
   }
 
-  let backgroundColor;
-  let backgroundColorHover;
-  let backgroundColorActive;
+  let backgroundColor = primary.light4;
+  let backgroundColorHover = mix(0.1, primary.base, primary.light4);
+  let backgroundColorActive = mix(0.25, primary.base, primary.light4);
   let backgroundColorDisabled = grayscale.light2;
-  let color;
-  let colorHover;
+  let color = primary.dark1;
+  let colorHover = color;
   let borderWidth = 0;
   let borderStyle = 'none';
-  let borderColor;
-  let borderColorHover;
+  let borderColor = 'transparent';
+  let borderColorHover = 'transparent';
   let borderColorDisabled = 'transparent';
 
-  if (buttonStyle === 'tertiary' || buttonStyle === 'dashed') {
+  if (buttonStyle === 'primary') {
+    backgroundColor = primary.base;
+    backgroundColorHover = primary.dark1;
+    backgroundColorActive = mix(0.2, grayscale.dark2, primary.dark1);
+    color = grayscale.light5;
+    colorHover = color;
+  } else if (buttonStyle === 'tertiary' || buttonStyle === 'dashed') {
     backgroundColor = grayscale.light5;
     backgroundColorHover = grayscale.light5;
     backgroundColorActive = grayscale.light5;
@@ -127,6 +109,10 @@ export default function Button(props: ButtonProps) {
     borderColorHover = primary.light1;
     borderColorDisabled = grayscale.light2;
   } else if (buttonStyle === 'danger') {
+    backgroundColor = error.base;
+    backgroundColorHover = mix(0.1, grayscale.light5, error.base);
+    backgroundColorActive = mix(0.2, grayscale.dark2, error.base);
+    color = grayscale.light5;
     colorHover = color;
   } else if (buttonStyle === 'warning') {
     backgroundColor = warning.base;
@@ -144,13 +130,13 @@ export default function Button(props: ButtonProps) {
     backgroundColor = 'transparent';
     backgroundColorHover = 'transparent';
     backgroundColorActive = 'transparent';
-    color = primary.dark1;
+    colorHover = primary.base;
   }
 
   const element = children as ReactElement;
 
   let renderedChildren = [];
-  if (element && element.type === Fragment) {
+  if (element && element.type === React.Fragment) {
     renderedChildren = Children.toArray(element.props.children);
   } else {
     renderedChildren = Children.toArray(children);
@@ -158,22 +144,11 @@ export default function Button(props: ButtonProps) {
   const firstChildMargin =
     showMarginRight && renderedChildren.length > 1 ? theme.gridUnit * 2 : 0;
 
-  const effectiveButtonStyle: ButtonStyle = buttonStyle ?? 'default';
-
   const button = (
     <AntdButton
       href={disabled ? undefined : href}
       disabled={disabled}
-      type={decideType(effectiveButtonStyle)}
-      danger={effectiveButtonStyle === 'danger'}
-      className={cx(
-        className,
-        'superset-button',
-        // A static class name containing the button style is available to
-        // support customizing button styles in embedded dashboards.
-        `superset-button-${buttonStyle}`,
-        { cta: !!cta },
-      )}
+      className={cx(className, 'superset-button', { cta: !!cta })}
       css={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -182,6 +157,7 @@ export default function Button(props: ButtonProps) {
         fontSize: typography.sizes.s,
         fontWeight: typography.weights.bold,
         height,
+        textTransform: 'uppercase',
         padding: `0px ${padding}px`,
         transition: `all ${transitionTiming}s`,
         minWidth: cta ? theme.gridUnit * 36 : undefined,
@@ -192,18 +168,12 @@ export default function Button(props: ButtonProps) {
         borderColor,
         borderRadius,
         color,
-        background: backgroundColor,
-        ...(colorHover || backgroundColorHover || borderColorHover
-          ? {
-              [`&.superset-button.superset-button-${buttonStyle}:hover`]: {
-                ...(colorHover && { color: colorHover }),
-                ...(backgroundColorHover && {
-                  background: backgroundColorHover,
-                }),
-                ...(borderColorHover && { borderColor: borderColorHover }),
-              },
-            }
-          : {}),
+        backgroundColor,
+        '&:hover': {
+          color: colorHover,
+          backgroundColor: backgroundColorHover,
+          borderColor: borderColorHover,
+        },
         '&:active': {
           color,
           backgroundColor: backgroundColorActive,
@@ -225,7 +195,7 @@ export default function Button(props: ButtonProps) {
         '& + .superset-button': {
           marginLeft: theme.gridUnit * 2,
         },
-        '& > span > :first-of-type': {
+        '& > :first-of-type': {
           marginRight: firstChildMargin,
         },
       }}
@@ -237,7 +207,11 @@ export default function Button(props: ButtonProps) {
 
   if (tooltip) {
     return (
-      <Tooltip placement={placement} title={tooltip}>
+      <Tooltip
+        placement={placement}
+        id={`${kebabCase(tooltip)}-tooltip`}
+        title={tooltip}
+      >
         {/* wrap the button in a span so that the tooltip shows up
         when the button is disabled. */}
         {disabled ? (

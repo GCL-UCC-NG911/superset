@@ -15,19 +15,19 @@
 # specific language governing permissions and limitations
 # under the License.
 import logging
-from typing import Any
+from typing import Any, Dict
 
-from flask import current_app, request, Response
+from flask import request, Response
 from flask_appbuilder import expose
 from flask_appbuilder.api import safe
 from flask_appbuilder.security.decorators import permission_name, protect
 from flask_wtf.csrf import generate_csrf
 from marshmallow import EXCLUDE, fields, post_load, Schema, ValidationError
+from marshmallow_enum import EnumField
 
-from superset.commands.dashboard.embedded.exceptions import (
+from superset.embedded_dashboard.commands.exceptions import (
     EmbeddedDashboardNotFoundError,
 )
-from superset.exceptions import SupersetGenericErrorException
 from superset.extensions import event_logger
 from superset.security.guest_token import GuestTokenResourceType
 from superset.views.base_api import BaseSupersetApi, statsd_metrics
@@ -51,15 +51,13 @@ class UserSchema(PermissiveSchema):
 
 
 class ResourceSchema(PermissiveSchema):
-    type = fields.Enum(GuestTokenResourceType, by_value=True, required=True)
+    type = EnumField(GuestTokenResourceType, by_value=True, required=True)
     id = fields.String(required=True)
 
     @post_load
-    def convert_enum_to_value(  # pylint: disable=unused-argument
-        self,
-        data: dict[str, Any],
-        **kwargs: Any,
-    ) -> dict[str, Any]:
+    def convert_enum_to_value(  # pylint: disable=no-self-use
+        self, data: Dict[str, Any], **kwargs: Any  # pylint: disable=unused-argument
+    ) -> Dict[str, Any]:
         # we don't care about the enum, we want the value inside
         data["type"] = data["type"].value
         return data
@@ -84,17 +82,19 @@ class SecurityRestApi(BaseSupersetApi):
     allow_browser_login = True
     openapi_spec_tag = "Security"
 
-    @expose("/csrf_token/", methods=("GET",))
+    @expose("/csrf_token/", methods=["GET"])
     @event_logger.log_this
     @protect()
     @safe
     @statsd_metrics
     @permission_name("read")
     def csrf_token(self) -> Response:
-        """Get the CSRF token.
+        """
+        Return the csrf token
         ---
         get:
-          summary: Get the CSRF token
+          description: >-
+            Fetch the CSRF token
           responses:
             200:
               description: Result contains the CSRF token
@@ -112,17 +112,19 @@ class SecurityRestApi(BaseSupersetApi):
         """
         return self.response(200, result=generate_csrf())
 
-    @expose("/guest_token/", methods=("POST",))
+    @expose("/guest_token/", methods=["POST"])
     @event_logger.log_this
     @protect()
     @safe
     @statsd_metrics
     @permission_name("grant_guest_token")
     def guest_token(self) -> Response:
-        """Get a guest token that can be used for auth in embedded Superset.
+        """Response
+        Returns a guest token that can be used for auth in embedded Superset
         ---
         post:
-          summary: Get a guest token
+          description: >-
+            Fetches a guest token
           requestBody:
             description: Parameters for the guest token
             required: true
@@ -149,19 +151,8 @@ class SecurityRestApi(BaseSupersetApi):
         try:
             body = guest_token_create_schema.load(request.json)
             self.appbuilder.sm.validate_guest_token_resources(body["resources"])
-            guest_token_validator_hook = current_app.config.get(
-                "GUEST_TOKEN_VALIDATOR_HOOK"
-            )
-            # Run validator to ensure the token parameters are OK.
-            if guest_token_validator_hook is not None:
-                if callable(guest_token_validator_hook):
-                    if not guest_token_validator_hook(body):
-                        raise ValidationError(message="Guest token validation failed")
-                else:
-                    raise SupersetGenericErrorException(
-                        message="Guest token validator hook not callable"
-                    )
-            # TODO: Add generic validation:
+
+            # todo validate stuff:
             # make sure username doesn't reference an existing user
             # check rls rules for validity?
             token = self.appbuilder.sm.create_guest_access_token(

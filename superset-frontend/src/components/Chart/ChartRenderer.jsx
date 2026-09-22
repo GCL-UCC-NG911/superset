@@ -16,23 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { snakeCase, isEqual, cloneDeep } from 'lodash';
+import { snakeCase, isEqual } from 'lodash';
 import PropTypes from 'prop-types';
-import { createRef, Component } from 'react';
+import React from 'react';
 import {
   SuperChart,
   logging,
   Behavior,
   t,
-  getChartMetadataRegistry,
-  VizType,
   isFeatureEnabled,
   FeatureFlag,
+  getChartMetadataRegistry,
 } from '@superset-ui/core';
 import { Logger, LOG_ACTIONS_RENDER_CHART } from 'src/logger/LogUtils';
-import { EmptyState } from 'src/components/EmptyState';
+import { EmptyStateBig, EmptyStateSmall } from 'src/components/EmptyState';
 import { ChartSource } from 'src/types/ChartSource';
-import ChartContextMenu from './ChartContextMenu/ChartContextMenu';
+import ChartContextMenu from './ChartContextMenu';
 
 const propTypes = {
   annotationData: PropTypes.object,
@@ -42,8 +41,8 @@ const propTypes = {
   initialValues: PropTypes.object,
   formData: PropTypes.object.isRequired,
   latestQueryFormData: PropTypes.object,
-  labelsColor: PropTypes.object,
-  labelsColorMap: PropTypes.object,
+  labelColors: PropTypes.object,
+  sharedLabelColors: PropTypes.object,
   height: PropTypes.number,
   width: PropTypes.number,
   setControlValue: PropTypes.func,
@@ -71,7 +70,7 @@ const BLANK = {};
 const BIG_NO_RESULT_MIN_WIDTH = 300;
 const BIG_NO_RESULT_MIN_HEIGHT = 220;
 
-const behaviors = [Behavior.InteractiveChart];
+const behaviors = [Behavior.INTERACTIVE_CHART];
 
 const defaultProps = {
   addFilter: () => BLANK,
@@ -82,24 +81,18 @@ const defaultProps = {
   triggerRender: false,
 };
 
-class ChartRenderer extends Component {
+class ChartRenderer extends React.Component {
   constructor(props) {
     super(props);
-    const suppressContextMenu = getChartMetadataRegistry().get(
-      props.formData.viz_type ?? props.vizType,
-    )?.suppressContextMenu;
     this.state = {
       showContextMenu:
         props.source === ChartSource.Dashboard &&
-        !suppressContextMenu &&
-        isFeatureEnabled(FeatureFlag.DrillToDetail),
+        isFeatureEnabled(FeatureFlag.DRILL_TO_DETAIL),
       inContextMenu: false,
-      legendState: undefined,
-      legendIndex: 0,
     };
     this.hasQueryResponseChange = false;
 
-    this.contextMenuRef = createRef();
+    this.contextMenuRef = React.createRef();
 
     this.handleAddFilter = this.handleAddFilter.bind(this);
     this.handleRenderSuccess = this.handleRenderSuccess.bind(this);
@@ -108,9 +101,7 @@ class ChartRenderer extends Component {
     this.handleOnContextMenu = this.handleOnContextMenu.bind(this);
     this.handleContextMenuSelected = this.handleContextMenuSelected.bind(this);
     this.handleContextMenuClosed = this.handleContextMenuClosed.bind(this);
-    this.handleLegendStateChanged = this.handleLegendStateChanged.bind(this);
     this.onContextMenuFallback = this.onContextMenuFallback.bind(this);
-    this.handleLegendScroll = this.handleLegendScroll.bind(this);
 
     this.hooks = {
       onAddFilter: this.handleAddFilter,
@@ -121,17 +112,10 @@ class ChartRenderer extends Component {
       setControlValue: this.handleSetControlValue,
       onFilterMenuOpen: this.props.onFilterMenuOpen,
       onFilterMenuClose: this.props.onFilterMenuClose,
-      onLegendStateChanged: this.handleLegendStateChanged,
       setDataMask: dataMask => {
         this.props.actions?.updateDataMask(this.props.chartId, dataMask);
       },
-      onLegendScroll: this.handleLegendScroll,
     };
-
-    // TODO: queriesResponse comes from Redux store but it's being edited by
-    // the plugins, hence we need to clone it to avoid state mutation
-    // until we change the reducers to use Redux Toolkit with Immer
-    this.mutableQueriesResponse = cloneDeep(this.props.queriesResponse);
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -146,11 +130,6 @@ class ChartRenderer extends Component {
       }
       this.hasQueryResponseChange =
         nextProps.queriesResponse !== this.props.queriesResponse;
-
-      if (this.hasQueryResponseChange) {
-        this.mutableQueriesResponse = cloneDeep(nextProps.queriesResponse);
-      }
-
       return (
         this.hasQueryResponseChange ||
         !isEqual(nextProps.datasource, this.props.datasource) ||
@@ -160,8 +139,8 @@ class ChartRenderer extends Component {
         nextProps.height !== this.props.height ||
         nextProps.width !== this.props.width ||
         nextProps.triggerRender ||
-        nextProps.labelsColor !== this.props.labelsColor ||
-        nextProps.labelsColorMap !== this.props.labelsColorMap ||
+        nextProps.labelColors !== this.props.labelColors ||
+        nextProps.sharedLabelColors !== this.props.sharedLabelColors ||
         nextProps.formData.color_scheme !== this.props.formData.color_scheme ||
         nextProps.formData.stack !== this.props.formData.stack ||
         nextProps.cacheBusterProp !== this.props.cacheBusterProp ||
@@ -236,10 +215,6 @@ class ChartRenderer extends Component {
     this.setState({ inContextMenu: false });
   }
 
-  handleLegendStateChanged(legendState) {
-    this.setState({ legendState });
-  }
-
   // When viz plugins don't handle `contextmenu` event, fallback handler
   // calls `handleOnContextMenu` with no `filters` param.
   onContextMenuFallback(event) {
@@ -247,10 +222,6 @@ class ChartRenderer extends Component {
       event.preventDefault();
       this.handleOnContextMenu(event.clientX, event.clientY);
     }
-  }
-
-  handleLegendScroll(legendIndex) {
-    this.setState({ legendIndex });
   }
 
   render() {
@@ -274,6 +245,7 @@ class ChartRenderer extends Component {
       chartIsStale,
       formData,
       latestQueryFormData,
+      queriesResponse,
       postTransformProps,
     } = this.props;
 
@@ -287,7 +259,7 @@ class ChartRenderer extends Component {
     // to each one of them.
     const snakeCaseVizType = snakeCase(vizType);
     const chartClassName =
-      vizType === VizType.Table
+      vizType === 'table'
         ? `superset-chart-${snakeCaseVizType}`
         : snakeCaseVizType;
 
@@ -298,7 +270,7 @@ class ChartRenderer extends Component {
             typeof __webpack_require__ !== 'undefined' &&
             // eslint-disable-next-line camelcase, no-undef
             typeof __webpack_require__.h === 'function' &&
-            // eslint-disable-next-line no-undef, camelcase
+            // eslint-disable-next-line no-undef
             __webpack_require__.h()
           }`
         : '';
@@ -314,8 +286,7 @@ class ChartRenderer extends Component {
     const noResultImage = 'chart.svg';
     if (width > BIG_NO_RESULT_MIN_WIDTH && height > BIG_NO_RESULT_MIN_HEIGHT) {
       noResultsComponent = (
-        <EmptyState
-          size="large"
+        <EmptyStateBig
           title={noResultTitle}
           description={noResultDescription}
           image={noResultImage}
@@ -323,7 +294,7 @@ class ChartRenderer extends Component {
       );
     } else {
       noResultsComponent = (
-        <EmptyState size="small" title={noResultTitle} image={noResultImage} />
+        <EmptyStateSmall title={noResultTitle} image={noResultImage} />
       );
     }
 
@@ -331,7 +302,7 @@ class ChartRenderer extends Component {
     // Detail props or if it'll cause side-effects (e.g. excessive re-renders).
     const drillToDetailProps = getChartMetadataRegistry()
       .get(formData.viz_type)
-      ?.behaviors.find(behavior => behavior === Behavior.DrillToDetail)
+      ?.behaviors.find(behavior => behavior === Behavior.DRILL_TO_DETAIL)
       ? { inContextMenu: this.state.inContextMenu }
       : {};
 
@@ -367,14 +338,12 @@ class ChartRenderer extends Component {
             filterState={filterState}
             hooks={this.hooks}
             behaviors={behaviors}
-            queriesData={this.mutableQueriesResponse}
+            queriesData={queriesResponse}
             onRenderSuccess={this.handleRenderSuccess}
             onRenderFailure={this.handleRenderFailure}
             noResults={noResultsComponent}
             postTransformProps={postTransformProps}
             emitCrossFilters={emitCrossFilters}
-            legendState={this.state.legendState}
-            legendIndex={this.state.legendIndex}
             {...drillToDetailProps}
           />
         </div>

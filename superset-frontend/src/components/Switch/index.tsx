@@ -16,8 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { SwitchProps } from 'antd-v5/lib/switch';
-import { Switch as AntdSwitch } from 'antd-v5';
+import React from 'react';
+import { styled } from '@superset-ui/core';
+import BaseSwitch, { SwitchProps } from 'antd/lib/switch';
 
-export const Switch = (props: SwitchProps) => <AntdSwitch {...props} />;
+const StyledSwitch = styled(BaseSwitch)`
+  .ant-switch-checked {
+    background-color: ${({ theme }) => theme.colors.primary.base};
+  }
+`;
+
+export const Switch = (props: SwitchProps) => <StyledSwitch {...props} />;
 export type { SwitchProps };

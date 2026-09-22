@@ -19,11 +19,7 @@
 import rison from 'rison';
 import fetchMock from 'fetch-mock';
 import { act, renderHook } from '@testing-library/react-hooks';
-import {
-  createWrapper,
-  defaultStore as store,
-} from 'spec/helpers/testing-library';
-import { api } from 'src/hooks/apiResources/queryApi';
+import QueryProvider, { queryClient } from 'src/views/QueryProvider';
 import { useTables } from './tables';
 
 const fakeApiResult = {
@@ -72,35 +68,37 @@ const expectedHasMoreData = {
 
 describe('useTables hook', () => {
   beforeEach(() => {
+    queryClient.clear();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
     fetchMock.reset();
-    store.dispatch(api.util.resetApiState());
+    jest.useRealTimers();
   });
 
   test('returns api response mapping json options', async () => {
     const expectDbId = 'db1';
     const expectedSchema = 'schema1';
-    const catalogApiRoute = `glob:*/api/v1/database/${expectDbId}/catalogs/*`;
     const schemaApiRoute = `glob:*/api/v1/database/${expectDbId}/schemas/*`;
     const tableApiRoute = `glob:*/api/v1/database/${expectDbId}/tables/?q=*`;
     fetchMock.get(tableApiRoute, fakeApiResult);
-    fetchMock.get(catalogApiRoute, { count: 0, result: [] });
     fetchMock.get(schemaApiRoute, {
       result: fakeSchemaApiResult,
     });
-    const { result, waitFor } = renderHook(
+    const { result } = renderHook(
       () =>
         useTables({
           dbId: expectDbId,
           schema: expectedSchema,
         }),
       {
-        wrapper: createWrapper({
-          useRedux: true,
-          store,
-        }),
+        wrapper: QueryProvider,
       },
     );
-    await waitFor(() => expect(result.current.data).toEqual(expectedData));
+    await act(async () => {
+      jest.runAllTimers();
+    });
     expect(fetchMock.calls(schemaApiRoute).length).toBe(1);
     expect(
       fetchMock.calls(
@@ -110,48 +108,45 @@ describe('useTables hook', () => {
         })}`,
       ).length,
     ).toBe(1);
-    act(() => {
+    expect(result.current.data).toEqual(expectedData);
+    await act(async () => {
       result.current.refetch();
     });
-    await waitFor(() =>
-      expect(
-        fetchMock.calls(
-          `end:api/v1/database/${expectDbId}/tables/?q=${rison.encode({
-            force: true,
-            schema_name: expectedSchema,
-          })}`,
-        ).length,
-      ).toBe(1),
-    );
     expect(fetchMock.calls(schemaApiRoute).length).toBe(1);
+    expect(
+      fetchMock.calls(
+        `end:api/v1/database/${expectDbId}/tables/?q=${rison.encode({
+          force: true,
+          schema_name: expectedSchema,
+        })}`,
+      ).length,
+    ).toBe(1);
     expect(result.current.data).toEqual(expectedData);
   });
 
   test('skips the deprecated schema option', async () => {
     const expectDbId = 'db1';
     const unexpectedSchema = 'invalid schema';
-    const catalogApiRoute = `glob:*/api/v1/database/${expectDbId}/catalogs/*`;
     const schemaApiRoute = `glob:*/api/v1/database/${expectDbId}/schemas/*`;
     const tableApiRoute = `glob:*/api/v1/database/${expectDbId}/tables/?q=*`;
     fetchMock.get(tableApiRoute, fakeApiResult);
-    fetchMock.get(catalogApiRoute, { count: 0, result: [] });
     fetchMock.get(schemaApiRoute, {
       result: fakeSchemaApiResult,
     });
-    const { result, waitFor } = renderHook(
+    const { result } = renderHook(
       () =>
         useTables({
           dbId: expectDbId,
           schema: unexpectedSchema,
         }),
       {
-        wrapper: createWrapper({
-          useRedux: true,
-          store,
-        }),
+        wrapper: QueryProvider,
       },
     );
-    await waitFor(() => expect(fetchMock.calls(schemaApiRoute).length).toBe(1));
+    await act(async () => {
+      jest.runAllTimers();
+    });
+    expect(fetchMock.calls(schemaApiRoute).length).toBe(1);
     expect(result.current.data).toEqual(undefined);
     expect(
       fetchMock.calls(
@@ -168,27 +163,23 @@ describe('useTables hook', () => {
     const expectedSchema = 'schema2';
     const tableApiRoute = `glob:*/api/v1/database/${expectDbId}/tables/?q=*`;
     fetchMock.get(tableApiRoute, fakeHasMoreApiResult);
-    fetchMock.get(`glob:*/api/v1/database/${expectDbId}/catalogs/*`, {
-      count: 0,
-      result: [],
-    });
     fetchMock.get(`glob:*/api/v1/database/${expectDbId}/schemas/*`, {
       result: fakeSchemaApiResult,
     });
-    const { result, waitFor } = renderHook(
+    const { result } = renderHook(
       () =>
         useTables({
           dbId: expectDbId,
           schema: expectedSchema,
         }),
       {
-        wrapper: createWrapper({
-          useRedux: true,
-          store,
-        }),
+        wrapper: QueryProvider,
       },
     );
-    await waitFor(() => expect(fetchMock.calls(tableApiRoute).length).toBe(1));
+    await act(async () => {
+      jest.runAllTimers();
+    });
+    expect(fetchMock.calls(tableApiRoute).length).toBe(1);
     expect(result.current.data).toEqual(expectedHasMoreData);
   });
 
@@ -197,100 +188,61 @@ describe('useTables hook', () => {
     const expectedSchema = 'schema1';
     const tableApiRoute = `glob:*/api/v1/database/${expectDbId}/tables/?q=*`;
     fetchMock.get(tableApiRoute, fakeApiResult);
-    fetchMock.get(`glob:*/api/v1/database/${expectDbId}/catalogs/*`, {
-      count: 0,
-      result: [],
-    });
     fetchMock.get(`glob:*/api/v1/database/${expectDbId}/schemas/*`, {
       result: fakeSchemaApiResult,
     });
-    const { result, rerender, waitFor } = renderHook(
+    const { result, rerender } = renderHook(
       () =>
         useTables({
           dbId: expectDbId,
           schema: expectedSchema,
         }),
       {
-        wrapper: createWrapper({
-          useRedux: true,
-          store,
-        }),
+        wrapper: QueryProvider,
       },
     );
-    console.log(
-      'Called URLs:',
-      fetchMock.calls().map(call => call[0]),
-    );
-
-    // Add a catch-all mock to see if any unmocked requests are being made
-    fetchMock.mock('*', url => {
-      console.log('Unmocked request to:', url);
-      return 404;
+    await act(async () => {
+      jest.runAllTimers();
     });
-    await waitFor(() => expect(fetchMock.calls(tableApiRoute).length).toBe(1));
-    rerender();
-    await waitFor(() => expect(result.current.data).toEqual(expectedData));
     expect(fetchMock.calls(tableApiRoute).length).toBe(1);
+    rerender();
+    expect(fetchMock.calls(tableApiRoute).length).toBe(1);
+    expect(result.current.data).toEqual(expectedData);
   });
 
   test('returns refreshed data after expires', async () => {
     const expectDbId = 'db1';
     const expectedSchema = 'schema1';
     const tableApiRoute = `glob:*/api/v1/database/${expectDbId}/tables/?q=*`;
-    fetchMock.get(tableApiRoute, url =>
-      url.includes(expectedSchema) ? fakeApiResult : fakeHasMoreApiResult,
-    );
-    fetchMock.get(`glob:*/api/v1/database/${expectDbId}/catalogs/*`, {
-      count: 0,
-      result: [],
-    });
+    fetchMock.get(tableApiRoute, fakeApiResult);
     fetchMock.get(`glob:*/api/v1/database/${expectDbId}/schemas/*`, {
       result: fakeSchemaApiResult,
     });
-    const { result, rerender, waitFor } = renderHook(
-      ({ schema }) =>
+    const { result, rerender } = renderHook(
+      () =>
         useTables({
           dbId: expectDbId,
-          schema,
+          schema: expectedSchema,
         }),
       {
-        initialProps: { schema: expectedSchema },
-        wrapper: createWrapper({
-          useRedux: true,
-          store,
-        }),
+        wrapper: QueryProvider,
       },
     );
-
-    await waitFor(() => expect(result.current.data).toEqual(expectedData));
-    expect(fetchMock.calls(tableApiRoute).length).toBe(1);
-
-    rerender({ schema: 'schema2' });
-    await waitFor(() =>
-      expect(result.current.data).toEqual(expectedHasMoreData),
-    );
-    expect(fetchMock.calls(tableApiRoute).length).toBe(2);
-
-    rerender({ schema: expectedSchema });
-    await waitFor(() => expect(result.current.data).toEqual(expectedData));
-    expect(fetchMock.calls(tableApiRoute).length).toBe(2);
-
-    // clean up cache
-    act(() => {
-      store.dispatch(api.util.invalidateTags(['Tables']));
+    await act(async () => {
+      jest.runAllTimers();
     });
-
-    await waitFor(() => expect(fetchMock.calls(tableApiRoute).length).toBe(3));
-    await waitFor(() => expect(result.current.data).toEqual(expectedData));
-
-    rerender({ schema: 'schema2' });
-    await waitFor(() =>
-      expect(result.current.data).toEqual(expectedHasMoreData),
-    );
-    expect(fetchMock.calls(tableApiRoute).length).toBe(4);
-
-    rerender({ schema: expectedSchema });
-    await waitFor(() => expect(result.current.data).toEqual(expectedData));
-    expect(fetchMock.calls(tableApiRoute).length).toBe(4);
+    expect(fetchMock.calls(tableApiRoute).length).toBe(1);
+    rerender();
+    await act(async () => {
+      jest.runAllTimers();
+    });
+    expect(fetchMock.calls(tableApiRoute).length).toBe(1);
+    queryClient.clear();
+    rerender();
+    await act(async () => {
+      jest.runAllTimers();
+    });
+    expect(fetchMock.calls(tableApiRoute).length).toBe(2);
+    expect(result.current.data).toEqual(expectedData);
   });
 });

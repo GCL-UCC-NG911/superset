@@ -3,35 +3,19 @@ name: Embedded SDK Release
 on:
   push:
     branches:
-      - "master"
-      - "[0-9].[0-9]*"
+      - 'master'
 
 jobs:
-  config:
-    runs-on: ubuntu-24.04
-    outputs:
-      has-secrets: ${{ steps.check.outputs.has-secrets }}
-    steps:
-      - name: "Check for secrets"
-        id: check
-        shell: bash
-        run: |
-          if [ -n "${{ (secrets.NPM_TOKEN != '') || '' }}" ]; then
-            echo "has-secrets=1" >> "$GITHUB_OUTPUT"
-          fi
-
   build:
-    needs: config
-    if: needs.config.outputs.has-secrets
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-20.04
     defaults:
       run:
         working-directory: superset-embedded-sdk
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
-          node-version: "20"
+          node-version: "16"
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npm run ci:release

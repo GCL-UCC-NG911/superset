@@ -70,6 +70,7 @@ export const payload = theme => ({
     js_columns: ['color'],
     where: '',
     having: '',
+    having_filters: [],
     filters: [{ col: 'path_json', op: 'IS NOT NULL', val: '' }],
   },
   is_cached: false,

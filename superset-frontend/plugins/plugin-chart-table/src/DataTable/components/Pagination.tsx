@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { CSSProperties, forwardRef, memo, Ref } from 'react';
+import React, { CSSProperties, forwardRef } from 'react';
 
 export interface PaginationProps {
   pageCount: number; // number of pages
@@ -60,19 +60,18 @@ export function generatePageItems(
     items[i] = i + left;
   }
   // replace non-ending items with placeholders
-  if (typeof items[0] === 'number' && items[0] > 0) {
+  if (items[0] > 0) {
     items[0] = 0;
     items[1] = 'prev-more';
   }
-  const lastItem = items[items.length - 1];
-  if (typeof lastItem === 'number' && lastItem < total - 1) {
+  if (items[items.length - 1] < total - 1) {
     items[items.length - 1] = total - 1;
     items[items.length - 2] = 'next-more';
   }
   return items;
 }
 
-export default memo(
+export default React.memo(
   forwardRef(function Pagination(
     {
       style,
@@ -81,7 +80,7 @@ export default memo(
       maxPageItemCount = 9,
       onPageChange,
     }: PaginationProps,
-    ref: Ref<HTMLDivElement>,
+    ref: React.Ref<HTMLDivElement>,
   ) {
     const pageItems = generatePageItems(
       pageCount,

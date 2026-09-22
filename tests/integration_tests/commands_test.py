@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 import copy
-from unittest.mock import patch
+import json
 
 import yaml
 from flask import g
@@ -26,7 +26,6 @@ from superset.commands.importers.v1.assets import ImportAssetsCommand
 from superset.commands.importers.v1.utils import is_valid_config
 from superset.models.dashboard import Dashboard
 from superset.models.slice import Slice
-from superset.utils import json
 from tests.integration_tests.base_tests import SupersetTestCase
 from tests.integration_tests.fixtures.importexport import (
     chart_config,
@@ -62,12 +61,10 @@ class TestImportAssetsCommand(SupersetTestCase):
     def setUp(self):
         user = self.get_user("admin")
         self.user = user
-        g.user = user
+        setattr(g, "user", user)
 
-    @patch("superset.commands.database.importers.v1.utils.add_permissions")
-    def test_import_assets(self, mock_add_permissions):
+    def test_import_assets(self):
         """Test that we can import multiple assets"""
-
         contents = {
             "metadata.yaml": yaml.safe_dump(metadata_config),
             "databases/imported_database.yaml": yaml.safe_dump(database_config),
@@ -128,9 +125,14 @@ class TestImportAssetsCommand(SupersetTestCase):
         }
         assert json.loads(dashboard.json_metadata) == {
             "color_scheme": None,
+            "default_filters": "{}",
             "expanded_slices": {str(new_chart_id): True},
+            "filter_scopes": {
+                str(new_chart_id): {
+                    "region": {"scope": ["ROOT_ID"], "immune": [new_chart_id]}
+                },
+            },
             "import_time": 1604342885,
-            "native_filter_configuration": [],
             "refresh_frequency": 0,
             "remote_id": 7,
             "timed_refresh_immune_slices": [new_chart_id],
@@ -139,46 +141,22 @@ class TestImportAssetsCommand(SupersetTestCase):
         dataset = chart.table
         assert str(dataset.uuid) == dataset_config["uuid"]
 
-        assert json.loads(chart.query_context) == {
-            "datasource": {"id": dataset.id, "type": "table"},
-            "force": False,
-            "queries": [
-                {
-                    "annotation_layers": [],
-                    "applied_time_extras": {},
-                    "columns": [],
-                    "custom_form_data": {},
-                    "custom_params": {},
-                    "extras": {"having": "", "time_grain_sqla": None, "where": ""},
-                    "filters": [],
-                    "metrics": [],
-                    "order_desc": True,
-                    "row_limit": 5000,
-                    "time_range": " : ",
-                    "timeseries_limit": 0,
-                    "url_params": {},
-                }
-            ],
-            "result_format": "json",
-            "result_type": "full",
-        }
-        assert json.loads(chart.params)["datasource"] == dataset.uid
-
         database = dataset.database
         assert str(database.uuid) == database_config["uuid"]
 
         assert dashboard.owners == [self.user]
 
-        mock_add_permissions.assert_called_with(database, None)
-
+        dashboard.owners = []
+        chart.owners = []
+        dataset.owners = []
+        database.owners = []
         db.session.delete(dashboard)
         db.session.delete(chart)
         db.session.delete(dataset)
         db.session.delete(database)
         db.session.commit()
 
-    @patch("superset.commands.database.importers.v1.utils.add_permissions")
-    def test_import_v1_dashboard_overwrite(self, mock_add_permissions):
+    def test_import_v1_dashboard_overwrite(self):
         """Test that assets can be overwritten"""
         contents = {
             "metadata.yaml": yaml.safe_dump(metadata_config),
@@ -187,7 +165,6 @@ class TestImportAssetsCommand(SupersetTestCase):
             "charts/imported_chart.yaml": yaml.safe_dump(chart_config),
             "dashboards/imported_dashboard.yaml": yaml.safe_dump(dashboard_config),
         }
-
         command = ImportAssetsCommand(contents)
         command.run()
         chart = db.session.query(Slice).filter_by(uuid=chart_config["uuid"]).one()
@@ -213,9 +190,11 @@ class TestImportAssetsCommand(SupersetTestCase):
         chart = dashboard.slices[0]
         dataset = chart.table
         database = dataset.database
+        dashboard.owners = []
 
-        mock_add_permissions.assert_called_with(database, None)
-
+        chart.owners = []
+        dataset.owners = []
+        database.owners = []
         db.session.delete(dashboard)
         db.session.delete(chart)
         db.session.delete(dataset)

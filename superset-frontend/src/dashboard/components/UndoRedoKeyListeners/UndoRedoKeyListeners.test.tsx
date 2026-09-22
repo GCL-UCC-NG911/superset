@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { render, fireEvent } from 'spec/helpers/testing-library';
 import UndoRedoKeyListeners from '.';
 

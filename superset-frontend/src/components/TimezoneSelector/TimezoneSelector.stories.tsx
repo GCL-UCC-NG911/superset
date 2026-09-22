@@ -16,7 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useArgs } from '@storybook/preview-api';
+import React from 'react';
+import { useArgs } from '@storybook/client-api';
 import TimezoneSelector, { TimezoneSelectorProps } from './index';
 
 export default {

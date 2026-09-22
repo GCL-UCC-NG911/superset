@@ -16,11 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactNode, ReactElement } from 'react';
-
+import React, { ReactNode } from 'react';
 import { AntdDropdown, AntdTooltip } from 'src/components';
 import { styled } from '@superset-ui/core';
-import { kebabCase } from 'lodash';
+import kebabCase from 'lodash/kebabCase';
 
 const StyledDropdownButton = styled.div`
   .ant-btn-group {
@@ -31,17 +30,19 @@ const StyledDropdownButton = styled.div`
       font-size: 12px;
       line-height: 13px;
       outline: none;
+      text-transform: uppercase;
       &:first-of-type {
         border-radius: ${({ theme }) =>
           `${theme.gridUnit}px 0 0 ${theme.gridUnit}px`};
         margin: 0;
+        width: 120px;
       }
 
       &:disabled {
         background-color: ${({ theme }) => theme.colors.grayscale.light2};
         color: ${({ theme }) => theme.colors.grayscale.base};
       }
-      &:nth-of-type(2) {
+      &:nth-child(2) {
         margin: 0;
         border-radius: ${({ theme }) =>
           `0 ${theme.gridUnit}px ${theme.gridUnit}px 0`};
@@ -66,7 +67,7 @@ const StyledDropdownButton = styled.div`
 `;
 
 export interface DropdownButtonProps {
-  overlay: ReactElement;
+  overlay: React.ReactElement;
   tooltip?: string;
   placement?: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
   buttonsRender?: ((buttons: ReactNode[]) => ReactNode[]) | undefined;

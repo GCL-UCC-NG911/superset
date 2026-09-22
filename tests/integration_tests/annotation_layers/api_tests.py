@@ -16,19 +16,19 @@
 # under the License.
 # isort:skip_file
 """Unit tests for Superset"""
+import json
 
 import pytest
 import prison
 from sqlalchemy.sql import func
 
-import tests.integration_tests.test_app  # noqa: F401
+import tests.integration_tests.test_app
 from superset import db
-from superset.utils import json
 from superset.models.annotations import Annotation, AnnotationLayer
 
 from tests.integration_tests.base_tests import SupersetTestCase
 from tests.integration_tests.annotation_layers.fixtures import (
-    create_annotation_layers,  # noqa: F401
+    create_annotation_layers,
     get_end_dttm,
     get_start_dttm,
 )
@@ -36,7 +36,6 @@ from tests.unit_tests.annotation_layers.fixtures import (
     START_STR,
     END_STR,
 )
-from tests.integration_tests.constants import ADMIN_USERNAME
 
 ANNOTATION_LAYERS_COUNT = 10
 ANNOTATIONS_COUNT = 5
@@ -62,7 +61,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
             .first()
         )
 
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = f"api/v1/annotation_layer/{annotation_layer.id}"
         rv = self.get_assert_metric(uri, "get")
         assert rv.status_code == 200
@@ -79,7 +78,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         Annotation API: Test info
         """
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = "api/v1/annotation_layer/_info"
         rv = self.get_assert_metric(uri, "info")
         assert rv.status_code == 200
@@ -88,7 +87,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         Annotation API: Test info security
         """
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         params = {"keys": ["permissions"]}
         uri = f"api/v1/annotation_layer/_info?q={prison.dumps(params)}"
         rv = self.get_assert_metric(uri, "info")
@@ -104,7 +103,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         Annotation Api: Test get annotation layer not found
         """
         max_id = db.session.query(func.max(AnnotationLayer.id)).scalar()
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = f"api/v1/annotation_layer/{max_id + 1}"
         rv = self.get_assert_metric(uri, "get")
         assert rv.status_code == 404
@@ -114,7 +113,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         Annotation Api: Test get list annotation layers
         """
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = "api/v1/annotation_layer/"
         rv = self.get_assert_metric(uri, "get_list")
 
@@ -138,7 +137,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         Annotation Api: Test sorting on get list annotation layers
         """
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = "api/v1/annotation_layer/"
 
         order_columns = [
@@ -162,7 +161,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         Annotation Api: Test filters on get list annotation layers
         """
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         arguments = {
             "columns": ["name", "descr"],
             "filters": [
@@ -204,7 +203,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         Annotation Api: Test create annotation layer
         """
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         annotation_layer_data = {
             "name": "new3",
             "descr": "description",
@@ -226,7 +225,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         Annotation Api: Test create incorrect annotation layer
         """
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         annotation_layer_data = {}
         uri = "api/v1/annotation_layer/"
         rv = self.client.post(uri, json=annotation_layer_data)
@@ -239,7 +238,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         Annotation Api: Test create annotation layer uniqueness
         """
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         annotation_layer_data = {"name": "name3", "descr": "description"}
         uri = "api/v1/annotation_layer/"
         rv = self.client.post(uri, json=annotation_layer_data)
@@ -258,7 +257,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
             .one_or_none()
         )
 
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         annotation_layer_data = {"name": "changed_name"}
         uri = f"api/v1/annotation_layer/{annotation_layer.id}"
         rv = self.client.put(uri, json=annotation_layer_data)
@@ -280,7 +279,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
             .one_or_none()
         )
 
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         annotation_layer_data = {"name": "name3", "descr": "changed_description"}
         uri = f"api/v1/annotation_layer/{annotation_layer.id}"
         rv = self.client.put(uri, json=annotation_layer_data)
@@ -295,7 +294,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         max_id = db.session.query(func.max(AnnotationLayer.id)).scalar()
 
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         annotation_layer_data = {"name": "changed_name", "descr": "changed_description"}
         uri = f"api/v1/annotation_layer/{max_id + 1}"
         rv = self.client.put(uri, json=annotation_layer_data)
@@ -311,7 +310,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
             .filter(AnnotationLayer.name == "name1")
             .one_or_none()
         )
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = f"api/v1/annotation_layer/{annotation_layer.id}"
         rv = self.client.delete(uri)
         assert rv.status_code == 200
@@ -324,7 +323,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         Annotation Api: Test delete annotation layer not found
         """
         max_id = db.session.query(func.max(AnnotationLayer.id)).scalar()
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = f"api/v1/annotation_layer/{max_id + 1}"
         rv = self.client.delete(uri)
         assert rv.status_code == 404
@@ -338,7 +337,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
             AnnotationLayer.name == "layer_with_annotations"
         )
         child_layer = query_child_layer.one_or_none()
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = f"api/v1/annotation_layer/{child_layer.id}"
         rv = self.client.delete(uri)
         assert rv.status_code == 422
@@ -356,7 +355,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         no_child_layers_ids = [
             annotation_layer.id for annotation_layer in no_child_layers
         ]
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = f"api/v1/annotation_layer/?q={prison.dumps(no_child_layers_ids)}"
         rv = self.client.delete(uri)
         assert rv.status_code == 200
@@ -383,7 +382,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         ]
         max_id = db.session.query(func.max(AnnotationLayer.id)).scalar()
         all_annotation_layers_ids.append(max_id + 1)
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = f"api/v1/annotation_layer/?q={prison.dumps(all_annotation_layers_ids)}"
         rv = self.client.delete(uri)
         assert rv.status_code == 404
@@ -400,7 +399,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
             .one_or_none()
         )
 
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = (
             f"api/v1/annotation_layer/{annotation.layer_id}/annotation/{annotation.id}"
         )
@@ -427,7 +426,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         layer = self.get_layer_with_annotation()
         max_id = db.session.query(func.max(Annotation.id)).scalar()
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = f"api/v1/annotation_layer/{layer.id}/annotation/{max_id + 1}"
         rv = self.get_assert_metric(uri, "get")
         assert rv.status_code == 404
@@ -438,7 +437,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         Annotation Api: Test get list of annotations
         """
         layer = self.get_layer_with_annotation()
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = f"api/v1/annotation_layer/{layer.id}/annotation/"
         rv = self.get_assert_metric(uri, "get_list")
 
@@ -462,7 +461,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         Annotation Api: Test sorting on get list of annotations
         """
         layer = self.get_layer_with_annotation()
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
 
         order_columns = [
             "short_descr",
@@ -474,7 +473,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         ]
         for order_column in order_columns:
             arguments = {"order_column": order_column, "order_direction": "asc"}
-            uri = f"api/v1/annotation_layer/{layer.id}/annotation/?q={prison.dumps(arguments)}"  # noqa: E501
+            uri = f"api/v1/annotation_layer/{layer.id}/annotation/?q={prison.dumps(arguments)}"
             rv = self.get_assert_metric(uri, "get_list")
             assert rv.status_code == 200
 
@@ -484,13 +483,13 @@ class TestAnnotationLayerApi(SupersetTestCase):
         Annotation Api: Test filters on get list annotation layers
         """
         layer = self.get_layer_with_annotation()
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         arguments = {
             "filters": [
                 {"col": "short_descr", "opr": "annotation_all_text", "value": "2"}
             ]
         }
-        uri = f"api/v1/annotation_layer/{layer.id}/annotation/?q={prison.dumps(arguments)}"  # noqa: E501
+        uri = f"api/v1/annotation_layer/{layer.id}/annotation/?q={prison.dumps(arguments)}"
         rv = self.get_assert_metric(uri, "get_list")
 
         assert rv.status_code == 200
@@ -502,7 +501,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
                 {"col": "short_descr", "opr": "annotation_all_text", "value": "descr3"}
             ]
         }
-        uri = f"api/v1/annotation_layer/{layer.id}/annotation/?q={prison.dumps(arguments)}"  # noqa: E501
+        uri = f"api/v1/annotation_layer/{layer.id}/annotation/?q={prison.dumps(arguments)}"
         rv = self.get_assert_metric(uri, "get_list")
 
         assert rv.status_code == 200
@@ -516,7 +515,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         layer = self.get_layer_with_annotation()
 
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         annotation_data = {
             "short_descr": "new",
             "long_descr": "description",
@@ -543,7 +542,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         layer = self.get_layer_with_annotation()
 
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         annotation_data = {
             "long_descr": "description",
         }
@@ -566,7 +565,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         layer = self.get_layer_with_annotation()
 
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         annotation_data = {
             "short_descr": "short_descr2",
             "long_descr": "description",
@@ -595,7 +594,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
             .one_or_none()
         )
 
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         annotation_data = {
             "short_descr": "changed_name",
         }
@@ -620,7 +619,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
             .one_or_none()
         )
 
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         annotation_data = {"start_dttm": None, "end_dttm": None}
         uri = f"api/v1/annotation_layer/{layer.id}/annotation/{annotation.id}"
         rv = self.client.put(uri, json=annotation_data)
@@ -645,7 +644,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
             .one_or_none()
         )
 
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         annotation_layer_data = {
             "short_descr": "short_descr3",
             "long_descr": "changed_description",
@@ -668,7 +667,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         layer = self.get_layer_with_annotation()
         max_id = db.session.query(func.max(Annotation.id)).scalar()
 
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         annotation_layer_data = {
             "short_descr": "changed_name",
         }
@@ -687,7 +686,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
             .filter(Annotation.short_descr == "short_descr1")
             .one_or_none()
         )
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = f"api/v1/annotation_layer/{layer.id}/annotation/{annotation.id}"
         rv = self.client.delete(uri)
         assert rv.status_code == 200
@@ -701,7 +700,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         """
         layer = self.get_layer_with_annotation()
         max_id = db.session.query(func.max(Annotation.id)).scalar()
-        self.login(ADMIN_USERNAME)
+        self.login(username="admin")
         uri = f"api/v1/annotation_layer/{layer.id}/annotation{max_id + 1}"
         rv = self.client.delete(uri)
         assert rv.status_code == 404
@@ -718,8 +717,8 @@ class TestAnnotationLayerApi(SupersetTestCase):
 
         annotations = query_annotations.all()
         annotations_ids = [annotation.id for annotation in annotations]
-        self.login(ADMIN_USERNAME)
-        uri = f"api/v1/annotation_layer/{layer.id}/annotation/?q={prison.dumps(annotations_ids)}"  # noqa: E501
+        self.login(username="admin")
+        uri = f"api/v1/annotation_layer/{layer.id}/annotation/?q={prison.dumps(annotations_ids)}"
         rv = self.client.delete(uri)
         assert rv.status_code == 200
         deleted_annotations = query_annotations.all()
@@ -744,7 +743,7 @@ class TestAnnotationLayerApi(SupersetTestCase):
         max_id = db.session.query(func.max(Annotation.id)).scalar()
 
         annotations_ids.append(max_id + 1)
-        self.login(ADMIN_USERNAME)
-        uri = f"api/v1/annotation_layer/{layer.id}/annotation/?q={prison.dumps(annotations_ids)}"  # noqa: E501
+        self.login(username="admin")
+        uri = f"api/v1/annotation_layer/{layer.id}/annotation/?q={prison.dumps(annotations_ids)}"
         rv = self.client.delete(uri)
         assert rv.status_code == 404

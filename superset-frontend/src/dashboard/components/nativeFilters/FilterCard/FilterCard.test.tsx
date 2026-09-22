@@ -17,6 +17,7 @@
  * under the License.
  */
 
+import React from 'react';
 import * as reactRedux from 'react-redux';
 import { Filter, NativeFilterType } from '@superset-ui/core';
 import userEvent from '@testing-library/user-event';
@@ -48,7 +49,7 @@ const baseInitialState = {
           rootPath: [DASHBOARD_ROOT_ID],
           excluded: [],
         },
-        type: NativeFilterType.NativeFilter,
+        type: NativeFilterType.NATIVE_FILTER,
         description: '',
       },
       'NATIVE_FILTER-2': {
@@ -70,7 +71,7 @@ const baseInitialState = {
           rootPath: [DASHBOARD_ROOT_ID],
           excluded: [],
         },
-        type: NativeFilterType.NativeFilter,
+        type: NativeFilterType.NATIVE_FILTER,
         description: '',
       },
     },
@@ -85,9 +86,6 @@ const baseInitialState = {
     '3': {
       id: 3,
     },
-  },
-  dashboardState: {
-    sliceIds: [1, 2, 3],
   },
   dashboardLayout: {
     past: [],
@@ -190,7 +188,7 @@ const baseFilter: Filter = {
     rootPath: [DASHBOARD_ROOT_ID],
     excluded: [],
   },
-  type: NativeFilterType.NativeFilter,
+  type: NativeFilterType.NATIVE_FILTER,
   description: '',
 };
 
@@ -206,6 +204,13 @@ jest.mock('@superset-ui/core', () => ({
     },
   }),
 }));
+
+jest.mock(
+  'src/components/Icons/Icon',
+  () =>
+    ({ fileName }: { fileName: string }) =>
+      <span role="img" aria-label={fileName.replace('_', '-')} />,
+);
 
 // extract text from embedded html tags
 // source: https://polvara.me/posts/five-things-you-didnt-know-about-testing-library
@@ -306,7 +311,9 @@ test('focus filter on filter card dependency click', () => {
 
 test('edit filter button for dashboard viewer', () => {
   renderContent();
-  expect(screen.queryByRole('img', { name: /edit/i })).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('button', { name: /edit/i }),
+  ).not.toBeInTheDocument();
 });
 
 test('edit filter button for dashboard editor', () => {
@@ -315,7 +322,7 @@ test('edit filter button for dashboard editor', () => {
     dashboardInfo: { dash_edit_perm: true },
   });
 
-  expect(screen.getByRole('img', { name: /edit/i })).toBeVisible();
+  expect(screen.getByRole('button', { name: /edit/i })).toBeVisible();
 });
 
 test('open modal on edit filter button click', async () => {
@@ -324,13 +331,9 @@ test('open modal on edit filter button click', async () => {
     dashboardInfo: { dash_edit_perm: true },
   });
 
-  const editButton = screen.getByRole('img', { name: /edit/i });
-
-  expect(
-    screen.queryByRole('dialog', { name: /add and edit filters/i }),
-  ).not.toBeInTheDocument();
+  const editButton = screen.getByRole('button', { name: /edit/i });
   userEvent.click(editButton);
   expect(
     await screen.findByRole('dialog', { name: /add and edit filters/i }),
-  ).toBeInTheDocument();
+  ).toBeVisible();
 });

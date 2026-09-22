@@ -47,8 +47,6 @@ export const dragConfig = [
       dragSourceRef: connect.dragSource(),
       dragPreviewRef: connect.dragPreview(),
       isDragging: monitor.isDragging(),
-      dragComponentType: monitor.getItem()?.type,
-      dragComponentId: monitor.getItem()?.id,
     };
   },
 ];

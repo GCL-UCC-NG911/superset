@@ -15,16 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from typing import Any
+from typing import Any, Dict
 
 import sqlalchemy as sa
 from flask import current_app
 from flask_appbuilder import Model
 from sqlalchemy.orm import backref, relationship
-from sqlalchemy.types import Text
+from sqlalchemy_utils import EncryptedType
 
 from superset.constants import PASSWORD_MASK
-from superset.extensions import encrypted_field_factory
 from superset.models.core import Database
 from superset.models.helpers import (
     AuditMixinNullable,
@@ -35,7 +34,7 @@ from superset.models.helpers import (
 app_config = current_app.config
 
 
-class SSHTunnel(AuditMixinNullable, ExtraJSONMixin, ImportExportMixin, Model):
+class SSHTunnel(Model, AuditMixinNullable, ExtraJSONMixin, ImportExportMixin):
     """
     A ssh tunnel configuration in a database.
     """
@@ -54,32 +53,23 @@ class SSHTunnel(AuditMixinNullable, ExtraJSONMixin, ImportExportMixin, Model):
 
     server_address = sa.Column(sa.Text)
     server_port = sa.Column(sa.Integer)
-    username = sa.Column(encrypted_field_factory.create(Text))
+    username = sa.Column(EncryptedType(sa.String, app_config["SECRET_KEY"]))
 
     # basic authentication
-    password = sa.Column(encrypted_field_factory.create(Text), nullable=True)
-
-    # password protected pkey authentication
-    private_key = sa.Column(encrypted_field_factory.create(Text), nullable=True)
-    private_key_password = sa.Column(
-        encrypted_field_factory.create(Text), nullable=True
+    password = sa.Column(
+        EncryptedType(sa.String, app_config["SECRET_KEY"]), nullable=True
     )
 
-    export_fields = [
-        "server_address",
-        "server_port",
-        "username",
-        "password",
-        "private_key",
-        "private_key_password",
-    ]
-
-    extra_import_fields = [
-        "database_id",
-    ]
+    # password protected pkey authentication
+    private_key = sa.Column(
+        EncryptedType(sa.String, app_config["SECRET_KEY"]), nullable=True
+    )
+    private_key_password = sa.Column(
+        EncryptedType(sa.String, app_config["SECRET_KEY"]), nullable=True
+    )
 
     @property
-    def data(self) -> dict[str, Any]:
+    def data(self) -> Dict[str, Any]:
         output = {
             "id": self.id,
             "server_address": self.server_address,

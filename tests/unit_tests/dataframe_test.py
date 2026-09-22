@@ -42,7 +42,7 @@ def test_df_to_records() -> None:
     ]
 
 
-def test_df_to_records_NaT_type() -> None:  # noqa: N802
+def test_df_to_records_NaT_type() -> None:
     from superset.db_engine_specs import BaseEngineSpec
     from superset.result_set import SupersetResultSet
 

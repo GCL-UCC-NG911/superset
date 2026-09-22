@@ -26,19 +26,20 @@ Create Date: 2021-11-11 04:18:26.171851
 revision = "0ca9e5f1dacd"
 down_revision = "b92d69a6643c"
 
-import logging  # noqa: E402
+import json
+import logging
 
-from alembic import op  # noqa: E402
-from sqlalchemy import Column, Integer, Text  # noqa: E402
-from sqlalchemy.ext.declarative import declarative_base  # noqa: E402
+from alembic import op
+from sqlalchemy import Column, Integer, Text
+from sqlalchemy.ext.declarative import declarative_base
 
-from superset import db  # noqa: E402
-from superset.utils import json  # noqa: E402
+from superset import db
 
 Base = declarative_base()
 
 
 class Database(Base):
+
     __tablename__ = "dbs"
     id = Column(Integer, primary_key=True)
     extra = Column(Text)
@@ -51,7 +52,7 @@ def upgrade():
     for database in session.query(Database).all():
         try:
             extra = json.loads(database.extra)
-        except json.JSONDecodeError as ex:
+        except json.decoder.JSONDecodeError as ex:
             logging.warning(str(ex))
             continue
 
@@ -73,7 +74,7 @@ def downgrade():
     for database in session.query(Database).all():
         try:
             extra = json.loads(database.extra)
-        except json.JSONDecodeError as ex:
+        except json.decoder.JSONDecodeError as ex:
             logging.warning(str(ex))
             continue
 

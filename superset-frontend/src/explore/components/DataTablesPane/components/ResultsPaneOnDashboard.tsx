@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { t, styled } from '@superset-ui/core';
 import Tabs from 'src/components/Tabs';
 import { ResultTypes, ResultsPaneProps } from '../types';
@@ -53,7 +54,6 @@ export const ResultsPaneOnDashboard = ({
   actions,
   isVisible,
   dataSize = 50,
-  canDownload,
 }: ResultsPaneProps) => {
   const resultsPanes = useResultsPane({
     errorMessage,
@@ -64,7 +64,6 @@ export const ResultsPaneOnDashboard = ({
     actions,
     dataSize,
     isVisible,
-    canDownload,
   });
 
   if (resultsPanes.length === 1) {

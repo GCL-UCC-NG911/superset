@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import EditableTitle, { EditableTitleProps } from '.';
 
 export default {
@@ -41,4 +42,12 @@ InteractiveEditableTitle.args = {
 
 InteractiveEditableTitle.argTypes = {
   onSaveTitle: { action: 'onSaveTitle' },
+};
+
+InteractiveEditableTitle.story = {
+  parameters: {
+    knobs: {
+      disable: true,
+    },
+  },
 };

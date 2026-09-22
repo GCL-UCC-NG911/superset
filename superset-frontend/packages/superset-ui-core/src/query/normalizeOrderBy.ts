@@ -16,7 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import isBoolean from 'lodash/isBoolean';
 
 import { QueryObject } from './types';
 
@@ -30,7 +31,7 @@ export default function normalizeOrderBy(
       Array.isArray(orderbyClause) &&
       orderbyClause.length === 2 &&
       !isEmpty(orderbyClause[0]) &&
-      typeof orderbyClause[1] === 'boolean'
+      isBoolean(orderbyClause[1])
     ) {
       return queryObject;
     }

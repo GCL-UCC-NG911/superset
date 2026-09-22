@@ -16,20 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useCallback, useMemo, ReactNode } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import rison from 'rison';
+import { t, SupersetClient } from '@superset-ui/core';
+import { AsyncSelect } from 'src/components';
+import { cacheWrapper } from 'src/utils/cacheWrapper';
 import {
-  t,
-  JsonResponse,
   ClientErrorObject,
   getClientErrorObject,
-} from '@superset-ui/core';
-import { AsyncSelect } from 'src/components';
-import { cachedSupersetGet } from 'src/utils/cachedSupersetGet';
-import {
-  Dataset,
-  DatasetSelectLabel,
-} from 'src/features/datasets/DatasetSelectLabel';
+} from 'src/utils/getClientErrorObject';
+import { datasetToSelectOption } from './utils';
+
+const localCache = new Map<string, any>();
+
+const cachedSupersetGet = cacheWrapper(
+  SupersetClient.get,
+  localCache,
+  ({ endpoint }) => endpoint || '',
+);
 
 interface DatasetSelectProps {
   onChange: (value: { label: string; value: number }) => void;
@@ -53,29 +57,24 @@ const DatasetSelect = ({ onChange, value }: DatasetSelectProps) => {
     page: number,
     pageSize: number,
   ) => {
+    const searchColumn = 'table_name';
     const query = rison.encode({
-      columns: ['id', 'table_name', 'database.database_name', 'schema'],
-      filters: [{ col: 'table_name', opr: 'ct', value: search }],
+      filters: [{ col: searchColumn, opr: 'ct', value: search }],
       page,
       page_size: pageSize,
-      order_column: 'table_name',
+      order_column: searchColumn,
       order_direction: 'asc',
     });
     return cachedSupersetGet({
       endpoint: `/api/v1/dataset/?q=${query}`,
     })
-      .then((response: JsonResponse) => {
-        const list: {
-          customLabel: ReactNode;
+      .then(response => {
+        const data: {
           label: string;
           value: string | number;
-        }[] = response.json.result.map((item: Dataset) => ({
-          customLabel: DatasetSelectLabel(item),
-          label: item.table_name,
-          value: item.id,
-        }));
+        }[] = response.json.result.map(datasetToSelectOption);
         return {
-          data: list,
+          data,
           totalCount: response.json.count,
         };
       })
@@ -92,7 +91,6 @@ const DatasetSelect = ({ onChange, value }: DatasetSelectProps) => {
       options={loadDatasetOptions}
       onChange={onChange}
       notFoundContent={t('No compatible datasets found')}
-      placeholder={t('Select a dataset')}
     />
   );
 };

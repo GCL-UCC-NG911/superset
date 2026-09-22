@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { PureComponent } from 'react';
+import React from 'react';
 import cloudLayout, { Word } from 'd3-cloud';
 import {
   PlainObject,
@@ -29,7 +29,7 @@ import {
   SupersetThemeProps,
   withTheme,
   seed,
-  CategoricalColorNamespace,
+  CategoricalColorScale,
 } from '@superset-ui/core';
 import { isEqual } from 'lodash';
 
@@ -66,7 +66,6 @@ export interface WordCloudProps extends WordCloudVisualProps {
   height: number;
   width: number;
   sliceId: number;
-  colorScheme: string;
 }
 
 export interface WordCloudState {
@@ -89,7 +88,10 @@ const MAX_SCALE_FACTOR = 3;
 // Needed to avoid clutter when shrinking a chart with many records.
 const TOP_RESULTS_PERCENTAGE = 0.1;
 
-class WordCloud extends PureComponent<FullWordCloudProps, WordCloudState> {
+class WordCloud extends React.PureComponent<
+  FullWordCloudProps,
+  WordCloudState
+> {
   static defaultProps = defaultProps;
 
   // Cannot name it isMounted because of conflict
@@ -113,12 +115,7 @@ class WordCloud extends PureComponent<FullWordCloudProps, WordCloudState> {
     },
   });
 
-  createEncoder = (encoding?: Partial<WordCloudEncoding>) => {
-    const selector = this.wordCloudEncoderFactory.createSelector();
-
-    // @ts-ignore
-    return selector(encoding as any);
-  };
+  createEncoder = this.wordCloudEncoderFactory.createSelector();
 
   constructor(props: FullWordCloudProps) {
     super(props);
@@ -161,8 +158,7 @@ class WordCloud extends PureComponent<FullWordCloudProps, WordCloudState> {
   update() {
     const { data, encoding } = this.props;
 
-    const encoder: Encoder<WordCloudEncodingConfig> =
-      this.createEncoder(encoding);
+    const encoder = this.createEncoder(encoding);
     encoder.setDomainFromDataset(data);
 
     const sortedData = [...data].sort(
@@ -199,17 +195,15 @@ class WordCloud extends PureComponent<FullWordCloudProps, WordCloudState> {
       .words(data.map(d => ({ ...d })))
       .padding(5)
       .rotate(ROTATION[rotation] || ROTATION.flat)
-      .text((d: PlainObject) => encoder.channels.text.getValueFromDatum(d))
-      .font((d: PlainObject) =>
+      .text(d => encoder.channels.text.getValueFromDatum(d))
+      .font(d =>
         encoder.channels.fontFamily.encodeDatum(
           d,
           this.props.theme.typography.families.sansSerif,
         ),
       )
-      .fontWeight((d: PlainObject) =>
-        encoder.channels.fontWeight.encodeDatum(d, 'normal'),
-      )
-      .fontSize((d: PlainObject) => encoder.channels.fontSize.encodeDatum(d, 0))
+      .fontWeight(d => encoder.channels.fontWeight.encodeDatum(d, 'normal'))
+      .fontSize(d => encoder.channels.fontSize.encodeDatum(d, 0))
       .on('end', (words: Word[]) => {
         if (isValid(words) || scaleFactor > MAX_SCALE_FACTOR) {
           if (this.isComponentMounted) {
@@ -224,15 +218,14 @@ class WordCloud extends PureComponent<FullWordCloudProps, WordCloudState> {
 
   render() {
     const { scaleFactor } = this.state;
-    const { width, height, encoding, sliceId, colorScheme } = this.props;
+    const { width, height, encoding, sliceId } = this.props;
     const { words } = this.state;
 
-    // @ts-ignore
     const encoder = this.createEncoder(encoding);
     encoder.channels.color.setDomainFromDataset(words);
 
     const { getValueFromDatum } = encoder.channels.color;
-    const colorFn = CategoricalColorNamespace.getScale(colorScheme);
+    const colorFn = encoder.channels.color.scale as CategoricalColorScale;
 
     const viewBoxWidth = width * scaleFactor;
     const viewBoxHeight = height * scaleFactor;

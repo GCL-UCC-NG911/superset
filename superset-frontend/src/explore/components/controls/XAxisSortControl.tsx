@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SelectControl from './SelectControl';
 
 export default function XAxisSortControl(props: {

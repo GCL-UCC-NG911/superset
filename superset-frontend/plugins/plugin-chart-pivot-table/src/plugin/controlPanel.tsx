@@ -16,26 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import {
-  ControlPanelConfig,
-  D3_TIME_FORMAT_OPTIONS,
-  Dataset,
-  getStandardizedControls,
-  sharedControls,
-} from '@superset-ui/chart-controls';
+import React from 'react';
 import {
   ensureIsArray,
+  hasGenericChartAxes,
   isAdhocColumn,
   isPhysicalColumn,
   QueryFormMetric,
-  SMART_DATE_ID,
+  smartDateFormatter,
   t,
   validateNonEmpty,
 } from '@superset-ui/core';
+import {
+  ControlPanelConfig,
+  D3_TIME_FORMAT_OPTIONS,
+  sections,
+  sharedControls,
+  Dataset,
+  getStandardizedControls,
+} from '@superset-ui/chart-controls';
 import { MetricsLayoutEnum } from '../types';
 
 const config: ControlPanelConfig = {
   controlPanelSections: [
+    { ...sections.genericTime, expanded: false },
     {
       label: t('Query'),
       expanded: true,
@@ -61,35 +65,37 @@ const config: ControlPanelConfig = {
           },
         ],
         [
-          {
-            name: 'time_grain_sqla',
-            config: {
-              ...sharedControls.time_grain_sqla,
-              visibility: ({ controls }) => {
-                const dttmLookup = Object.fromEntries(
-                  ensureIsArray(controls?.groupbyColumns?.options).map(
-                    option => [option.column_name, option.is_dttm],
-                  ),
-                );
+          hasGenericChartAxes
+            ? {
+                name: 'time_grain_sqla',
+                config: {
+                  ...sharedControls.time_grain_sqla,
+                  visibility: ({ controls }) => {
+                    const dttmLookup = Object.fromEntries(
+                      ensureIsArray(controls?.groupbyColumns?.options).map(
+                        option => [option.column_name, option.is_dttm],
+                      ),
+                    );
 
-                return [
-                  ...ensureIsArray(controls?.groupbyColumns.value),
-                  ...ensureIsArray(controls?.groupbyRows.value),
-                ]
-                  .map(selection => {
-                    if (isAdhocColumn(selection)) {
-                      return true;
-                    }
-                    if (isPhysicalColumn(selection)) {
-                      return !!dttmLookup[selection];
-                    }
-                    return false;
-                  })
-                  .some(Boolean);
-              },
-            },
-          },
-          'temporal_columns_lookup',
+                    return [
+                      ...ensureIsArray(controls?.groupbyColumns.value),
+                      ...ensureIsArray(controls?.groupbyRows.value),
+                    ]
+                      .map(selection => {
+                        if (isAdhocColumn(selection)) {
+                          return true;
+                        }
+                        if (isPhysicalColumn(selection)) {
+                          return !!dttmLookup[selection];
+                        }
+                        return false;
+                      })
+                      .some(Boolean);
+                  },
+                },
+              }
+            : null,
+          hasGenericChartAxes ? 'temporal_columns_lookup' : null,
         ],
         [
           {
@@ -214,18 +220,6 @@ const config: ControlPanelConfig = {
         ],
         [
           {
-            name: 'rowSubTotals',
-            config: {
-              type: 'CheckboxControl',
-              label: t('Show rows subtotal'),
-              default: false,
-              renderTrigger: true,
-              description: t('Display row level subtotal'),
-            },
-          },
-        ],
-        [
-          {
             name: 'colTotals',
             config: {
               type: 'CheckboxControl',
@@ -233,18 +227,6 @@ const config: ControlPanelConfig = {
               default: false,
               renderTrigger: true,
               description: t('Display column level total'),
-            },
-          },
-        ],
-        [
-          {
-            name: 'colSubTotals',
-            config: {
-              type: 'CheckboxControl',
-              label: t('Show columns subtotal'),
-              default: false,
-              renderTrigger: true,
-              description: t('Display column level subtotal'),
             },
           },
         ],
@@ -290,7 +272,6 @@ const config: ControlPanelConfig = {
             },
           },
         ],
-        ['currency_format'],
         [
           {
             name: 'date_format',
@@ -298,7 +279,7 @@ const config: ControlPanelConfig = {
               type: 'SelectControl',
               freeForm: true,
               label: t('Date format'),
-              default: SMART_DATE_ID,
+              default: smartDateFormatter.id,
               renderTrigger: true,
               choices: D3_TIME_FORMAT_OPTIONS,
               description: t('D3 time format for datetime columns'),
@@ -403,7 +384,7 @@ const config: ControlPanelConfig = {
               renderTrigger: true,
               label: t('Conditional formatting'),
               description: t('Apply conditional color formatting to metrics'),
-              mapStateToProps(explore, _, chart) {
+              mapStateToProps(explore) {
                 const values =
                   (explore?.controls?.metrics?.value as QueryFormMetric[]) ??
                   [];
@@ -411,39 +392,18 @@ const config: ControlPanelConfig = {
                   'verbose_map',
                 )
                   ? (explore?.datasource as Dataset)?.verbose_map
-                  : (explore?.datasource?.columns ?? {});
-                const chartStatus = chart?.chartStatus;
+                  : explore?.datasource?.columns ?? {};
                 const metricColumn = values.map(value => {
                   if (typeof value === 'string') {
-                    return {
-                      value,
-                      label: Array.isArray(verboseMap)
-                        ? value
-                        : verboseMap[value],
-                    };
+                    return { value, label: verboseMap[value] ?? value };
                   }
                   return { value: value.label, label: value.label };
                 });
                 return {
-                  removeIrrelevantConditions: chartStatus === 'success',
                   columnOptions: metricColumn,
                   verboseMap,
                 };
               },
-            },
-          },
-        ],
-        [
-          {
-            name: 'allow_render_html',
-            config: {
-              type: 'CheckboxControl',
-              label: t('Render columns in HTML format'),
-              renderTrigger: true,
-              default: true,
-              description: t(
-                'Renders table cells as HTML when applicable. For example, HTML <a> tags will be rendered as hyperlinks.',
-              ),
             },
           },
         ],

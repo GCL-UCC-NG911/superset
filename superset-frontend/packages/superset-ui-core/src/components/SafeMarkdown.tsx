@@ -16,10 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
+import ReactMarkdown from 'react-markdown';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
-import remarkGfm from 'remark-gfm';
-import { mergeWith } from 'lodash';
+import rehypeRaw from 'rehype-raw';
+import { merge } from 'lodash';
 import { FeatureFlag, isFeatureEnabled } from '../utils';
 
 interface SafeMarkdownProps {
@@ -28,59 +29,29 @@ interface SafeMarkdownProps {
   htmlSchemaOverrides?: typeof defaultSchema;
 }
 
-export function getOverrideHtmlSchema(
-  originalSchema: typeof defaultSchema,
-  htmlSchemaOverrides: SafeMarkdownProps['htmlSchemaOverrides'],
-) {
-  return mergeWith(originalSchema, htmlSchemaOverrides, (objValue, srcValue) =>
-    Array.isArray(objValue) ? objValue.concat(srcValue) : undefined,
-  );
-}
-
 function SafeMarkdown({
   source,
   htmlSanitization = true,
   htmlSchemaOverrides = {},
 }: SafeMarkdownProps) {
-  const escapeHtml = isFeatureEnabled(FeatureFlag.EscapeMarkdownHtml);
-  const [rehypeRawPlugin, setRehypeRawPlugin] = useState<any>(null);
-  const [ReactMarkdown, setReactMarkdown] = useState<any>(null);
-  useEffect(() => {
-    Promise.all([import('rehype-raw'), import('react-markdown')]).then(
-      ([rehypeRaw, ReactMarkdown]) => {
-        setRehypeRawPlugin(() => rehypeRaw.default);
-        setReactMarkdown(() => ReactMarkdown.default);
-      },
-    );
-  }, []);
+  const displayHtml = isFeatureEnabled(FeatureFlag.DISPLAY_MARKDOWN_HTML);
+  const escapeHtml = isFeatureEnabled(FeatureFlag.ESCAPE_MARKDOWN_HTML);
 
   const rehypePlugins = useMemo(() => {
     const rehypePlugins: any = [];
-    if (!escapeHtml && rehypeRawPlugin) {
-      rehypePlugins.push(rehypeRawPlugin);
+    if (displayHtml && !escapeHtml) {
+      rehypePlugins.push(rehypeRaw);
       if (htmlSanitization) {
-        const schema = getOverrideHtmlSchema(
-          defaultSchema,
-          htmlSchemaOverrides,
-        );
+        const schema = merge(defaultSchema, htmlSchemaOverrides);
         rehypePlugins.push([rehypeSanitize, schema]);
       }
     }
     return rehypePlugins;
-  }, [escapeHtml, htmlSanitization, htmlSchemaOverrides, rehypeRawPlugin]);
-
-  if (!ReactMarkdown || !rehypeRawPlugin) {
-    return null;
-  }
+  }, [displayHtml, escapeHtml, htmlSanitization, htmlSchemaOverrides]);
 
   // React Markdown escapes HTML by default
   return (
-    <ReactMarkdown
-      rehypePlugins={rehypePlugins}
-      remarkPlugins={[remarkGfm]}
-      skipHtml={false}
-      transformLinkUri={null}
-    >
+    <ReactMarkdown rehypePlugins={rehypePlugins} skipHtml={!displayHtml}>
       {source}
     </ReactMarkdown>
   );

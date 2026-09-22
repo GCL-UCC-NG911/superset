@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import ControlHeader, { ControlHeaderProps } from './ControlHeader';
 
 export default {
@@ -65,4 +66,12 @@ InteractiveControlHeader.args = {
 InteractiveControlHeader.argTypes = {
   tooltipOnClick: { action: 'tooltipOnClick' },
   onClick: { action: 'onClick' },
+};
+
+InteractiveControlHeader.story = {
+  parameters: {
+    knobs: {
+      disable: true,
+    },
+  },
 };

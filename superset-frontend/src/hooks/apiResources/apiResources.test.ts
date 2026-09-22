@@ -57,7 +57,7 @@ describe('apiResource hooks', () => {
         useApiResourceFullBody('/test/endpoint'),
       );
       expect(result.current).toEqual({
-        status: ResourceStatus.Loading,
+        status: ResourceStatus.LOADING,
         result: null,
         error: null,
       });
@@ -74,7 +74,7 @@ describe('apiResource hooks', () => {
         jest.runAllTimers();
       });
       expect(result.current).toEqual({
-        status: ResourceStatus.Complete,
+        status: ResourceStatus.COMPLETE,
         result: fakeApiResult,
         error: null,
       });
@@ -90,7 +90,7 @@ describe('apiResource hooks', () => {
         jest.runAllTimers();
       });
       expect(result.current).toEqual({
-        status: ResourceStatus.Error,
+        status: ResourceStatus.ERROR,
         result: null,
         error: fakeError,
       });
@@ -102,7 +102,7 @@ describe('apiResource hooks', () => {
       const { result } = renderHook(() =>
         useTransformedResource(
           {
-            status: ResourceStatus.Complete,
+            status: ResourceStatus.COMPLETE,
             result: fakeApiResult,
             error: null,
           },
@@ -110,7 +110,7 @@ describe('apiResource hooks', () => {
         ),
       );
       expect(result.current).toEqual({
-        status: ResourceStatus.Complete,
+        status: ResourceStatus.COMPLETE,
         result: {
           id: 1,
           name: 'FAKE API RESULT',
@@ -127,7 +127,7 @@ describe('apiResource hooks', () => {
       const { result } = renderHook(() =>
         useTransformedResource(
           {
-            status: ResourceStatus.Loading,
+            status: ResourceStatus.LOADING,
             result: null,
             error: null,
           },
@@ -135,7 +135,7 @@ describe('apiResource hooks', () => {
         ),
       );
       expect(result.current).toEqual({
-        status: ResourceStatus.Loading,
+        status: ResourceStatus.LOADING,
         result: null,
         error: null,
       });
@@ -156,7 +156,7 @@ describe('apiResource hooks', () => {
         jest.runAllTimers();
       });
       expect(result.current).toEqual({
-        status: ResourceStatus.Complete,
+        status: ResourceStatus.COMPLETE,
         result: fakeApiResult,
         error: null,
       });

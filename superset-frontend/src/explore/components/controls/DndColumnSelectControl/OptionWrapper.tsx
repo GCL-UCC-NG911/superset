@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import {
   useDrag,
   useDrop,
@@ -59,7 +59,6 @@ export default function OptionWrapper(
     isExtra,
     datasourceWarningMessage,
     canDelete = true,
-    tooltipOverlay,
     ...rest
   } = props;
   const ref = useRef<HTMLDivElement>(null);
@@ -124,19 +123,11 @@ export default function OptionWrapper(
     (!isDragging &&
       labelRef &&
       labelRef.current &&
-      labelRef.current.scrollWidth > labelRef.current.clientWidth) ||
-    (!isDragging && tooltipOverlay);
+      labelRef.current.scrollWidth > labelRef.current.clientWidth);
 
   const LabelContent = () => {
     if (!shouldShowTooltip) {
       return <span>{label}</span>;
-    }
-    if (tooltipOverlay) {
-      return (
-        <Tooltip overlay={tooltipOverlay}>
-          <span>{label}</span>
-        </Tooltip>
-      );
     }
     return (
       <Tooltip title={tooltipTitle || label}>

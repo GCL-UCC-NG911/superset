@@ -16,11 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { memo, useEffect, useRef } from 'react';
-import { isEqual } from 'lodash';
+import React, { useEffect, useRef } from 'react';
+import isEqual from 'lodash/isEqual';
 import { styled, t } from '@superset-ui/core';
 import { useFilters, usePagination, useSortBy, useTable } from 'react-table';
-import { Empty } from 'src/components/EmptyState/Empty';
+import { Empty } from 'src/components';
 import Pagination from 'src/components/Pagination';
 import TableCollection from 'src/components/TableCollection';
 import { SortByType, ServerPagination } from './types';
@@ -259,4 +259,4 @@ const TableView = ({
   );
 };
 
-export default memo(TableView);
+export default React.memo(TableView);

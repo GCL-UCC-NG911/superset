@@ -16,9 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import {
+import React, {
   forwardRef,
-  FocusEvent,
   ReactElement,
   RefObject,
   UIEvent,
@@ -28,19 +27,14 @@ import {
   useRef,
   useCallback,
   useImperativeHandle,
-  ClipboardEvent,
 } from 'react';
-
-import {
-  ensureIsArray,
-  t,
-  usePrevious,
-  getClientErrorObject,
-} from '@superset-ui/core';
+import { ensureIsArray, t } from '@superset-ui/core';
 import { LabeledValue as AntdLabeledValue } from 'antd/lib/select';
-import { debounce, isEqual, uniq } from 'lodash';
+import debounce from 'lodash/debounce';
+import { isEqual } from 'lodash';
 import Icons from 'src/components/Icons';
-import { FAST_DEBOUNCE, SLOW_DEBOUNCE } from 'src/constants';
+import { getClientErrorObject } from 'src/utils/getClientErrorObject';
+import { SLOW_DEBOUNCE } from 'src/constants';
 import {
   getValue,
   hasOption,
@@ -53,19 +47,13 @@ import {
   getSuffixIcon,
   dropDownRenderHelper,
   handleFilterOptionHelper,
-  mapOptions,
-  getOption,
-  isObject,
-  isEqual as utilsIsEqual,
 } from './utils';
 import {
   AsyncSelectProps,
   AsyncSelectRef,
-  RawValue,
   SelectOptionsPagePromise,
   SelectOptionsType,
   SelectOptionsTypePage,
-  SelectProps,
 } from './types';
 import {
   StyledCheckOutlined,
@@ -97,6 +85,8 @@ const getQueryCacheKey = (value: string, page: number, pageSize: number) =>
 /**
  * This component is a customized version of the Antdesign 4.X Select component
  * https://ant.design/components/select/.
+ * The aim of the component was to combine all the instances of select components throughout the
+ * project under one and to remove the react-select component entirely.
  * This Select component provides an API that is tested against all the different use cases of Superset.
  * It limits and overrides the existing Antdesign API in order to keep their usage to the minimum
  * and to enforce simplification and standardization.
@@ -112,7 +102,6 @@ const AsyncSelect = forwardRef(
       allowClear,
       allowNewOptions = false,
       ariaLabel,
-      autoClearSearchValue = false,
       fetchOnlyOnSearch,
       filterOption = true,
       header = null,
@@ -124,21 +113,17 @@ const AsyncSelect = forwardRef(
       mode = 'single',
       name,
       notFoundContent,
-      onBlur,
       onError,
       onChange,
       onClear,
       onDropdownVisibleChange,
-      onDeselect,
-      onSearch,
-      onSelect,
       optionFilterProps = ['label', 'value'],
       options,
       pageSize = DEFAULT_PAGE_SIZE,
       placeholder = t('Select ...'),
       showSearch = true,
       sortComparator = DEFAULT_SORT_COMPARATOR,
-      tokenSeparators = TOKEN_SEPARATORS,
+      tokenSeparators,
       value,
       getPopupContainer,
       oneLine,
@@ -159,17 +144,15 @@ const AsyncSelect = forwardRef(
     const [allValuesLoaded, setAllValuesLoaded] = useState(false);
     const selectValueRef = useRef(selectValue);
     const fetchedQueries = useRef(new Map<string, number>());
-    const mappedMode = isSingleMode ? undefined : 'multiple';
+    const mappedMode = isSingleMode
+      ? undefined
+      : allowNewOptions
+      ? 'tags'
+      : 'multiple';
     const allowFetch = !fetchOnlyOnSearch || inputValue;
+
     const [maxTagCount, setMaxTagCount] = useState(
       propsMaxTagCount ?? MAX_TAG_COUNT,
-    );
-    const [onChangeCount, setOnChangeCount] = useState(0);
-    const previousChangeCount = usePrevious(onChangeCount, 0);
-
-    const fireOnChange = useCallback(
-      () => setOnChangeCount(onChangeCount + 1),
-      [onChangeCount],
     );
 
     useEffect(() => {
@@ -226,18 +209,11 @@ const AsyncSelect = forwardRef(
         : selectOptions;
     }, [selectOptions, selectValue]);
 
-    const handleOnSelect: SelectProps['onSelect'] = (selectedItem, option) => {
+    const handleOnSelect = (
+      selectedItem: string | number | AntdLabeledValue | undefined,
+    ) => {
       if (isSingleMode) {
-        // on select is fired in single value mode if the same value is selected
-        const valueChanged = !utilsIsEqual(
-          selectedItem,
-          selectValue as RawValue | AntdLabeledValue,
-          'value',
-        );
         setSelectValue(selectedItem);
-        if (valueChanged) {
-          fireOnChange();
-        }
       } else {
         setSelectValue(previousState => {
           const array = ensureIsArray(previousState);
@@ -251,12 +227,13 @@ const AsyncSelect = forwardRef(
           }
           return previousState;
         });
-        fireOnChange();
       }
-      onSelect?.(selectedItem, option);
+      setInputValue('');
     };
 
-    const handleOnDeselect: SelectProps['onDeselect'] = (value, option) => {
+    const handleOnDeselect = (
+      value: string | number | AntdLabeledValue | undefined,
+    ) => {
       if (Array.isArray(selectValue)) {
         if (isLabeledValue(value)) {
           const array = selectValue as AntdLabeledValue[];
@@ -267,17 +244,8 @@ const AsyncSelect = forwardRef(
           const array = selectValue as (string | number)[];
           setSelectValue(array.filter(element => element !== value));
         }
-        // removes new option
-        if (option.isNewOption) {
-          setSelectOptions(
-            fullSelectOptions.filter(
-              option => getValue(option.value) !== getValue(value),
-            ),
-          );
-        }
       }
-      fireOnChange();
-      onDeselect?.(value, option);
+      setInputValue('');
     };
 
     const internalOnError = useCallback(
@@ -363,9 +331,9 @@ const AsyncSelect = forwardRef(
       [fetchPage],
     );
 
-    const handleOnSearch = debounce((search: string) => {
+    const handleOnSearch = (search: string) => {
       const searchValue = search.trim();
-      if (allowNewOptions) {
+      if (allowNewOptions && isSingleMode) {
         const newOption = searchValue &&
           !hasOption(searchValue, fullSelectOptions, true) && {
             label: searchValue,
@@ -390,10 +358,7 @@ const AsyncSelect = forwardRef(
         setIsLoading(!(fetchOnlyOnSearch && !searchValue));
       }
       setInputValue(search);
-      onSearch?.(searchValue);
-    }, FAST_DEBOUNCE);
-
-    useEffect(() => () => handleOnSearch.cancel(), [handleOnSearch]);
+    };
 
     const handlePagination = (e: UIEvent<HTMLElement>) => {
       const vScroll = e.currentTarget;
@@ -460,37 +425,7 @@ const AsyncSelect = forwardRef(
       if (onClear) {
         onClear();
       }
-      fireOnChange();
     };
-
-    const handleOnBlur = (event: FocusEvent<HTMLElement>) => {
-      setInputValue('');
-      onBlur?.(event);
-    };
-
-    useEffect(() => {
-      if (onChangeCount !== previousChangeCount) {
-        const array = ensureIsArray(selectValue);
-        const set = new Set(array.map(getValue));
-        const options = mapOptions(
-          fullSelectOptions.filter(opt => set.has(opt.value)),
-        );
-        if (isSingleMode) {
-          // @ts-ignore
-          onChange?.(selectValue, options[0]);
-        } else {
-          // @ts-ignore
-          onChange?.(array, options);
-        }
-      }
-    }, [
-      fullSelectOptions,
-      isSingleMode,
-      onChange,
-      onChangeCount,
-      previousChangeCount,
-      selectValue,
-    ]);
 
     useEffect(() => {
       // when `options` list is updated from component prop, reset states
@@ -539,58 +474,6 @@ const AsyncSelect = forwardRef(
       [ref],
     );
 
-    const getPastedTextValue = useCallback(
-      async (text: string) => {
-        let option = getOption(text, fullSelectOptions, true);
-        if (!option && !allValuesLoaded) {
-          const fetchOptions = options as SelectOptionsPagePromise;
-          option = await fetchOptions(text, 0, pageSize).then(
-            ({ data }: SelectOptionsTypePage) =>
-              data.find(item => item.label === text),
-          );
-        }
-        if (!option && !allowNewOptions) {
-          return undefined;
-        }
-        const value: AntdLabeledValue = {
-          label: text,
-          value: text,
-        };
-        if (option) {
-          value.label = isObject(option) ? option.label : option;
-          value.value = isObject(option) ? option.value! : option;
-        }
-        return value;
-      },
-      [allValuesLoaded, allowNewOptions, fullSelectOptions, options, pageSize],
-    );
-
-    const onPaste = async (e: ClipboardEvent<HTMLInputElement>) => {
-      const pastedText = e.clipboardData.getData('text');
-      if (isSingleMode) {
-        const value = await getPastedTextValue(pastedText);
-        if (value) {
-          setSelectValue(value);
-        }
-      } else {
-        const token = tokenSeparators.find(token => pastedText.includes(token));
-        const array = token ? uniq(pastedText.split(token)) : [pastedText];
-        const values = (
-          await Promise.all(array.map(item => getPastedTextValue(item)))
-        ).filter(item => item !== undefined) as AntdLabeledValue[];
-        setSelectValue(previous => [
-          ...((previous || []) as AntdLabeledValue[]),
-          ...values.filter(value => !hasOption(value.value, previous)),
-        ]);
-      }
-      fireOnChange();
-    };
-
-    const shouldRenderChildrenOptions = useMemo(
-      () => hasCustomLabels(fullSelectOptions),
-      [fullSelectOptions],
-    );
-
     return (
       <StyledContainer headerPosition={headerPosition}>
         {header && (
@@ -599,7 +482,6 @@ const AsyncSelect = forwardRef(
         <StyledSelect
           allowClear={!isLoading && allowClear}
           aria-label={ariaLabel || name}
-          autoClearSearchValue={autoClearSearchValue}
           dropdownRender={dropdownRender}
           filterOption={handleFilterOption}
           filterSort={sortComparatorWithSearch}
@@ -611,20 +493,20 @@ const AsyncSelect = forwardRef(
           maxTagCount={maxTagCount}
           mode={mappedMode}
           notFoundContent={isLoading ? t('Loading...') : notFoundContent}
-          onBlur={handleOnBlur}
           onDeselect={handleOnDeselect}
           onDropdownVisibleChange={handleOnDropdownVisibleChange}
-          // @ts-ignore
-          onPaste={onPaste}
           onPopupScroll={handlePagination}
           onSearch={showSearch ? handleOnSearch : undefined}
           onSelect={handleOnSelect}
           onClear={handleClear}
-          options={shouldRenderChildrenOptions ? undefined : fullSelectOptions}
+          onChange={onChange}
+          options={
+            hasCustomLabels(fullSelectOptions) ? undefined : fullSelectOptions
+          }
           placeholder={placeholder}
           showSearch={showSearch}
           showArrow
-          tokenSeparators={tokenSeparators}
+          tokenSeparators={tokenSeparators || TOKEN_SEPARATORS}
           value={selectValue}
           suffixIcon={getSuffixIcon(isLoading, showSearch, isDropdownVisible)}
           menuItemSelectedIcon={

@@ -14,11 +14,12 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-"""Superset wrapper around pyarrow.Table."""
-
+""" Superset wrapper around pyarrow.Table.
+"""
 import datetime
+import json
 import logging
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import numpy as np
 import pandas as pd
@@ -27,13 +28,12 @@ from numpy.typing import NDArray
 
 from superset.db_engine_specs import BaseEngineSpec
 from superset.superset_typing import DbapiDescription, DbapiResult, ResultSetColumnType
-from superset.utils import core as utils, json
-from superset.utils.core import GenericDataType
+from superset.utils import core as utils
 
 logger = logging.getLogger(__name__)
 
 
-def dedup(l: list[str], suffix: str = "__", case_sensitive: bool = True) -> list[str]:  # noqa: E741
+def dedup(l: List[str], suffix: str = "__", case_sensitive: bool = True) -> List[str]:
     """De-duplicates a list of string by suffixing a counter
 
     Always returns the same number of entries as provided, and always returns
@@ -46,8 +46,8 @@ def dedup(l: list[str], suffix: str = "__", case_sensitive: bool = True) -> list
     )
     foo,bar,bar__1,bar__2,Bar__3
     """
-    new_l: list[str] = []
-    seen: dict[str, int] = {}
+    new_l: List[str] = []
+    seen: Dict[str, int] = {}
     for item in l:
         s_fixed_case = item if case_sensitive else item.lower()
         if s_fixed_case in seen:
@@ -60,7 +60,7 @@ def dedup(l: list[str], suffix: str = "__", case_sensitive: bool = True) -> list
 
 
 def stringify(obj: Any) -> str:
-    return json.dumps(obj, default=json.json_iso_dttm_ser)
+    return json.dumps(obj, default=utils.json_iso_dttm_ser)
 
 
 def stringify_values(array: NDArray[Any]) -> NDArray[Any]:
@@ -70,14 +70,14 @@ def stringify_values(array: NDArray[Any]) -> NDArray[Any]:
         for obj in it:
             if na_obj := pd.isna(obj):
                 # pandas <NA> type cannot be converted to string
-                obj[na_obj] = None
+                obj[na_obj] = None  # type: ignore
             else:
                 try:
                     # for simple string conversions
                     # this handles odd character types better
-                    obj[...] = obj.astype(str)
+                    obj[...] = obj.astype(str)  # type: ignore
                 except ValueError:
-                    obj[...] = stringify(obj)
+                    obj[...] = stringify(obj)  # type: ignore
 
     return result
 
@@ -100,18 +100,18 @@ def convert_to_string(value: Any) -> str:
 
 
 class SupersetResultSet:
-    def __init__(  # pylint: disable=too-many-locals  # noqa: C901
+    def __init__(  # pylint: disable=too-many-locals
         self,
         data: DbapiResult,
         cursor_description: DbapiDescription,
-        db_engine_spec: type[BaseEngineSpec],
+        db_engine_spec: Type[BaseEngineSpec],
     ):
         self.db_engine_spec = db_engine_spec
         data = data or []
-        column_names: list[str] = []
-        pa_data: list[pa.Array] = []
-        deduped_cursor_desc: list[tuple[Any, ...]] = []
-        numpy_dtype: list[tuple[str, ...]] = []
+        column_names: List[str] = []
+        pa_data: List[pa.Array] = []
+        deduped_cursor_desc: List[Tuple[Any, ...]] = []
+        numpy_dtype: List[Tuple[str, ...]] = []
         stringified_arr: NDArray[Any]
 
         if cursor_description:
@@ -122,10 +122,8 @@ class SupersetResultSet:
 
             # fix cursor descriptor with the deduped names
             deduped_cursor_desc = [
-                tuple([column_name, *list(description)[1:]])  # noqa: C409
-                for column_name, description in zip(
-                    column_names, cursor_description, strict=False
-                )
+                tuple([column_name, *list(description)[1:]])
+                for column_name, description in zip(column_names, cursor_description)
             ]
 
             # generate numpy structured array dtype
@@ -135,21 +133,21 @@ class SupersetResultSet:
         if data and (not isinstance(data, list) or not isinstance(data[0], tuple)):
             data = [tuple(row) for row in data]
         array = np.array(data, dtype=numpy_dtype)
-
-        for column in column_names:
-            try:
-                pa_data.append(pa.array(array[column].tolist()))
-            except (
-                pa.lib.ArrowInvalid,
-                pa.lib.ArrowTypeError,
-                pa.lib.ArrowNotImplementedError,
-                ValueError,
-                TypeError,  # this is super hackey,
-                # https://issues.apache.org/jira/browse/ARROW-7855
-            ):
-                # attempt serialization of values as strings
-                stringified_arr = stringify_values(array[column])
-                pa_data.append(pa.array(stringified_arr.tolist()))
+        if array.size > 0:
+            for column in column_names:
+                try:
+                    pa_data.append(pa.array(array[column].tolist()))
+                except (
+                    pa.lib.ArrowInvalid,
+                    pa.lib.ArrowTypeError,
+                    pa.lib.ArrowNotImplementedError,
+                    ValueError,
+                    TypeError,  # this is super hackey,
+                    # https://issues.apache.org/jira/browse/ARROW-7855
+                ):
+                    # attempt serialization of values as strings
+                    stringified_arr = stringify_values(array[column])
+                    pa_data.append(pa.array(stringified_arr.tolist()))
 
         if pa_data:  # pylint: disable=too-many-nested-blocks
             for i, column in enumerate(column_names):
@@ -169,11 +167,12 @@ class SupersetResultSet:
                         try:
                             if sample.tzinfo:
                                 tz = sample.tzinfo
-                                series = pd.Series(array[column])
-                                series = pd.to_datetime(series)
+                                series = pd.Series(
+                                    array[column], dtype="datetime64[ns]"
+                                )
+                                series = pd.to_datetime(series).dt.tz_localize(tz)
                                 pa_data[i] = pa.Array.from_pandas(
-                                    series,
-                                    type=pa.timestamp("ns", tz=tz),
+                                    series, type=pa.timestamp("ns", tz=tz)
                                 )
                         except Exception as ex:  # pylint: disable=broad-except
                             logger.exception(ex)
@@ -182,7 +181,7 @@ class SupersetResultSet:
             column_names = []
 
         self.table = pa.Table.from_arrays(pa_data, names=column_names)
-        self._type_dict: dict[str, Any] = {}
+        self._type_dict: Dict[str, Any] = {}
         try:
             # The driver may not be passing a cursor.description
             self._type_dict = {
@@ -224,24 +223,14 @@ class SupersetResultSet:
             return False
         return column_spec.is_dttm
 
-    def type_generic(
-        self, db_type_str: Optional[str]
-    ) -> Optional[utils.GenericDataType]:
-        column_spec = self.db_engine_spec.get_column_spec(db_type_str)
-        if column_spec is None:
-            return None
-
-        if column_spec.is_dttm:
-            return GenericDataType.TEMPORAL
-
-        return column_spec.generic_type
-
     def data_type(self, col_name: str, pa_dtype: pa.DataType) -> Optional[str]:
         """Given a pyarrow data type, Returns a generic database type"""
-        if set_type := self._type_dict.get(col_name):
+        set_type = self._type_dict.get(col_name)
+        if set_type:
             return set_type
 
-        if mapped_type := self.convert_pa_dtype(pa_dtype):
+        mapped_type = self.convert_pa_dtype(pa_dtype)
+        if mapped_type:
             return mapped_type
 
         return None
@@ -258,7 +247,7 @@ class SupersetResultSet:
         return self.table.num_rows
 
     @property
-    def columns(self) -> list[ResultSetColumnType]:
+    def columns(self) -> List[ResultSetColumnType]:
         if not self.table.column_names:
             return []
 
@@ -266,11 +255,10 @@ class SupersetResultSet:
         for col in self.table.schema:
             db_type_str = self.data_type(col.name, col.type)
             column: ResultSetColumnType = {
-                "column_name": col.name,
                 "name": col.name,
                 "type": db_type_str,
-                "type_generic": self.type_generic(db_type_str),
-                "is_dttm": self.is_temporal(db_type_str) or False,
+                "is_dttm": self.is_temporal(db_type_str),
             }
             columns.append(column)
+
         return columns

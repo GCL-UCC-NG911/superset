@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { ReactElement, ReactNode } from 'react';
+import React, { ReactElement, ReactNode } from 'react';
 import { mount } from 'enzyme';
 import mockConsole, { RestoreConsole } from 'jest-mock-console';
 import {

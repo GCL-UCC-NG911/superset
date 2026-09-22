@@ -110,18 +110,15 @@ export default function makeApi<
         ...requestOptions,
         method,
         endpoint,
-        searchParams: undefined as URLSearchParams | undefined,
-        postPayload: undefined as FormData | undefined,
-        jsonPayload: undefined as JsonObject | undefined,
       };
       if (requestType === 'search') {
-        requestConfig.searchParams = payload as unknown as URLSearchParams;
+        requestConfig.searchParams = payload;
       } else if (requestType === 'rison') {
         requestConfig.endpoint = `${endpoint}?q=${rison.encode(payload)}`;
       } else if (requestType === 'form') {
-        requestConfig.postPayload = payload as unknown as FormData;
+        requestConfig.postPayload = payload;
       } else {
-        requestConfig.jsonPayload = payload as JsonObject;
+        requestConfig.jsonPayload = payload;
       }
 
       let result: JsonValue | Response;

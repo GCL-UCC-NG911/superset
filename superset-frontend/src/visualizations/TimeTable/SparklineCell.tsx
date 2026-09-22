@@ -17,38 +17,40 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactNode } from 'react';
+import React from 'react';
 import {
-  formatNumber,
-  formatTime,
-  getTextDimension,
-  useTheme,
-} from '@superset-ui/core';
-import { GridRows } from '@visx/grid';
-import { LinearScaleConfig, scaleLinear } from '@visx/scale';
-import { AxisScaleOutput } from '@visx/axis';
-import {
-  Axis,
+  Sparkline,
   LineSeries,
-  Tooltip,
-  XYChart,
-  buildChartTheme,
-} from '@visx/xychart';
-import { extendedDayjs } from 'src/utils/dates';
+  PointSeries,
+  HorizontalReferenceLine,
+  VerticalReferenceLine,
+  WithTooltip,
+} from '@data-ui/sparkline';
+import { getTextDimension, formatNumber } from '@superset-ui/core';
 
 interface Props {
   ariaLabel: string;
-  dataKey: string;
   className?: string;
-  data: Array<number>;
-  entries: Array<any>;
   height: number;
   numberFormat: string;
-  dateFormat: string;
-  renderTooltip: ({ index }: { index: number }) => ReactNode;
+  renderTooltip: ({ index }: { index: number }) => void;
   showYAxis: boolean;
   width: number;
-  yAxisBounds: Array<number | undefined>;
+  yAxisBounds: Array<number>;
+  data: Array<number>;
+}
+
+interface TooltipProps {
+  onMouseLeave: () => void;
+  onMouseMove: () => void;
+  tooltipData: {
+    index: number;
+  };
+}
+
+interface Yscale {
+  min?: number;
+  max?: number;
 }
 
 const MARGIN = {
@@ -56,6 +58,12 @@ const MARGIN = {
   right: 8,
   bottom: 8,
   left: 8,
+};
+const tooltipProps = {
+  style: {
+    opacity: 0.8,
+  },
+  offsetTop: 0,
 };
 
 function getSparklineTextWidth(text: string) {
@@ -80,164 +88,114 @@ function isValidBoundValue(value?: number | string) {
   );
 }
 
-const SparklineCell = ({
-  ariaLabel,
-  dataKey,
-  data,
-  width = 300,
-  height = 50,
-  numberFormat = '',
-  dateFormat = '',
-  yAxisBounds = [undefined, undefined],
-  showYAxis = false,
-  entries = [],
-}: Props) => {
-  const theme = useTheme();
-  const xyTheme = buildChartTheme({
-    backgroundColor: `${theme.colors.grayscale.light5}`,
-    colors: [`${theme.colors.grayscale.base}`],
-    gridColor: `${theme.colors.grayscale.light1}`,
-    gridColorDark: `${theme.colors.grayscale.base}`,
-    tickLength: 6,
-  });
-
-  const yScaleConfig: LinearScaleConfig<AxisScaleOutput> = {
-    type: 'linear',
-    zero: false,
-  };
-  let hasMinBound = false;
-  let hasMaxBound = false;
-  let min: number = data.reduce(
-    (acc, current) => Math.min(acc, current),
-    data[0],
-  );
-  let max: number = data.reduce(
-    (acc, current) => Math.max(acc, current),
-    data[0],
-  );
-
-  if (yAxisBounds) {
-    const [minBound, maxBound] = yAxisBounds;
-    hasMinBound = isValidBoundValue(minBound);
-    if (hasMinBound) {
-      if (minBound !== undefined && minBound <= 0) {
-        yScaleConfig.zero = true;
-      }
-      min = minBound || min;
-    }
-
-    hasMaxBound = isValidBoundValue(maxBound);
-    if (hasMaxBound) {
-      max = maxBound || max;
-    }
-    yScaleConfig.domain = [min, max];
-  }
-
-  let minLabel: string;
-  let maxLabel: string;
-  let labelLength = 0;
-  if (showYAxis) {
-    yScaleConfig.domain = [min, max];
-    minLabel = formatNumber(numberFormat, min);
-    maxLabel = formatNumber(numberFormat, max);
-    labelLength = Math.max(
-      getSparklineTextWidth(minLabel),
-      getSparklineTextWidth(maxLabel),
+class SparklineCell extends React.Component<Props, {}> {
+  renderHorizontalReferenceLine(value?: number, label?: string) {
+    return (
+      <HorizontalReferenceLine
+        reference={value}
+        labelPosition="right"
+        renderLabel={() => label}
+        stroke="#bbb"
+        strokeDasharray="3 3"
+        strokeWidth={1}
+      />
     );
   }
 
-  const margin = {
-    ...MARGIN,
-    right: MARGIN.right + labelLength,
-  };
-  const innerWidth = width - margin.left - margin.right;
-  const chartData = data.map((num, idx) => ({
-    x: idx,
-    y: num,
-  }));
+  render() {
+    const {
+      width = 300,
+      height = 50,
+      data,
+      ariaLabel,
+      numberFormat = undefined,
+      yAxisBounds = [undefined, undefined],
+      showYAxis = false,
+      renderTooltip = () => <div />,
+    } = this.props;
 
-  const xAccessor = (d: any) => d.x;
-  const yAccessor = (d: any) => d.y;
+    const yScale: Yscale = {};
+    let hasMinBound = false;
+    let hasMaxBound = false;
 
-  return (
-    <>
-      <XYChart
-        accessibilityLabel={ariaLabel}
-        width={width}
-        height={height}
-        margin={margin}
-        yScale={{
-          ...yScaleConfig,
-        }}
-        xScale={{ type: 'band', paddingInner: 0.5 }}
-        theme={xyTheme}
+    if (yAxisBounds) {
+      const [minBound, maxBound] = yAxisBounds;
+      hasMinBound = isValidBoundValue(minBound);
+      if (hasMinBound) {
+        yScale.min = minBound;
+      }
+      hasMaxBound = isValidBoundValue(maxBound);
+      if (hasMaxBound) {
+        yScale.max = maxBound;
+      }
+    }
+
+    let min: number | undefined;
+    let max: number | undefined;
+    let minLabel: string;
+    let maxLabel: string;
+    let labelLength = 0;
+    if (showYAxis) {
+      const [minBound, maxBound] = yAxisBounds;
+      min = hasMinBound
+        ? minBound
+        : data.reduce((acc, current) => Math.min(acc, current), data[0]);
+      max = hasMaxBound
+        ? maxBound
+        : data.reduce((acc, current) => Math.max(acc, current), data[0]);
+
+      minLabel = formatNumber(numberFormat, min);
+      maxLabel = formatNumber(numberFormat, max);
+      labelLength = Math.max(
+        getSparklineTextWidth(minLabel),
+        getSparklineTextWidth(maxLabel),
+      );
+    }
+
+    const margin = {
+      ...MARGIN,
+      right: MARGIN.right + labelLength,
+    };
+
+    return (
+      <WithTooltip
+        tooltipProps={tooltipProps}
+        hoverStyles={null}
+        renderTooltip={renderTooltip}
       >
-        {showYAxis && (
-          <Axis
-            hideAxisLine
-            hideTicks
-            numTicks={2}
-            orientation="right"
-            tickFormat={(d: any) => formatNumber(numberFormat, d)}
-            tickValues={[min, max]}
-          />
+        {({ onMouseLeave, onMouseMove, tooltipData }: TooltipProps) => (
+          <Sparkline
+            ariaLabel={ariaLabel}
+            width={width}
+            height={height}
+            margin={margin}
+            data={data}
+            onMouseLeave={onMouseLeave}
+            onMouseMove={onMouseMove}
+            {...yScale}
+          >
+            {showYAxis && this.renderHorizontalReferenceLine(min, minLabel)}
+            {showYAxis && this.renderHorizontalReferenceLine(max, maxLabel)}
+            <LineSeries showArea={false} stroke="#767676" />
+            {tooltipData && (
+              <VerticalReferenceLine
+                reference={tooltipData.index}
+                strokeDasharray="3 3"
+                strokeWidth={1}
+              />
+            )}
+            {tooltipData && (
+              <PointSeries
+                points={[tooltipData.index]}
+                fill="#767676"
+                strokeWidth={1}
+              />
+            )}
+          </Sparkline>
         )}
-        {showYAxis && min !== undefined && max !== undefined && (
-          <GridRows
-            left={margin.left}
-            scale={scaleLinear({
-              range: [height - margin.top, margin.bottom],
-              domain: [min, max],
-            })}
-            width={innerWidth}
-            strokeDasharray="3 3"
-            stroke={`${theme.colors.grayscale.light1}`}
-            tickValues={[min, max]}
-          />
-        )}
-        <LineSeries
-          data={chartData}
-          dataKey={dataKey}
-          xAccessor={xAccessor}
-          yAccessor={yAccessor}
-        />
-        <Tooltip
-          glyphStyle={{ strokeWidth: 1 }}
-          showDatumGlyph
-          showVerticalCrosshair
-          snapTooltipToDatumX
-          snapTooltipToDatumY
-          verticalCrosshairStyle={{
-            stroke: `${theme.colors.grayscale.dark1}`,
-            strokeDasharray: '3 3',
-            strokeWidth: 1,
-          }}
-          renderTooltip={({ tooltipData }) => {
-            const idx = tooltipData?.datumByKey[dataKey].index;
-            return (
-              <div>
-                <strong>
-                  {idx !== undefined && formatNumber(numberFormat, data[idx])}
-                </strong>
-                <div>
-                  {idx !== undefined &&
-                    formatTime(
-                      dateFormat,
-                      extendedDayjs.utc(entries[idx].time).toDate(),
-                    )}
-                </div>
-              </div>
-            );
-          }}
-        />
-      </XYChart>
-      <style>
-        {`svg:not(:root) {
-            overflow: visible;
-          }`}
-      </style>
-    </>
-  );
-};
+      </WithTooltip>
+    );
+  }
+}
 
 export default SparklineCell;

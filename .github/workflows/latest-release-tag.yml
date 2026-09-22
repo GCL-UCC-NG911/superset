@@ -6,13 +6,11 @@ on:
 jobs:
   latest-release:
     name: Add/update tag to new release
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
+    runs-on: ubuntu-latest
 
     steps:
     - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
-      uses: actions/checkout@v4
+      uses: actions/checkout@v2
       with:
         persist-credentials: false
         submodules: recursive
@@ -22,11 +20,6 @@ jobs:
       run: |
         source ./scripts/tag_latest_release.sh $(echo ${{ github.event.release.tag_name }}) --dry-run
 
-    - name: Configure Git
-      run: |
-        git config user.name "$GITHUB_ACTOR"
-        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
     - name: Run latest-tag
       uses: ./.github/actions/latest-tag
       if: (! ${{ steps.latest-tag.outputs.SKIP_TAG }} )
@@ -34,4 +27,4 @@ jobs:
         description: Superset latest release
         tag-name: latest
       env:
-        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

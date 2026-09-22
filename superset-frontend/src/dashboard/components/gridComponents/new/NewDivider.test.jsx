@@ -16,33 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { render } from 'spec/helpers/testing-library';
+import React from 'react';
+import { shallow } from 'enzyme';
 
+import DraggableNewComponent from 'src/dashboard/components/gridComponents/new/DraggableNewComponent';
 import NewDivider from 'src/dashboard/components/gridComponents/new/NewDivider';
 
 import { NEW_DIVIDER_ID } from 'src/dashboard/util/constants';
 import { DIVIDER_TYPE } from 'src/dashboard/util/componentTypes';
 
-jest.mock(
-  'src/dashboard/components/gridComponents/new/DraggableNewComponent',
-  () =>
-    ({ type, id }) => (
-      <div data-test="mock-draggable-new-component">{`${type}:${id}`}</div>
-    ),
-);
+describe('NewDivider', () => {
+  function setup() {
+    return shallow(<NewDivider />);
+  }
 
-function setup() {
-  return render(<NewDivider />);
-}
+  it('should render a DraggableNewComponent', () => {
+    const wrapper = setup();
+    expect(wrapper.find(DraggableNewComponent)).toExist();
+  });
 
-test('should render a DraggableNewComponent', () => {
-  const { getByTestId } = setup();
-  expect(getByTestId('mock-draggable-new-component')).toBeInTheDocument();
-});
-
-test('should set appropriate type and id', () => {
-  const { getByTestId } = setup();
-  expect(getByTestId('mock-draggable-new-component')).toHaveTextContent(
-    `${DIVIDER_TYPE}:${NEW_DIVIDER_ID}`,
-  );
+  it('should set appropriate type and id', () => {
+    const wrapper = setup();
+    expect(wrapper.find(DraggableNewComponent).props()).toMatchObject({
+      type: DIVIDER_TYPE,
+      id: NEW_DIVIDER_ID,
+    });
+  });
 });

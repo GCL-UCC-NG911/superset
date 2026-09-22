@@ -21,7 +21,6 @@ Revises: 956a063c52b3
 Create Date: 2016-05-27 15:03:32.980343
 
 """
-
 import logging
 
 from alembic import op
@@ -60,7 +59,7 @@ def upgrade():
                 ["datasource_name"],
                 ["datasource_name"],
             )
-    except:  # noqa: E722
+    except:
         logging.warning("Could not find or drop constraint on `columns`")
 
 

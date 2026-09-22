@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactNode } from 'react';
+import React from 'react';
 import { t, tn } from '@superset-ui/core';
 
 import { ErrorMessageComponentProps } from './types';
@@ -34,16 +34,12 @@ interface DatabaseErrorExtra {
 
 function DatabaseErrorMessage({
   error,
-  source,
+  source = 'dashboard',
   subtitle,
-}: ErrorMessageComponentProps<DatabaseErrorExtra | null>) {
+}: ErrorMessageComponentProps<DatabaseErrorExtra>) {
   const { extra, level, message } = error;
 
-  const isVisualization = ['dashboard', 'explore'].includes(source || '');
-  const [firstLine, ...remainingLines] = message.split('\n');
-  const alertMessage = firstLine;
-  const alertDescription =
-    remainingLines.length > 0 ? remainingLines.join('\n') : null;
+  const isVisualization = ['dashboard', 'explore'].includes(source);
 
   const body = extra && (
     <>
@@ -51,7 +47,7 @@ function DatabaseErrorMessage({
         {t('This may be triggered by:')}
         <br />
         {extra.issue_codes
-          ?.map<ReactNode>(issueCode => (
+          .map<React.ReactNode>(issueCode => (
             <IssueCode {...issueCode} key={issueCode.code} />
           ))
           .reduce((prev, curr) => [prev, <br />, curr])}
@@ -79,13 +75,23 @@ function DatabaseErrorMessage({
     </>
   );
 
+  const copyText = extra?.issue_codes
+    ? t('%(message)s\nThis may be triggered by: \n%(issues)s', {
+        message,
+        issues: extra.issue_codes
+          .map(issueCode => issueCode.message)
+          .join('\n'),
+      })
+    : message;
+
   return (
     <ErrorAlert
-      errorType={t('%s Error', extra?.engine_name || t('DB engine'))}
-      message={alertMessage}
-      description={alertDescription}
-      type={level}
-      descriptionDetails={body}
+      title={t('%s Error', extra?.engine_name || t('DB engine'))}
+      subtitle={subtitle}
+      level={level}
+      source={source}
+      copyText={copyText}
+      body={body}
     />
   );
 }

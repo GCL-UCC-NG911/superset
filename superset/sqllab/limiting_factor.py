@@ -14,10 +14,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-from superset.utils.backports import StrEnum
+import enum
 
 
-class LimitingFactor(StrEnum):
+class LimitingFactor(str, enum.Enum):
     QUERY = "QUERY"
     DROPDOWN = "DROPDOWN"
     QUERY_AND_DROPDOWN = "QUERY_AND_DROPDOWN"

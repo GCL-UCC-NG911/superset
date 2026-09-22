@@ -16,9 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { css, useTheme } from '@superset-ui/core';
 import { Radio } from 'src/components/Radio';
+import { Space } from 'src/components';
 import Icons from 'src/components/Icons';
 import Popover from 'src/components/Popover';
 
@@ -55,20 +56,21 @@ function HeaderWithRadioGroup(props: HeaderWithRadioGroupProps) {
             >
               {groupTitle}
             </div>
-            <Radio.GroupWrapper
-              spaceConfig={{
-                direction: 'vertical',
-                size: 4,
-                wrap: false,
-                align: 'start',
-              }}
+            <Radio.Group
               value={value}
               onChange={e => {
                 onChange(e.target.value);
                 setPopoverVisible(false);
               }}
-              options={groupOptions}
-            />
+            >
+              <Space direction="vertical">
+                {groupOptions.map(option => (
+                  <Radio key={option.value} value={option.value}>
+                    {option.label}
+                  </Radio>
+                ))}
+              </Space>
+            </Radio.Group>
           </div>
         }
         placement="bottomLeft"

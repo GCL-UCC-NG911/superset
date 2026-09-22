@@ -16,51 +16,49 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { fireEvent, render, waitFor } from 'spec/helpers/testing-library';
+import React from 'react';
+import { mount } from 'enzyme';
 import Button from 'src/components/Button';
+import { act } from 'react-dom/test-utils';
+import { supersetTheme, ThemeProvider } from '@superset-ui/core';
 import ConfirmStatusChange from 'src/components/ConfirmStatusChange';
+import Modal from 'src/components/Modal';
 
-const mockedProps = {
-  title: 'please confirm',
-  description: 'are you sure?',
-  onConfirm: jest.fn(),
-};
-
-test('opens a confirm modal', () => {
-  const { getByTestId } = render(
+describe('ConfirmStatusChange', () => {
+  const mockedProps = {
+    title: 'please confirm',
+    description: 'are you sure?',
+    onConfirm: jest.fn(),
+  };
+  const wrapper = mount(
     <ConfirmStatusChange {...mockedProps}>
       {confirm => (
         <>
-          <Button data-test="btn1" onClick={confirm} />
+          <Button id="btn1" onClick={confirm} />
         </>
       )}
     </ConfirmStatusChange>,
+    {
+      wrappingComponent: ThemeProvider,
+      wrappingComponentProps: { theme: supersetTheme },
+    },
   );
 
-  fireEvent.click(getByTestId('btn1'));
+  it('opens a confirm modal', () => {
+    act(() => {
+      wrapper.find('#btn1').first().props().onClick('foo');
+    });
 
-  expect(getByTestId(`${mockedProps.title}-modal`)).toBeInTheDocument();
-});
+    wrapper.update();
 
-test('calls the function on confirm', async () => {
-  const { getByTestId, getByRole } = render(
-    <ConfirmStatusChange {...mockedProps}>
-      {confirm => (
-        <>
-          <Button data-test="btn1" onClick={() => confirm('foo')} />
-        </>
-      )}
-    </ConfirmStatusChange>,
-  );
+    expect(wrapper.find(Modal)).toExist();
+  });
 
-  fireEvent.click(getByTestId('btn1'));
+  it('calls the function on confirm', () => {
+    act(() => {
+      wrapper.find(Button).last().props().onClick();
+    });
 
-  const confirmInput = getByTestId('delete-modal-input');
-  fireEvent.change(confirmInput, { target: { value: 'DELETE' } });
-
-  const confirmButton = getByRole('button', { name: 'Delete' });
-  fireEvent.click(confirmButton);
-
-  await waitFor(() => expect(mockedProps.onConfirm).toHaveBeenCalledTimes(1));
-  expect(mockedProps.onConfirm).toHaveBeenCalledWith('foo');
+    expect(mockedProps.onConfirm).toHaveBeenCalledWith('foo');
+  });
 });

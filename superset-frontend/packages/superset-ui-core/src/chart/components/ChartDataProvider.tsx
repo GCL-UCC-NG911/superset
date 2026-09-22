@@ -18,7 +18,7 @@
  */
 
 /* eslint react/sort-comp: 'off' */
-import { PureComponent, ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import {
   SupersetClientInterface,
   RequestConfig,
@@ -67,7 +67,7 @@ export type ChartDataProviderState = {
   error?: ProvidedProps['error'];
 };
 
-class ChartDataProvider extends PureComponent<
+class ChartDataProvider extends React.PureComponent<
   ChartDataProviderProps,
   ChartDataProviderState
 > {
@@ -126,7 +126,7 @@ class ChartDataProvider extends PureComponent<
                   datasource,
                   formData,
                   queriesData,
-                }) as Payload,
+                } as Payload),
             ),
           )
           .then(this.handleReceiveData)

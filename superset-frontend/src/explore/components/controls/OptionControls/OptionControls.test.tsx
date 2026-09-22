@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import {
   render,
   screen,
@@ -62,7 +63,7 @@ test('should render', async () => {
 
 test('should display a label', async () => {
   setup();
-  expect(await screen.findByText('Test label')).toBeInTheDocument();
+  expect(await screen.findByText('Test label')).toBeTruthy();
 });
 
 test('should display a certification icon if saved metric is certified', async () => {
@@ -73,7 +74,7 @@ test('should display a certification icon if saved metric is certified', async (
     },
   });
   await waitFor(() => {
-    expect(screen.queryByText('Test label')).not.toBeInTheDocument();
+    expect(screen.queryByText('Test label')).toBeFalsy();
     expect(container.querySelector('.metric-option > svg')).toBeInTheDocument();
   });
 });

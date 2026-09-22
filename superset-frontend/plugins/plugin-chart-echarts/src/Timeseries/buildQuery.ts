@@ -19,25 +19,24 @@
 import {
   buildQueryContext,
   ensureIsArray,
-  getXAxisColumn,
-  isXAxisSet,
   normalizeOrderBy,
   PostProcessingPivot,
   QueryFormData,
+  getXAxisColumn,
+  isXAxisSet,
 } from '@superset-ui/core';
 import {
-  contributionOperator,
-  extractExtraMetrics,
-  flattenOperator,
+  rollingWindowOperator,
+  timeCompareOperator,
   isTimeComparison,
   pivotOperator,
-  prophetOperator,
-  renameOperator,
   resampleOperator,
-  rollingWindowOperator,
-  sortOperator,
+  renameOperator,
+  contributionOperator,
+  prophetOperator,
   timeComparePivotOperator,
-  timeCompareOperator,
+  flattenOperator,
+  sortOperator,
 } from '@superset-ui/chart-controls';
 
 export default function buildQuery(formData: QueryFormData) {
@@ -63,9 +62,6 @@ export default function buildQuery(formData: QueryFormData) {
           2015-03-01      318.0         0.0
 
      */
-    // only add series limit metric if it's explicitly needed e.g. for sorting
-    const extra_metrics = extractExtraMetrics(formData);
-
     const pivotOperatorInRuntime: PostProcessingPivot = isTimeComparison(
       formData,
       baseQueryObject,
@@ -73,25 +69,22 @@ export default function buildQuery(formData: QueryFormData) {
       ? timeComparePivotOperator(formData, baseQueryObject)
       : pivotOperator(formData, baseQueryObject);
 
-    const columns = [
-      ...(isXAxisSet(formData) ? ensureIsArray(getXAxisColumn(formData)) : []),
-      ...ensureIsArray(groupby),
-    ];
-
-    const time_offsets = isTimeComparison(formData, baseQueryObject)
-      ? formData.time_compare
-      : [];
-
     return [
       {
         ...baseQueryObject,
-        metrics: [...(baseQueryObject.metrics || []), ...extra_metrics],
-        columns,
+        columns: [
+          ...(isXAxisSet(formData)
+            ? ensureIsArray(getXAxisColumn(formData))
+            : []),
+          ...ensureIsArray(groupby),
+        ],
         series_columns: groupby,
         ...(isXAxisSet(formData) ? {} : { is_timeseries: true }),
         // todo: move `normalizeOrderBy to extractQueryFields`
         orderby: normalizeOrderBy(baseQueryObject).orderby,
-        time_offsets,
+        time_offsets: isTimeComparison(formData, baseQueryObject)
+          ? formData.time_compare
+          : [],
         /* Note that:
           1. The resample, rolling, cum, timeCompare operators should be after pivot.
           2. the flatOperator makes multiIndex Dataframe into flat Dataframe
@@ -102,7 +95,7 @@ export default function buildQuery(formData: QueryFormData) {
           timeCompareOperator(formData, baseQueryObject),
           resampleOperator(formData, baseQueryObject),
           renameOperator(formData, baseQueryObject),
-          contributionOperator(formData, baseQueryObject, time_offsets),
+          contributionOperator(formData, baseQueryObject),
           sortOperator(formData, baseQueryObject),
           flattenOperator(formData, baseQueryObject),
           // todo: move prophet before flatten

@@ -17,7 +17,7 @@
 import logging
 import random
 import string
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import func
 
@@ -32,10 +32,10 @@ logger = logging.getLogger(__name__)
 session = appbuilder.get_session
 
 
-def get_mock_positions(dashboard: Dashboard) -> dict[str, Any]:
+def get_mock_positions(dashboard: Dashboard) -> Dict[str, Any]:
     positions = {"DASHBOARD_VERSION_KEY": "v2"}
     for i, slc in enumerate(dashboard.slices):
-        id_ = f"DASHBOARD_CHART_TYPE-{i}"
+        id_ = "DASHBOARD_CHART_TYPE-{}".format(i)
         position_data: Any = {
             "type": "CHART",
             "id": id_,
@@ -48,7 +48,7 @@ def get_mock_positions(dashboard: Dashboard) -> dict[str, Any]:
 
 def build_save_dash_parts(
     dashboard_slug: Optional[str] = None, dashboard_to_edit: Optional[Dashboard] = None
-) -> tuple[Dashboard, dict[str, Any], dict[str, Any]]:
+) -> Tuple[Dashboard, Dict[str, Any], Dict[str, Any]]:
     if not dashboard_to_edit:
         dashboard_slug = (
             dashboard_slug if dashboard_slug else DEFAULT_DASHBOARD_SLUG_TO_TEST
@@ -68,7 +68,7 @@ def build_save_dash_parts(
     return dashboard_to_edit, data_before_change, data_after_change
 
 
-def get_all_dashboards() -> list[Dashboard]:
+def get_all_dashboards() -> List[Dashboard]:
     return db.session.query(Dashboard).all()
 
 
@@ -98,7 +98,7 @@ def random_slug():
 
 def get_random_string(length):
     letters = string.ascii_lowercase
-    result_str = "".join(random.choice(letters) for i in range(length))  # noqa: S311
+    result_str = "".join(random.choice(letters) for i in range(length))
     print("Random string of length", length, "is:", result_str)
     return result_str
 
@@ -110,10 +110,12 @@ def random_str():
 def grant_access_to_dashboard(dashboard, role_name):
     role = security_manager.find_role(role_name)
     dashboard.roles.append(role)
+    db.session.merge(dashboard)
     db.session.commit()
 
 
 def revoke_access_to_dashboard(dashboard, role_name):
     role = security_manager.find_role(role_name)
     dashboard.roles.remove(role)
+    db.session.merge(dashboard)
     db.session.commit()

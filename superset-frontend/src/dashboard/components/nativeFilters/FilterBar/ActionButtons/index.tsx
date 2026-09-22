@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   css,
   DataMaskState,
@@ -24,7 +24,6 @@ import {
   t,
   isDefined,
   SupersetTheme,
-  styled,
 } from '@superset-ui/core';
 import Button from 'src/components/Button';
 import { OPEN_FILTER_BAR_WIDTH } from 'src/dashboard/constants';
@@ -103,13 +102,6 @@ const horizontalStyle = (theme: SupersetTheme) => css`
   }
 `;
 
-const ButtonsContainer = styled.div<{ isVertical: boolean; width: number }>`
-  ${({ theme, isVertical, width }) => css`
-    ${containerStyle(theme)};
-    ${isVertical ? verticalStyle(theme, width) : horizontalStyle(theme)};
-  `}
-`;
-
 const ActionButtons = ({
   width = OPEN_FILTER_BAR_WIDTH,
   onApply,
@@ -117,7 +109,7 @@ const ActionButtons = ({
   dataMaskApplied,
   dataMaskSelected,
   isApplyDisabled,
-  filterBarOrientation = FilterBarOrientation.Vertical,
+  filterBarOrientation = FilterBarOrientation.VERTICAL,
 }: ActionButtonsProps) => {
   const isClearAllEnabled = useMemo(
     () =>
@@ -129,12 +121,14 @@ const ActionButtons = ({
       ),
     [dataMaskApplied, dataMaskSelected],
   );
-  const isVertical = filterBarOrientation === FilterBarOrientation.Vertical;
+  const isVertical = filterBarOrientation === FilterBarOrientation.VERTICAL;
 
   return (
-    <ButtonsContainer
-      isVertical={isVertical}
-      width={width}
+    <div
+      css={(theme: SupersetTheme) => [
+        containerStyle(theme),
+        isVertical ? verticalStyle(theme, width) : horizontalStyle(theme),
+      ]}
       data-test="filterbar-action-buttons"
     >
       <Button
@@ -157,7 +151,7 @@ const ActionButtons = ({
       >
         {t('Clear all')}
       </Button>
-    </ButtonsContainer>
+    </div>
   );
 };
 

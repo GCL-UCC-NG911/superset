@@ -26,14 +26,14 @@ Create Date: 2017-02-08 14:16:34.948793
 revision = "a99f2f7c195a"
 down_revision = "db0c65b146bd"
 
-from urllib import parse  # noqa: E402
+import json
+from urllib import parse
 
-import sqlalchemy as sa  # noqa: E402
-from alembic import op  # noqa: E402
-from sqlalchemy.ext.declarative import declarative_base  # noqa: E402
+import sqlalchemy as sa
+from alembic import op
+from sqlalchemy.ext.declarative import declarative_base
 
-from superset import db  # noqa: E402
-from superset.utils import json  # noqa: E402
+from superset import db
 
 Base = declarative_base()
 
@@ -41,7 +41,7 @@ Base = declarative_base()
 def parse_querystring(qs):
     d = {}
     for k, v in parse.parse_qsl(qs):
-        if k not in d:
+        if not k in d:
             d[k] = v
         else:
             if isinstance(d[k], list):
@@ -52,6 +52,7 @@ def parse_querystring(qs):
 
 
 class Url(Base):
+
     """Used for the short url feature"""
 
     __tablename__ = "url"
@@ -79,8 +80,9 @@ def upgrade():
                 "/".join(split[:-1]) + "/?form_data=" + parse.quote_plus(json.dumps(d))
             )
             url.url = newurl
+            session.merge(url)
             session.commit()
-        print(f"Updating url ({i}/{urls_len})")
+        print("Updating url ({}/{})".format(i, urls_len))
     session.close()
 
 

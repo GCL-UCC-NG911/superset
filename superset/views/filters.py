@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class FilterRelatedOwners(BaseFilter):  # pylint: disable=too-few-public-methods
+
     """
     A filter to allow searching for related owners of a resource.
 
@@ -54,6 +55,7 @@ class FilterRelatedOwners(BaseFilter):  # pylint: disable=too-few-public-methods
 
 
 class BaseFilterRelatedUsers(BaseFilter):  # pylint: disable=too-few-public-methods
+
     """
     Filter to apply on related users. Will exclude users in EXCLUDE_USERS_FROM_LISTS
 

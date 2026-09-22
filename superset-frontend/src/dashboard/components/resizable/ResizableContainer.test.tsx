@@ -16,19 +16,37 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { render } from 'spec/helpers/testing-library';
 
-import ResizableContainer, {
-  ResizableContainerProps,
-} from 'src/dashboard/components/resizable/ResizableContainer';
+import ResizableContainer from 'src/dashboard/components/resizable/ResizableContainer';
+
+interface ResizableContainerProps {
+  id: string;
+  children?: object;
+  adjustableWidth?: boolean;
+  adjustableHeight?: boolean;
+  gutterWidth?: number;
+  widthStep?: number;
+  heightStep?: number;
+  widthMultiple?: number;
+  heightMultiple?: number;
+  minWidthMultiple?: number;
+  maxWidthMultiple?: number;
+  minHeightMultiple?: number;
+  maxHeightMultiple?: number;
+  staticHeight?: number;
+  staticHeightMultiple?: number;
+  staticWidth?: number;
+  staticWidthMultiple?: number;
+  onResizeStop?: () => {};
+  onResize?: () => {};
+  onResizeStart?: () => {};
+  editMode: boolean;
+}
 
 describe('ResizableContainer', () => {
-  const props = {
-    editMode: false,
-    id: 'id',
-    heightMultiple: 0,
-    widthMultiple: 0,
-  };
+  const props = { editMode: false, id: 'id' };
 
   const setup = (overrides?: ResizableContainerProps) => (
     <ResizableContainer {...props} {...overrides} />

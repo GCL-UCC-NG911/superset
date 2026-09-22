@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { CSSProperties } from 'react';
+import React, { CSSProperties } from 'react';
 import { css, styled } from '../../style';
 import { t } from '../../translation';
 

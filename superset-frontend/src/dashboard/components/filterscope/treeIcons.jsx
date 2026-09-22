@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { t } from '@superset-ui/core';
 import 'react-checkbox-tree/lib/react-checkbox-tree.css';
 

@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { VizType } from '@superset-ui/core';
 import isTruthy from './utils/isTruthy';
 import {
   tokenizeToNumericArray,
@@ -66,6 +65,8 @@ export default function transformProps(chartProps) {
     lineInterpolation,
     maxBubbleSize,
     metric,
+    metric2,
+    metrics = [],
     orderBars,
     pieLabelType,
     reduceXTicks,
@@ -90,7 +91,6 @@ export default function transformProps(chartProps) {
     yAxisBounds,
     yAxis2Bounds,
     yAxisLabel,
-    yAxisFormat,
     yAxisShowminmax,
     yAxis2Showminmax,
     yLogScale,
@@ -105,22 +105,30 @@ export default function transformProps(chartProps) {
     numberFormat,
     rangeLabels,
     ranges,
+    yAxisFormat,
+    yAxis2Format,
   } = formData;
 
   const rawData = queriesData[0].data || [];
   const data = Array.isArray(rawData)
     ? rawData.map(row => ({
         ...row,
-        values: Array.isArray(row.values)
-          ? row.values.map(value => ({ ...value }))
-          : row.values,
         key: formatLabel(row.key, datasource.verboseMap),
       }))
     : rawData;
 
-  if (vizType === VizType.Pie) {
+  if (vizType === 'pie') {
     numberFormat = numberFormat || grabD3Format(datasource, metric);
-  } else if (vizType === VizType.Bullet) {
+  } else if (vizType === 'dual_line') {
+    yAxisFormat = yAxisFormat || grabD3Format(datasource, metric);
+    yAxis2Format = yAxis2Format || grabD3Format(datasource, metric2);
+  } else if (
+    ['line', 'dist_bar', 'bar', 'area'].includes(chartProps.formData.vizType)
+  ) {
+    yAxisFormat =
+      yAxisFormat ||
+      grabD3Format(datasource, metrics.length > 0 ? metrics[0] : undefined);
+  } else if (vizType === 'bullet') {
     ranges = tokenizeToNumericArray(ranges) || [0, data.measures * 1.1];
     rangeLabels = tokenizeToStringArray(rangeLabels);
     markerLabels = tokenizeToStringArray(markerLabels);
@@ -180,6 +188,7 @@ export default function transformProps(chartProps) {
     xIsLogScale: xLogScale,
     xTicksLayout,
     yAxisFormat,
+    yAxis2Format,
     yAxisBounds,
     yAxis2Bounds,
     yAxisLabel,

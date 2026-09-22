@@ -18,10 +18,10 @@
  */
 /* eslint-disable react/jsx-key */
 
+import React from 'react';
 import { t } from '@superset-ui/core';
 import {
   ControlPanelSectionConfig,
-  ControlSubSectionHeader,
   CustomControlItem,
   D3_TIME_FORMAT_OPTIONS,
   D3_FORMAT_DOCS,
@@ -169,7 +169,7 @@ export const showControls: CustomControlItem = {
     default: false,
     description: t(
       'Whether to show extra controls or not. Extra controls ' +
-        'include things like making multiBar charts stacked ' +
+        'include things like making mulitBar charts stacked ' +
         'or side by side.',
     ),
   },
@@ -390,11 +390,7 @@ export const timeSeriesSection: ControlPanelSectionConfig[] = [
         'of query results',
     ),
     controlSetRows: [
-      [
-        <ControlSubSectionHeader>
-          {t('Rolling Window')}
-        </ControlSubSectionHeader>,
-      ],
+      [<div className="section-header">{t('Rolling Window')}</div>],
       [
         {
           name: 'rolling_type',
@@ -447,11 +443,7 @@ export const timeSeriesSection: ControlPanelSectionConfig[] = [
           },
         },
       ],
-      [
-        <ControlSubSectionHeader>
-          {t('Time Comparison')}
-        </ControlSubSectionHeader>,
-      ],
+      [<div className="section-header">{t('Time Comparison')}</div>],
       [
         {
           name: 'time_compare',
@@ -502,7 +494,7 @@ export const timeSeriesSection: ControlPanelSectionConfig[] = [
           },
         },
       ],
-      [<ControlSubSectionHeader>{t('Resample')}</ControlSubSectionHeader>],
+      [<div className="section-header">{t('Resample')}</div>],
       [
         {
           name: 'resample_rule',

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import cx from 'classnames';
 import { css, styled, SupersetTheme, t } from '@superset-ui/core';
@@ -229,7 +229,6 @@ export default function EditableTitle({
           :hover {
             text-decoration: underline;
           }
-          display: inline-block;
         `}
       >
         {value}

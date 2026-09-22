@@ -18,6 +18,7 @@
  */
 
 /* eslint react/prop-types: 'off' */
+import React from 'react';
 import './color-styles.css';
 
 export default function RenderPalettes({ title, palettes }) {

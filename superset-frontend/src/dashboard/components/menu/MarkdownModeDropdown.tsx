@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { PureComponent } from 'react';
+import React from 'react';
 import { t } from '@superset-ui/core';
 
 import PopoverDropdown, {
@@ -40,7 +40,7 @@ const dropdownOptions = [
   },
 ];
 
-export default class MarkdownModeDropdown extends PureComponent<MarkdownModeDropdownProps> {
+export default class MarkdownModeDropdown extends React.PureComponent<MarkdownModeDropdownProps> {
   render() {
     const { id, value, onChange } = this.props;
 

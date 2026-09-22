@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import configureStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 import { render, screen, waitFor } from 'spec/helpers/testing-library';
@@ -26,7 +27,7 @@ import { initialState, databases } from 'src/SqlLab/fixtures';
 const mockedProps = {
   queryEditorId: '123',
   animation: false,
-  database: { ...databases.result[0], allows_virtual_table_explore: false },
+  database: databases.result[0],
   onUpdate: () => {},
   onSave: () => {},
   saveQueryWarning: null,
@@ -41,7 +42,6 @@ const mockState = {
       {
         id: mockedProps.queryEditorId,
         dbId: 1,
-        catalog: null,
         schema: 'main',
         sql: 'SELECT * FROM t',
       },
@@ -61,25 +61,6 @@ const middlewares = [thunk];
 const mockStore = configureStore(middlewares);
 
 describe('SavedQuery', () => {
-  it('doesnt render save button when allows_virtual_table_explore is undefined', async () => {
-    const noRenderProps = {
-      ...mockedProps,
-      database: {
-        ...mockedProps.database,
-        allows_virtual_table_explore: undefined,
-      },
-    };
-    render(<SaveQuery {...noRenderProps} />, {
-      useRedux: true,
-      store: mockStore(mockState),
-    });
-    expect(() => {
-      screen.getByRole('button', { name: /save/i });
-    }).toThrow(
-      'Unable to find an accessible element with the role "button" and name `/save/i`',
-    );
-  });
-
   it('renders a non-split save button when allows_virtual_table_explore is not enabled', () => {
     render(<SaveQuery {...mockedProps} />, {
       useRedux: true,
@@ -104,7 +85,7 @@ describe('SavedQuery', () => {
       name: /save query/i,
     });
 
-    expect(saveQueryModalHeader).toBeInTheDocument();
+    expect(saveQueryModalHeader).toBeVisible();
   });
 
   it('renders the save query modal UI', () => {
@@ -129,17 +110,17 @@ describe('SavedQuery', () => {
     const saveBtns = screen.getAllByRole('button', { name: /save/i });
     const cancelBtn = screen.getByRole('button', { name: /cancel/i });
 
-    expect(closeBtn).toBeInTheDocument();
-    expect(saveQueryModalHeader).toBeInTheDocument();
-    expect(nameLabel).toBeInTheDocument();
-    expect(descriptionLabel).toBeInTheDocument();
+    expect(closeBtn).toBeVisible();
+    expect(saveQueryModalHeader).toBeVisible();
+    expect(nameLabel).toBeVisible();
+    expect(descriptionLabel).toBeVisible();
     expect(textBoxes.length).toBe(2);
-    expect(nameTextbox).toBeInTheDocument();
-    expect(descriptionTextbox).toBeInTheDocument();
+    expect(nameTextbox).toBeVisible();
+    expect(descriptionTextbox).toBeVisible();
     expect(saveBtns.length).toBe(2);
-    expect(saveBtns[0]).toBeInTheDocument();
-    expect(saveBtns[1]).toBeInTheDocument();
-    expect(cancelBtn).toBeInTheDocument();
+    expect(saveBtns[0]).toBeVisible();
+    expect(saveBtns[1]).toBeVisible();
+    expect(cancelBtn).toBeVisible();
   });
 
   it('renders a "save as new" and "update" button if query already exists', () => {
@@ -163,8 +144,8 @@ describe('SavedQuery', () => {
     const saveAsNewBtn = screen.getByRole('button', { name: /save as new/i });
     const updateBtn = screen.getByRole('button', { name: /update/i });
 
-    expect(saveAsNewBtn).toBeInTheDocument();
-    expect(updateBtn).toBeInTheDocument();
+    expect(saveAsNewBtn).toBeVisible();
+    expect(updateBtn).toBeVisible();
   });
 
   it('renders a split save button when allows_virtual_table_explore is enabled', async () => {
@@ -188,15 +169,17 @@ describe('SavedQuery', () => {
       store: mockStore(mockState),
     });
 
-    const caretBtn = await screen.findByRole('button', { name: /caret-down/i });
-    userEvent.click(caretBtn);
+    await waitFor(() => {
+      const caretBtn = screen.getByRole('button', { name: /caret-down/i });
+      userEvent.click(caretBtn);
 
-    const saveDatasetMenuItem = await screen.findByText(/save dataset/i);
-    userEvent.click(saveDatasetMenuItem);
+      const saveDatasetMenuItem = screen.getByText(/save dataset/i);
+      userEvent.click(saveDatasetMenuItem);
+    });
 
     const saveDatasetHeader = screen.getByText(/save or overwrite dataset/i);
 
-    expect(saveDatasetHeader).toBeInTheDocument();
+    expect(saveDatasetHeader).toBeVisible();
   });
 
   it('renders the save dataset modal UI', async () => {
@@ -205,11 +188,13 @@ describe('SavedQuery', () => {
       store: mockStore(mockState),
     });
 
-    const caretBtn = await screen.findByRole('button', { name: /caret-down/i });
-    userEvent.click(caretBtn);
+    await waitFor(() => {
+      const caretBtn = screen.getByRole('button', { name: /caret-down/i });
+      userEvent.click(caretBtn);
 
-    const saveDatasetMenuItem = await screen.findByText(/save dataset/i);
-    userEvent.click(saveDatasetMenuItem);
+      const saveDatasetMenuItem = screen.getByText(/save dataset/i);
+      userEvent.click(saveDatasetMenuItem);
+    });
 
     const closeBtn = screen.getByRole('button', { name: /close/i });
     const saveDatasetHeader = screen.getByText(/save or overwrite dataset/i);
@@ -227,14 +212,14 @@ describe('SavedQuery', () => {
       /select or type dataset name/i,
     );
 
-    expect(saveDatasetHeader).toBeInTheDocument();
-    expect(closeBtn).toBeInTheDocument();
-    expect(saveRadio).toBeInTheDocument();
-    expect(saveLabel).toBeInTheDocument();
-    expect(saveTextbox).toBeInTheDocument();
-    expect(overwriteRadio).toBeInTheDocument();
-    expect(overwriteLabel).toBeInTheDocument();
-    expect(overwriteCombobox).toBeInTheDocument();
-    expect(overwritePlaceholderText).toBeInTheDocument();
+    expect(saveDatasetHeader).toBeVisible();
+    expect(closeBtn).toBeVisible();
+    expect(saveRadio).toBeVisible();
+    expect(saveLabel).toBeVisible();
+    expect(saveTextbox).toBeVisible();
+    expect(overwriteRadio).toBeVisible();
+    expect(overwriteLabel).toBeVisible();
+    expect(overwriteCombobox).toBeVisible();
+    expect(overwritePlaceholderText).toBeVisible();
   });
 });

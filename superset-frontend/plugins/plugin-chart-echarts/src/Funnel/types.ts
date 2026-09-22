@@ -34,15 +34,12 @@ export type EchartsFunnelFormData = QueryFormData &
     groupby: QueryFormData[];
     labelLine: boolean;
     labelType: EchartsFunnelLabelTypeType;
-    tooltipLabelType: EchartsFunnelLabelTypeType;
     metric?: string;
     showLabels: boolean;
-    showTooltipLabels: boolean;
     numberFormat: string;
     gap: number;
     sort: 'descending' | 'ascending' | 'none' | undefined;
     orient: 'vertical' | 'horizontal' | undefined;
-    percentCalculationType: PercentCalcType;
   };
 
 export enum EchartsFunnelLabelTypeType {
@@ -52,7 +49,6 @@ export enum EchartsFunnelLabelTypeType {
   KeyValue,
   KeyPercent,
   KeyValuePercent,
-  ValuePercent,
 }
 
 export interface EchartsFunnelChartProps
@@ -66,7 +62,6 @@ export const DEFAULT_FORM_DATA: EchartsFunnelFormData = {
   groupby: [],
   labelLine: false,
   labelType: EchartsFunnelLabelTypeType.Key,
-  defaultTooltipLabel: EchartsFunnelLabelTypeType.KeyValuePercent,
   legendOrientation: LegendOrientation.Top,
   legendType: LegendType.Scroll,
   numberFormat: 'SMART_NUMBER',
@@ -80,9 +75,3 @@ export type FunnelChartTransformedProps =
   BaseTransformedProps<EchartsFunnelFormData> &
     CrossFilterTransformedProps &
     ContextMenuTransformedProps;
-
-export enum PercentCalcType {
-  Total = 'total',
-  PreviousStep = 'prev_step',
-  FirstStep = 'first_step',
-}

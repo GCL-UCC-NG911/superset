@@ -16,8 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { MouseEventHandler, FC } from 'react';
-
+import React, { MouseEventHandler } from 'react';
 import Icons from 'src/components/Icons';
 import IconButton from './IconButton';
 
@@ -25,7 +24,7 @@ type DeleteComponentButtonProps = {
   onDelete: MouseEventHandler<HTMLDivElement>;
 };
 
-const DeleteComponentButton: FC<DeleteComponentButtonProps> = ({
+const DeleteComponentButton: React.FC<DeleteComponentButtonProps> = ({
   onDelete,
 }) => <IconButton onClick={onDelete} icon={<Icons.Trash iconSize="xl" />} />;
 

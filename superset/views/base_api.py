@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import functools
 import logging
-from typing import Any, Callable, cast
+from typing import Any, Callable, cast, Dict, List, Optional, Set, Tuple, Type, Union
 
 from flask import request, Response
 from flask_appbuilder import Model, ModelRestApi
@@ -31,7 +31,6 @@ from marshmallow import fields, Schema
 from sqlalchemy import and_, distinct, func
 from sqlalchemy.orm.query import Query
 
-from superset import is_feature_enabled
 from superset.exceptions import InvalidPayloadFormatError
 from superset.extensions import db, event_logger, security_manager, stats_logger_manager
 from superset.models.core import FavStar
@@ -41,7 +40,7 @@ from superset.schemas import error_payload_content
 from superset.sql_lab import Query as SqllabQuery
 from superset.superset_typing import FlaskResponse
 from superset.utils.core import get_user_id, time_function
-from superset.views.error_handling import handle_api_exception
+from superset.views.base import handle_api_exception
 
 logger = logging.getLogger(__name__)
 get_related_schema = {
@@ -56,28 +55,22 @@ get_related_schema = {
 
 
 class RelatedResultResponseSchema(Schema):
-    value = fields.Integer(metadata={"description": "The related item identifier"})
-    text = fields.String(
-        metadata={"description": "The related item string representation"}
-    )
-    extra = fields.Dict(metadata={"description": "The extra metadata for related item"})
+    value = fields.Integer(description="The related item identifier")
+    text = fields.String(description="The related item string representation")
+    extra = fields.Dict(description="The extra metadata for related item")
 
 
 class RelatedResponseSchema(Schema):
-    count = fields.Integer(
-        metadata={"description": "The total number of related values"}
-    )
+    count = fields.Integer(description="The total number of related values")
     result = fields.List(fields.Nested(RelatedResultResponseSchema))
 
 
 class DistinctResultResponseSchema(Schema):
-    text = fields.String(metadata={"description": "The distinct item"})
+    text = fields.String(description="The distinct item")
 
 
 class DistincResponseSchema(Schema):
-    count = fields.Integer(
-        metadata={"description": "The total number of distinct values"}
-    )
+    count = fields.Integer(description="The total number of distinct values")
     result = fields.List(fields.Nested(DistinctResultResponseSchema))
 
 
@@ -86,7 +79,7 @@ def requires_json(f: Callable[..., Any]) -> Callable[..., Any]:
     Require JSON-like formatted request to the REST API
     """
 
-    def wraps(self: BaseSupersetModelRestApi, *args: Any, **kwargs: Any) -> Response:
+    def wraps(self: "BaseSupersetModelRestApi", *args: Any, **kwargs: Any) -> Response:
         if not request.is_json:
             raise InvalidPayloadFormatError(message="Request is not JSON")
         return f(self, *args, **kwargs)
@@ -119,11 +112,14 @@ def statsd_metrics(f: Callable[..., Any]) -> Callable[..., Any]:
         try:
             duration, response = time_function(f, self, *args, **kwargs)
         except Exception as ex:
-            if hasattr(ex, "status") and ex.status < 500:  # pylint: disable=no-member
+            if (
+                hasattr(ex, "status")
+                and ex.status < 500  # type: ignore # pylint: disable=no-member
+            ):
                 self.incr_stats("warning", func_name)
             else:
                 self.incr_stats("error", func_name)
-            raise
+            raise ex
 
         self.send_stats_metrics(response, func_name, duration)
         return response
@@ -131,33 +127,10 @@ def statsd_metrics(f: Callable[..., Any]) -> Callable[..., Any]:
     return functools.update_wrapper(wraps, f)
 
 
-def validate_feature_flags(
-    feature_flags: list[str],
-) -> Callable[[Callable[..., Response]], Callable[..., Response]]:
-    """
-    A decorator to check if all given feature flags are enabled.
-
-    :param feature_flags: List of feature flag names to be checked.
-    """
-
-    def decorate(f: Callable[..., Response]) -> Callable[..., Response]:
-        @functools.wraps(f)
-        def wrapper(
-            self: BaseSupersetModelRestApi, *args: Any, **kwargs: Any
-        ) -> Response:
-            if not all(is_feature_enabled(flag) for flag in feature_flags):
-                return self.response_404()
-            return f(self, *args, **kwargs)
-
-        return wrapper
-
-    return decorate
-
-
 class RelatedFieldFilter:
     # data class to specify what filter to use on a /related endpoint
     # pylint: disable=too-few-public-methods
-    def __init__(self, field_name: str, filter_class: type[BaseFilter]):
+    def __init__(self, field_name: str, filter_class: Type[BaseFilter]):
         self.field_name = field_name
         self.filter_class = filter_class
 
@@ -172,7 +145,7 @@ class BaseFavoriteFilter(BaseFilter):  # pylint: disable=too-few-public-methods
     arg_name = ""
     class_name = ""
     """ The FavStar class_name to user """
-    model: type[Dashboard | Slice | SqllabQuery] = Dashboard
+    model: Type[Union[Dashboard, Slice, SqllabQuery]] = Dashboard
     """ The SQLAlchemy model """
 
     def apply(self, query: Query, value: Any) -> Query:
@@ -228,7 +201,7 @@ class BaseSupersetApiMixin:
         )
 
     def send_stats_metrics(
-        self, response: Response, key: str, time_delta: float | None = None
+        self, response: Response, key: str, time_delta: Optional[float] = None
     ) -> None:
         """
         Helper function to handle sending statsd metrics
@@ -247,10 +220,10 @@ class BaseSupersetApiMixin:
 
 
 class BaseSupersetApi(BaseSupersetApiMixin, BaseApi):
-    pass
+    ...
 
 
-class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
+class BaseSupersetModelRestApi(ModelRestApi, BaseSupersetApiMixin):
     """
     Extends FAB's ModelResApi to implement specific superset generic functionality
     """
@@ -279,7 +252,7 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
         "viz_types": "list",
     }
 
-    order_rel_fields: dict[str, tuple[str, str]] = {}
+    order_rel_fields: Dict[str, Tuple[str, str]] = {}
     """
     Impose ordering on related fields query::
 
@@ -289,7 +262,7 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
         }
     """
 
-    base_related_field_filters: dict[str, BaseFilter] = {}
+    base_related_field_filters: Dict[str, BaseFilter] = {}
     """
     This is used to specify a base filter for related fields
     when they are accessed through the '/related/<column_name>' endpoint.
@@ -301,7 +274,7 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
         }
     """
 
-    related_field_filters: dict[str, RelatedFieldFilter | str] = {}
+    related_field_filters: Dict[str, Union[RelatedFieldFilter, str]] = {}
     """
     Specify a filter for related fields when they are accessed
     through the '/related/<column_name>' endpoint.
@@ -312,10 +285,10 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
             "<RELATED_FIELD>": <RelatedFieldFilter>)
         }
     """
-    allowed_rel_fields: set[str] = set()
+    allowed_rel_fields: Set[str] = set()
     # Declare a set of allowed related fields that the `related` endpoint supports.
 
-    text_field_rel_fields: dict[str, str] = {}
+    text_field_rel_fields: Dict[str, str] = {}
     """
     Declare an alternative for the human readable representation of the Model object::
 
@@ -324,7 +297,7 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
         }
     """
 
-    extra_fields_rel_fields: dict[str, list[str]] = {"owners": ["email", "active"]}
+    extra_fields_rel_fields: Dict[str, List[str]] = {"owners": ["email", "active"]}
     """
     Declare extra fields for the representation of the Model object::
 
@@ -333,12 +306,12 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
         }
     """
 
-    allowed_distinct_fields: set[str] = set()
+    allowed_distinct_fields: Set[str] = set()
 
-    add_columns: list[str]
-    edit_columns: list[str]
-    list_columns: list[str]
-    show_columns: list[str]
+    add_columns: List[str]
+    edit_columns: List[str]
+    list_columns: List[str]
+    show_columns: List[str]
 
     def __init__(self) -> None:
         super().__init__()
@@ -346,12 +319,11 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
         if self.apispec_parameter_schemas is None:  # type: ignore
             self.apispec_parameter_schemas = {}
         self.apispec_parameter_schemas["get_related_schema"] = get_related_schema
-        self.openapi_spec_component_schemas: tuple[type[Schema], ...] = (
-            self.openapi_spec_component_schemas
-            + (
-                RelatedResponseSchema,
-                DistincResponseSchema,
-            )
+        self.openapi_spec_component_schemas: Tuple[
+            Type[Schema], ...
+        ] = self.openapi_spec_component_schemas + (
+            RelatedResponseSchema,
+            DistincResponseSchema,
         )
 
     def _init_properties(self) -> None:
@@ -380,7 +352,8 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
         filter_field = cast(RelatedFieldFilter, filter_field)
         search_columns = [filter_field.field_name] if filter_field else None
         filters = datamodel.get_filters(search_columns)
-        if base_filters := self.base_related_field_filters.get(column_name):
+        base_filters = self.base_related_field_filters.get(column_name)
+        if base_filters:
             filters.add_filter_list(base_filters)
         if value and filter_field:
             filters.add_filter(
@@ -409,7 +382,7 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
 
     def _get_extra_field_for_model(
         self, model: Model, column_name: str
-    ) -> dict[str, str]:
+    ) -> Dict[str, str]:
         ret = {}
         if column_name in self.extra_fields_rel_fields:
             model_column_names = self.extra_fields_rel_fields.get(column_name)
@@ -419,8 +392,8 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
         return ret
 
     def _get_result_from_rows(
-        self, datamodel: SQLAInterface, rows: list[Model], column_name: str
-    ) -> list[dict[str, Any]]:
+        self, datamodel: SQLAInterface, rows: List[Model], column_name: str
+    ) -> List[Dict[str, Any]]:
         return [
             {
                 "value": datamodel.get_pk_value(row),
@@ -434,8 +407,8 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
         self,
         datamodel: SQLAInterface,
         column_name: str,
-        ids: list[int],
-        result: list[dict[str, Any]],
+        ids: List[int],
+        result: List[Dict[str, Any]],
     ) -> None:
         if ids:
             # Filter out already present values on the result
@@ -530,17 +503,16 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
         self.send_stats_metrics(response, self.delete.__name__, duration)
         return response
 
-    @expose("/related/<column_name>", methods=("GET",))
+    @expose("/related/<column_name>", methods=["GET"])
     @protect()
     @safe
     @statsd_metrics
     @rison(get_related_schema)
     @handle_api_exception
     def related(self, column_name: str, **kwargs: Any) -> FlaskResponse:
-        """Get related fields data.
+        """Get related fields data
         ---
         get:
-          summary: Get related fields data
           parameters:
           - in: path
             schema:
@@ -588,7 +560,8 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
             return self.response_404()
         page, page_size = self._sanitize_page_args(page, page_size)
         # handle ordering
-        if order_field := self.order_rel_fields.get(column_name):
+        order_field = self.order_rel_fields.get(column_name)
+        if order_field:
             order_column, order_direction = order_field
         else:
             order_column, order_direction = "", ""
@@ -609,17 +582,16 @@ class BaseSupersetModelRestApi(BaseSupersetApiMixin, ModelRestApi):
 
         return self.response(200, count=total_rows, result=result)
 
-    @expose("/distinct/<column_name>", methods=("GET",))
+    @expose("/distinct/<column_name>", methods=["GET"])
     @protect()
     @safe
     @statsd_metrics
     @rison(get_related_schema)
     @handle_api_exception
     def distinct(self, column_name: str, **kwargs: Any) -> FlaskResponse:
-        """Get distinct values from field data.
+        """Get distinct values from field data
         ---
         get:
-          summary: Get distinct values from field data
           parameters:
           - in: path
             schema:

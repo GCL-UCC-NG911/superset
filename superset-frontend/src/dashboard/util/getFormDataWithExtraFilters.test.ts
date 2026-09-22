@@ -17,7 +17,6 @@
  * under the License.
  */
 import getFormDataWithExtraFilters, {
-  CachedFormDataWithExtraControls,
   GetFormDataWithExtraFiltersArguments,
 } from 'src/dashboard/util/charts/getFormDataWithExtraFilters';
 import { sliceId as chartId } from 'spec/fixtures/mockChartQueries';
@@ -88,8 +87,7 @@ describe('getFormDataWithExtraFilters', () => {
   });
 
   it('should compose extra control', () => {
-    const result: CachedFormDataWithExtraControls =
-      getFormDataWithExtraFilters(mockArgs);
+    const result = getFormDataWithExtraFilters(mockArgs);
     expect(result.stack).toEqual('Stacked');
   });
 });

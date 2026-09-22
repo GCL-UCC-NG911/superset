@@ -16,11 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import {
-  t,
-  DEFAULT_D3_FORMAT,
-  DEFAULT_D3_TIME_FORMAT,
-} from '@superset-ui/core';
+import { t } from '@superset-ui/core';
 
 import { BootstrapData, CommonBootstrapData } from './types/bootstrapTypes';
 
@@ -31,6 +27,10 @@ export const BOOL_TRUE_DISPLAY = 'True';
 export const BOOL_FALSE_DISPLAY = 'False';
 
 export const URL_PARAMS = {
+  migrationState: {
+    name: 'migration_state',
+    type: 'string',
+  },
   standalone: {
     name: 'standalone',
     type: 'number',
@@ -49,6 +49,10 @@ export const URL_PARAMS = {
   },
   nativeFiltersKey: {
     name: 'native_filters_key',
+    type: 'string',
+  },
+  filterSet: {
+    name: 'filter_set',
     type: 'string',
   },
   showFilters: {
@@ -148,7 +152,7 @@ export const DEFAULT_COMMON_BOOTSTRAP_DATA: CommonBootstrapData = {
   locale: 'en',
   feature_flags: {},
   language_pack: {
-    domain: 'superset',
+    domain: '',
     locale_data: {
       superset: {
         '': {
@@ -179,6 +183,7 @@ export const DEFAULT_COMMON_BOOTSTRAP_DATA: CommonBootstrapData = {
       user_info_url: '',
       user_login_url: '',
       user_logout_url: '',
+      user_profile_url: '',
       locale: '',
     },
     settings: [],
@@ -187,18 +192,8 @@ export const DEFAULT_COMMON_BOOTSTRAP_DATA: CommonBootstrapData = {
       color: '',
     },
   },
-  d3_format: DEFAULT_D3_FORMAT,
-  d3_time_format: DEFAULT_D3_TIME_FORMAT,
 };
 
 export const DEFAULT_BOOTSTRAP_DATA: BootstrapData = {
   common: DEFAULT_COMMON_BOOTSTRAP_DATA,
 };
-
-export enum FilterPlugins {
-  Select = 'filter_select',
-  Range = 'filter_range',
-  Time = 'filter_time',
-  TimeColumn = 'filter_timecolumn',
-  TimeGrain = 'filter_timegrain',
-}

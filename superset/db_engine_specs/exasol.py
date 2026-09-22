@@ -14,9 +14,8 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-from typing import Any, Optional
+from typing import Any, List, Optional, Tuple
 
-from superset.constants import TimeGrain
 from superset.db_engine_specs.base import BaseEngineSpec
 
 
@@ -30,20 +29,20 @@ class ExasolEngineSpec(BaseEngineSpec):  # pylint: disable=abstract-method
     # Exasol's DATE_TRUNC function is PostgresSQL compatible
     _time_grain_expressions = {
         None: "{col}",
-        TimeGrain.SECOND: "DATE_TRUNC('second', {col})",
-        TimeGrain.MINUTE: "DATE_TRUNC('minute', {col})",
-        TimeGrain.HOUR: "DATE_TRUNC('hour', {col})",
-        TimeGrain.DAY: "DATE_TRUNC('day', {col})",
-        TimeGrain.WEEK: "DATE_TRUNC('week', {col})",
-        TimeGrain.MONTH: "DATE_TRUNC('month', {col})",
-        TimeGrain.QUARTER: "DATE_TRUNC('quarter', {col})",
-        TimeGrain.YEAR: "DATE_TRUNC('year', {col})",
+        "PT1S": "DATE_TRUNC('second', {col})",
+        "PT1M": "DATE_TRUNC('minute', {col})",
+        "PT1H": "DATE_TRUNC('hour', {col})",
+        "P1D": "DATE_TRUNC('day', {col})",
+        "P1W": "DATE_TRUNC('week', {col})",
+        "P1M": "DATE_TRUNC('month', {col})",
+        "P3M": "DATE_TRUNC('quarter', {col})",
+        "P1Y": "DATE_TRUNC('year', {col})",
     }
 
     @classmethod
     def fetch_data(
         cls, cursor: Any, limit: Optional[int] = None
-    ) -> list[tuple[Any, ...]]:
+    ) -> List[Tuple[Any, ...]]:
         data = super().fetch_data(cursor, limit)
         # Lists of `pyodbc.Row` need to be unpacked further
         return cls.pyodbc_rows_to_tuples(data)

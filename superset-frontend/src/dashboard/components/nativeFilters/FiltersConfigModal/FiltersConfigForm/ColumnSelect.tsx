@@ -16,19 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useCallback, useState, useMemo, useEffect } from 'react';
-import rison from 'rison';
-import {
-  Column,
-  ensureIsArray,
-  t,
-  useChangeEffect,
-  getClientErrorObject,
-} from '@superset-ui/core';
+import React, { useCallback, useState, useMemo, useEffect } from 'react';
+import { Column, ensureIsArray, SupersetClient, t } from '@superset-ui/core';
+import { useChangeEffect } from 'src/hooks/useChangeEffect';
 import { Select, FormInstance } from 'src/components';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
-import { cachedSupersetGet } from 'src/utils/cachedSupersetGet';
+import { getClientErrorObject } from 'src/utils/getClientErrorObject';
+import { cacheWrapper } from 'src/utils/cacheWrapper';
 import { NativeFiltersForm } from '../types';
+import { doesColumnMatchFilterType } from './utils';
 
 interface ColumnSelectProps {
   allowClear?: boolean;
@@ -41,6 +37,14 @@ interface ColumnSelectProps {
   onChange?: (value: string) => void;
   mode?: 'multiple';
 }
+
+const localCache = new Map<string, any>();
+
+const cachedSupersetGet = cacheWrapper(
+  SupersetClient.get,
+  localCache,
+  ({ endpoint }) => endpoint || '',
+);
 
 /** Special purpose AsyncSelect that selects a column from a dataset */
 // eslint-disable-next-line import/prefer-default-export
@@ -56,7 +60,6 @@ export function ColumnSelect({
   mode,
 }: ColumnSelectProps) {
   const [columns, setColumns] = useState<Column[]>();
-  const [loading, setLoading] = useState(false);
   const { addDangerToast } = useToasts();
   const resetColumnField = useCallback(() => {
     form.setFields([
@@ -81,50 +84,41 @@ export function ColumnSelect({
   );
 
   useEffect(() => {
-    if (currentColumn && !filterValues(currentColumn)) {
+    if (
+      currentColumn &&
+      !doesColumnMatchFilterType(currentFilterType, currentColumn)
+    ) {
       resetColumnField();
     }
   }, [currentColumn, currentFilterType, resetColumnField]);
 
   useChangeEffect(datasetId, previous => {
     if (previous != null) {
-      setColumns([]);
       resetColumnField();
     }
     if (datasetId != null) {
-      setLoading(true);
       cachedSupersetGet({
-        endpoint: `/api/v1/dataset/${datasetId}?q=${rison.encode({
-          columns: [
-            'columns.column_name',
-            'columns.is_dttm',
-            'columns.type_generic',
-          ],
-        })}`,
-      })
-        .then(
-          ({ json: { result } }) => {
-            const lookupValue = Array.isArray(value) ? value : [value];
-            const valueExists = result.columns.some((column: Column) =>
-              lookupValue?.includes(column.column_name),
-            );
-            if (!valueExists) {
-              resetColumnField();
-            }
-            setColumns(result.columns);
-          },
-          async badResponse => {
-            const { error, message } = await getClientErrorObject(badResponse);
-            let errorText = message || error || t('An error has occurred');
-            if (message === 'Forbidden') {
-              errorText = t(
-                'You do not have permission to edit this dashboard',
-              );
-            }
-            addDangerToast(errorText);
-          },
-        )
-        .finally(() => setLoading(false));
+        endpoint: `/api/v1/dataset/${datasetId}`,
+      }).then(
+        ({ json: { result } }) => {
+          const lookupValue = Array.isArray(value) ? value : [value];
+          const valueExists = result.columns.some((column: Column) =>
+            lookupValue?.includes(column.column_name),
+          );
+          if (!valueExists) {
+            resetColumnField();
+          }
+          setColumns(result.columns);
+        },
+        async badResponse => {
+          const { error, message } = await getClientErrorObject(badResponse);
+          let errorText = message || error || t('An error has occurred');
+          if (message === 'Forbidden') {
+            errorText = t('You do not have permission to edit this dashboard');
+          }
+          addDangerToast(errorText);
+        },
+      );
     }
   });
 
@@ -133,7 +127,6 @@ export function ColumnSelect({
       mode={mode}
       value={mode === 'multiple' ? value || [] : value}
       ariaLabel={t('Column select')}
-      loading={loading}
       onChange={onChange}
       options={options}
       placeholder={t('Select a column')}

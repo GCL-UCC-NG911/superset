@@ -38,4 +38,4 @@ class SupersetDBAPIOperationalError(SupersetDBAPIError):
 
 
 class SupersetDBAPIProgrammingError(SupersetDBAPIError):
-    status = 400
+    pass

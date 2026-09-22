@@ -15,11 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import types
 
-from superset.constants import TimeGrain
 from superset.db_engine_specs.base import BaseEngineSpec, LimitMethod
 
 
@@ -32,19 +31,19 @@ class OracleEngineSpec(BaseEngineSpec):
 
     _time_grain_expressions = {
         None: "{col}",
-        TimeGrain.SECOND: "CAST({col} as DATE)",
-        TimeGrain.MINUTE: "TRUNC(CAST({col} as DATE), 'MI')",
-        TimeGrain.HOUR: "TRUNC(CAST({col} as DATE), 'HH')",
-        TimeGrain.DAY: "TRUNC(CAST({col} as DATE), 'DDD')",
-        TimeGrain.WEEK: "TRUNC(CAST({col} as DATE), 'WW')",
-        TimeGrain.MONTH: "TRUNC(CAST({col} as DATE), 'MONTH')",
-        TimeGrain.QUARTER: "TRUNC(CAST({col} as DATE), 'Q')",
-        TimeGrain.YEAR: "TRUNC(CAST({col} as DATE), 'YEAR')",
+        "PT1S": "CAST({col} as DATE)",
+        "PT1M": "TRUNC(CAST({col} as DATE), 'MI')",
+        "PT1H": "TRUNC(CAST({col} as DATE), 'HH')",
+        "P1D": "TRUNC(CAST({col} as DATE), 'DDD')",
+        "P1W": "TRUNC(CAST({col} as DATE), 'WW')",
+        "P1M": "TRUNC(CAST({col} as DATE), 'MONTH')",
+        "P3M": "TRUNC(CAST({col} as DATE), 'Q')",
+        "P1Y": "TRUNC(CAST({col} as DATE), 'YEAR')",
     }
 
     @classmethod
     def convert_dttm(
-        cls, target_type: str, dttm: datetime, db_extra: Optional[dict[str, Any]] = None
+        cls, target_type: str, dttm: datetime, db_extra: Optional[Dict[str, Any]] = None
     ) -> Optional[str]:
         sqla_type = cls.get_sqla_column_type(target_type)
 
@@ -69,7 +68,7 @@ class OracleEngineSpec(BaseEngineSpec):
     @classmethod
     def fetch_data(
         cls, cursor: Any, limit: Optional[int] = None
-    ) -> list[tuple[Any, ...]]:
+    ) -> List[Tuple[Any, ...]]:
         """
         :param cursor: Cursor instance
         :param limit: Maximum number of rows to be returned by the cursor

@@ -16,15 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { styled } from '@superset-ui/core';
+import React from 'react';
+import { css, SupersetTheme } from '@superset-ui/core';
 import { NULL_DISPLAY } from 'src/constants';
 
-const GrayCell = styled.span`
-  color: ${({ theme }) => theme.colors.grayscale.light1};
-`;
-
 function NullCell() {
-  return <GrayCell>{NULL_DISPLAY}</GrayCell>;
+  return (
+    <span
+      css={(theme: SupersetTheme) =>
+        css`
+          color: ${theme.colors.grayscale.light1};
+        `
+      }
+    >
+      {NULL_DISPLAY}
+    </span>
+  );
 }
 
 export default NullCell;

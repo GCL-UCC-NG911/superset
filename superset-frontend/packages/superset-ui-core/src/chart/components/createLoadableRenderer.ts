@@ -18,7 +18,6 @@
  */
 
 import Loadable from 'react-loadable';
-import { ComponentClass } from 'react';
 
 export type LoadableRendererProps = {
   onRenderFailure?: Function;
@@ -31,16 +30,13 @@ const defaultProps = {
 };
 
 export interface LoadableRenderer<Props>
-  extends ComponentClass<Props & LoadableRendererProps>,
+  extends React.ComponentClass<Props & LoadableRendererProps>,
     Loadable.LoadableComponent {}
 
-export default function createLoadableRenderer<
-  Props,
-  Exports extends { [key: string]: any },
->(options: Loadable.OptionsWithMap<Props, Exports>): LoadableRenderer<Props> {
-  const LoadableRenderer = Loadable.Map<Props, Exports>(
-    options,
-  ) as LoadableRenderer<Props>;
+export default function createLoadableRenderer<Props, Exports>(
+  options: Loadable.OptionsWithMap<Props, Exports>,
+): LoadableRenderer<Props> {
+  const LoadableRenderer = Loadable.Map(options) as LoadableRenderer<Props>;
 
   // Extends the behavior of LoadableComponent to provide post-render listeners
   class CustomLoadableRenderer extends LoadableRenderer {

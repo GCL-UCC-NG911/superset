@@ -16,11 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { FC } from 'react';
+import React from 'react';
 import { isObject } from 'lodash';
 import { t, SupersetClient } from '@superset-ui/core';
 import Button from 'src/components/Button';
-import { useHistory } from 'react-router-dom';
 
 interface SimpleDataSource {
   id: string;
@@ -38,39 +37,24 @@ const CLOSE = t('Close');
 const SAVE_AS_DATASET = t('Save as Dataset');
 const OPEN_IN_SQL_LAB = t('Open in SQL Lab');
 
-const ViewQueryModalFooter: FC<ViewQueryModalFooterProps> = (props: {
+const ViewQueryModalFooter: React.FC<ViewQueryModalFooterProps> = (props: {
   closeModal: () => void;
   changeDatasource: () => void;
   datasource: SimpleDataSource;
 }) => {
-  const history = useHistory();
-  const viewInSQLLab = (
-    openInNewWindow: boolean,
-    id: string,
-    type: string,
-    sql: string,
-  ) => {
+  const viewInSQLLab = (id: string, type: string, sql: string) => {
     const payload = {
       datasourceKey: `${id}__${type}`,
       sql,
     };
-    if (openInNewWindow) {
-      SupersetClient.postForm('/sqllab/', payload);
-    } else {
-      history.push({
-        pathname: '/sqllab',
-        state: {
-          requestedQuery: payload,
-        },
-      });
-    }
+    SupersetClient.postForm('/superset/sqllab/', payload);
   };
 
-  const openSQL = (openInNewWindow: boolean) => {
+  const openSQL = () => {
     const { datasource } = props;
     if (isObject(datasource)) {
       const { id, type, sql } = datasource;
-      viewInSQLLab(openInNewWindow, id, type, sql);
+      viewInSQLLab(id, type, sql);
     }
   };
   return (
@@ -83,9 +67,7 @@ const ViewQueryModalFooter: FC<ViewQueryModalFooterProps> = (props: {
       >
         {SAVE_AS_DATASET}
       </Button>
-      <Button onClick={({ metaKey }) => openSQL(Boolean(metaKey))}>
-        {OPEN_IN_SQL_LAB}
-      </Button>
+      <Button onClick={() => openSQL()}>{OPEN_IN_SQL_LAB}</Button>
       <Button
         buttonStyle="primary"
         onClick={() => {

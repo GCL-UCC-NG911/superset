@@ -17,6 +17,7 @@
  * under the License.
  */
 /* eslint-env browser */
+import React from 'react';
 import { rgba } from 'emotion-rgba';
 import Tabs from 'src/components/Tabs';
 import { t, css, SupersetTheme } from '@superset-ui/core';

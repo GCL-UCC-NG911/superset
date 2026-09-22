@@ -24,7 +24,7 @@ import {
   exploreChart,
   getExploreUrl,
   getSimpleSQLExpression,
-  getQuerySettings,
+  shouldUseLegacyApi,
 } from 'src/explore/exploreUtils';
 import { DashboardStandaloneMode } from 'src/dashboard/util/constants';
 import * as hostNamesConfig from 'src/utils/hostNamesConfig';
@@ -96,7 +96,7 @@ describe('exploreUtils', () => {
       compareURI(
         URI(url),
         URI('/explore/').search({
-          standalone: DashboardStandaloneMode.HideNav,
+          standalone: DashboardStandaloneMode.HIDE_NAV,
         }),
       );
     });
@@ -195,11 +195,11 @@ describe('exploreUtils', () => {
       const v1RequestPayload = buildV1ChartDataPayload({
         formData: { ...formData, viz_type: 'my_custom_viz' },
       });
-      expect(v1RequestPayload.hasOwnProperty('queries')).toBeTruthy();
+      expect(v1RequestPayload).hasOwnProperty('queries');
     });
   });
 
-  describe('getQuerySettings', () => {
+  describe('shouldUseLegacyApi', () => {
     beforeAll(() => {
       getChartMetadataRegistry()
         .registerValue('my_legacy_viz', { useLegacyApi: true })
@@ -211,36 +211,32 @@ describe('exploreUtils', () => {
     });
 
     it('returns true for legacy viz', () => {
-      const [useLegacyApi, parseMethod] = getQuerySettings({
+      const useLegacyApi = shouldUseLegacyApi({
         ...formData,
         viz_type: 'my_legacy_viz',
       });
       expect(useLegacyApi).toBe(true);
-      expect(parseMethod).toBe('json-bigint');
     });
 
     it('returns false for v1 viz', () => {
-      const [useLegacyApi, parseMethod] = getQuerySettings({
+      const useLegacyApi = shouldUseLegacyApi({
         ...formData,
         viz_type: 'my_v1_viz',
       });
       expect(useLegacyApi).toBe(false);
-      expect(parseMethod).toBe('json-bigint');
     });
 
     it('returns false for formData with unregistered viz_type', () => {
-      const [useLegacyApi, parseMethod] = getQuerySettings({
+      const useLegacyApi = shouldUseLegacyApi({
         ...formData,
         viz_type: 'undefined_viz',
       });
       expect(useLegacyApi).toBe(false);
-      expect(parseMethod).toBe('json-bigint');
     });
 
     it('returns false for formData without viz_type', () => {
-      const [useLegacyApi, parseMethod] = getQuerySettings(formData);
+      const useLegacyApi = shouldUseLegacyApi(formData);
       expect(useLegacyApi).toBe(false);
-      expect(parseMethod).toBe('json-bigint');
     });
   });
 
@@ -289,7 +285,7 @@ describe('exploreUtils', () => {
       exploreChart({
         formData: { ...formData, viz_type: 'my_custom_viz' },
       });
-      expect(postFormSpy).toHaveBeenCalledTimes(1);
+      expect(postFormSpy).toBeCalledTimes(1);
     });
   });
 });

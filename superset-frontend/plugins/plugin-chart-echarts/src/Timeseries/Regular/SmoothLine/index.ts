@@ -16,7 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { AnnotationType, Behavior, t } from '@superset-ui/core';
+import {
+  AnnotationType,
+  Behavior,
+  ChartMetadata,
+  ChartPlugin,
+  hasGenericChartAxes,
+  t,
+} from '@superset-ui/core';
 import {
   EchartsTimeseriesChartProps,
   EchartsTimeseriesFormData,
@@ -27,7 +34,6 @@ import controlPanel from './controlPanel';
 import transformProps from '../../transformProps';
 import thumbnail from './images/thumbnail.png';
 import example1 from './images/SmoothLine1.png';
-import { EchartsChartPlugin } from '../../../types';
 
 const smoothTransformProps = (chartProps: EchartsTimeseriesChartProps) =>
   transformProps({
@@ -38,7 +44,7 @@ const smoothTransformProps = (chartProps: EchartsTimeseriesChartProps) =>
     },
   });
 
-export default class EchartsTimeseriesSmoothLineChartPlugin extends EchartsChartPlugin<
+export default class EchartsTimeseriesSmoothLineChartPlugin extends ChartPlugin<
   EchartsTimeseriesFormData,
   EchartsTimeseriesChartProps
 > {
@@ -47,17 +53,17 @@ export default class EchartsTimeseriesSmoothLineChartPlugin extends EchartsChart
       buildQuery,
       controlPanel,
       loadChart: () => import('../../EchartsTimeseries'),
-      metadata: {
-        behaviors: [
-          Behavior.InteractiveChart,
-          Behavior.DrillToDetail,
-          Behavior.DrillBy,
-        ],
+      metadata: new ChartMetadata({
+        behaviors: [Behavior.INTERACTIVE_CHART, Behavior.DRILL_TO_DETAIL],
         category: t('Evolution'),
         credits: ['https://echarts.apache.org'],
-        description: t(
-          'Smooth-line is a variation of the line chart. Without angles and hard edges, Smooth-line sometimes looks smarter and more professional.',
-        ),
+        description: hasGenericChartAxes
+          ? t(
+              'Smooth-line is a variation of the line chart. Without angles and hard edges, Smooth-line sometimes looks smarter and more professional.',
+            )
+          : t(
+              'Time-series Smooth-line is a variation of the line chart. Without angles and hard edges, Smooth-line sometimes looks smarter and more professional.',
+            ),
         exampleGallery: [{ url: example1 }],
         supportedAnnotationTypes: [
           AnnotationType.Event,
@@ -65,17 +71,20 @@ export default class EchartsTimeseriesSmoothLineChartPlugin extends EchartsChart
           AnnotationType.Interval,
           AnnotationType.Timeseries,
         ],
-        name: t('Smooth Line'),
+        name: hasGenericChartAxes
+          ? t('Smooth Line')
+          : t('Time-series Smooth Line'),
         tags: [
           t('ECharts'),
           t('Predictive'),
           t('Advanced-Analytics'),
+          t('Aesthetic'),
           t('Time'),
           t('Line'),
           t('Transformable'),
         ],
         thumbnail,
-      },
+      }),
       transformProps: smoothTransformProps,
     });
   }

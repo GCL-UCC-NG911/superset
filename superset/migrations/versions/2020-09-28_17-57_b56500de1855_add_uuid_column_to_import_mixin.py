@@ -21,8 +21,9 @@ Revises: 18532d70ab98
 Create Date: 2020-09-28 17:57:23.128142
 
 """
-
+import json
 import os
+from json.decoder import JSONDecodeError
 from uuid import uuid4
 
 import sqlalchemy as sa
@@ -33,7 +34,7 @@ from sqlalchemy_utils import UUIDType
 
 from superset import db
 from superset.migrations.shared.utils import assign_uuids
-from superset.utils import core as utils, json
+from superset.utils import core as utils
 
 # revision identifiers, used by Alembic.
 revision = "b56500de1855"
@@ -67,7 +68,7 @@ table_names = [
     "slice_email_schedules",
 ]
 models = {
-    table_name: type(table_name, (ImportMixin, Base), {"__tablename__": table_name})
+    table_name: type(table_name, (Base, ImportMixin), {"__tablename__": table_name})
     for table_name in table_names
 }
 
@@ -79,7 +80,7 @@ default_batch_size = int(os.environ.get("BATCH_SIZE", 200))
 def update_position_json(dashboard, session, uuid_map):
     try:
         layout = json.loads(dashboard.position_json or "{}")
-    except json.JSONDecodeError:
+    except JSONDecodeError:
         layout = {}
 
     for object_ in layout.values():
@@ -95,6 +96,7 @@ def update_position_json(dashboard, session, uuid_map):
                 del object_["meta"]["uuid"]
 
     dashboard.position_json = json.dumps(layout, indent=4)
+    session.merge(dashboard)
 
 
 def update_dashboards(session, uuid_map):

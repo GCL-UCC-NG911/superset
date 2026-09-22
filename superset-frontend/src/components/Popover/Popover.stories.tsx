@@ -18,6 +18,7 @@
  */
 import Button from 'src/components/Button';
 import { PopoverProps } from 'antd/lib/popover';
+import React from 'react';
 import Popover from '.';
 
 export default {
@@ -71,12 +72,10 @@ InteractivePopover.args = {
 InteractivePopover.argTypes = {
   placement: {
     name: PLACEMENTS.label,
-    control: { type: 'select' },
-    options: PLACEMENTS.options,
+    control: { type: 'select', options: PLACEMENTS.options },
   },
   trigger: {
     name: TRIGGERS.label,
-    control: { type: 'select' },
-    options: TRIGGERS.options,
+    control: { type: 'select', options: TRIGGERS.options },
   },
 };

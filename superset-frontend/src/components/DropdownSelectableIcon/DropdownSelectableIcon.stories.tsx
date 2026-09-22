@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import Icons from 'src/components/Icons';
 import DropdownSelectableIcon, { DropDownSelectableProps } from '.';
 
@@ -30,6 +31,14 @@ export const Component = (props: DropDownSelectableProps) => (
     icon={<Icons.Gear name="gear" iconColor="#000000" />}
   />
 );
+
+Component.story = {
+  parameters: {
+    knobs: {
+      disable: true,
+    },
+  },
+};
 
 Component.args = {
   info: 'Info go here',

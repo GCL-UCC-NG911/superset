@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { PropsWithChildren, ReactNode } from 'react';
+import React, { PropsWithChildren, ReactNode } from 'react';
 import {
   ResizableBox,
   ResizableBoxProps,
@@ -56,10 +56,8 @@ export default function ResizablePanel({
       }
       {...props}
     >
-      <>
-        {heading ? <div className="panel-heading">{heading}</div> : null}
-        <div className="panel-body">{children}</div>
-      </>
+      {heading ? <div className="panel-heading">{heading}</div> : null}
+      <div className="panel-body">{children}</div>
     </ResizableBox>
   );
 }

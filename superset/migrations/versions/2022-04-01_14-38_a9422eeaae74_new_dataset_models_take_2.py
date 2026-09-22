@@ -26,31 +26,28 @@ Create Date: 2022-04-01 14:38:09.499483
 revision = "a9422eeaae74"
 down_revision = "ad07e4fdbaba"
 
-import os  # noqa: E402
-from datetime import datetime  # noqa: E402
-from typing import Optional, Union  # noqa: E402
-from uuid import uuid4  # noqa: E402
+import json
+import os
+from datetime import datetime
+from typing import List, Optional, Set, Type, Union
+from uuid import uuid4
 
-import sqlalchemy as sa  # noqa: E402
-from alembic import op  # noqa: E402
-from sqlalchemy import select  # noqa: E402
-from sqlalchemy.ext.declarative import declarative_base, declared_attr  # noqa: E402
-from sqlalchemy.orm import backref, relationship, Session  # noqa: E402
-from sqlalchemy.schema import UniqueConstraint  # noqa: E402
-from sqlalchemy.sql import functions as func  # noqa: E402
-from sqlalchemy.sql.expression import and_, or_  # noqa: E402
-from sqlalchemy_utils import UUIDType  # noqa: E402
+import sqlalchemy as sa
+from alembic import op
+from sqlalchemy import select
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy.orm import backref, relationship, Session
+from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.sql import functions as func
+from sqlalchemy.sql.expression import and_, or_
+from sqlalchemy_utils import UUIDType
 
-from superset.connectors.sqla.models import ADDITIVE_METRIC_TYPES_LOWER  # noqa: E402
-from superset.connectors.sqla.utils import (  # noqa: E402
-    get_dialect_name,
-    get_identifier_quoter,
-)
-from superset.extensions import encrypted_field_factory  # noqa: E402
-from superset.migrations.shared.utils import assign_uuids  # noqa: E402
-from superset.sql_parse import extract_table_references, Table  # noqa: E402
-from superset.utils import json  # noqa: E402
-from superset.utils.core import MediumText  # noqa: E402
+from superset.connectors.sqla.models import ADDITIVE_METRIC_TYPES_LOWER
+from superset.connectors.sqla.utils import get_dialect_name, get_identifier_quoter
+from superset.extensions import encrypted_field_factory
+from superset.migrations.shared.utils import assign_uuids
+from superset.sql_parse import extract_table_references, Table
+from superset.utils.core import MediumText
 
 Base = declarative_base()
 SHOW_PROGRESS = os.environ.get("SHOW_PROGRESS") == "1"
@@ -80,16 +77,16 @@ class AuxiliaryColumnsMixin(UUIDMixin):
     )
 
     @declared_attr
-    def created_by_fk(cls):  # noqa: N805
+    def created_by_fk(cls):
         return sa.Column(sa.Integer, sa.ForeignKey("ab_user.id"), nullable=True)
 
     @declared_attr
-    def changed_by_fk(cls):  # noqa: N805
+    def changed_by_fk(cls):
         return sa.Column(sa.Integer, sa.ForeignKey("ab_user.id"), nullable=True)
 
 
 def insert_from_select(
-    target: Union[str, sa.Table, type[Base]], source: sa.sql.expression.Select
+    target: Union[str, sa.Table, Type[Base]], source: sa.sql.expression.Select
 ) -> None:
     """
     Execute INSERT FROM SELECT to copy data from a SELECT query to the target table.
@@ -106,6 +103,7 @@ def insert_from_select(
 
 
 class Database(Base):
+
     __tablename__ = "dbs"
     __table_args__ = (UniqueConstraint("database_name"),)
 
@@ -120,6 +118,7 @@ class Database(Base):
 
 
 class TableColumn(AuxiliaryColumnsMixin, Base):
+
     __tablename__ = "table_columns"
     __table_args__ = (UniqueConstraint("table_id", "column_name"),)
 
@@ -139,6 +138,7 @@ class TableColumn(AuxiliaryColumnsMixin, Base):
 
 
 class SqlMetric(AuxiliaryColumnsMixin, Base):
+
     __tablename__ = "sql_metrics"
     __table_args__ = (UniqueConstraint("table_id", "metric_name"),)
 
@@ -164,6 +164,7 @@ sqlatable_user_table = sa.Table(
 
 
 class SqlaTable(AuxiliaryColumnsMixin, Base):
+
     __tablename__ = "tables"
     __table_args__ = (UniqueConstraint("database_id", "schema", "table_name"),)
 
@@ -212,6 +213,7 @@ dataset_user_association_table = sa.Table(
 
 
 class NewColumn(AuxiliaryColumnsMixin, Base):
+
     __tablename__ = "sl_columns"
 
     id = sa.Column(sa.Integer, primary_key=True)
@@ -241,6 +243,7 @@ class NewColumn(AuxiliaryColumnsMixin, Base):
 
 
 class NewTable(AuxiliaryColumnsMixin, Base):
+
     __tablename__ = "sl_tables"
 
     id = sa.Column(sa.Integer, primary_key=True)
@@ -260,7 +263,8 @@ class NewTable(AuxiliaryColumnsMixin, Base):
     )
 
 
-class NewDataset(AuxiliaryColumnsMixin, Base):
+class NewDataset(Base, AuxiliaryColumnsMixin):
+
     __tablename__ = "sl_datasets"
 
     id = sa.Column(sa.Integer, primary_key=True)
@@ -277,8 +281,8 @@ def find_tables(
     session: Session,
     database_id: int,
     default_schema: Optional[str],
-    tables: set[Table],
-) -> list[int]:
+    tables: Set[Table],
+) -> List[int]:
     """
     Look for NewTable's of from a specific database
     """
@@ -324,7 +328,7 @@ def copy_tables(session: Session) -> None:
                 # Tables need different uuid than datasets, since they are different
                 # entities. When INSERT FROM SELECT, we must provide a value for `uuid`,
                 # otherwise it'd use the default generated on Python side, which
-                # will cause duplicate values. They will be replaced by `assign_uuids` later.  # noqa: E501
+                # will cause duplicate values. They will be replaced by `assign_uuids` later.
                 SqlaTable.uuid,
                 SqlaTable.id.label("sqlatable_id"),
                 SqlaTable.created_on,
@@ -339,8 +343,9 @@ def copy_tables(session: Session) -> None:
             ]
         )
         # use an inner join to filter out only tables with valid database ids
-        .select_from(sa.join(SqlaTable, Database, SqlaTable.database_id == Database.id))
-        .where(is_physical_table),
+        .select_from(
+            sa.join(SqlaTable, Database, SqlaTable.database_id == Database.id)
+        ).where(is_physical_table),
     )
 
 
@@ -502,7 +507,7 @@ def copy_metrics(session: Session) -> None:
     )
 
 
-def postprocess_datasets(session: Session) -> None:  # noqa: C901
+def postprocess_datasets(session: Session) -> None:
     """
     Postprocess datasets after insertion to
       - Quote table names for physical datasets (if needed)
@@ -579,7 +584,7 @@ def postprocess_datasets(session: Session) -> None:  # noqa: C901
             if schema:
                 try:
                     extra_json = json.loads(extra) if extra else {}
-                except json.JSONDecodeError:
+                except json.decoder.JSONDecodeError:
                     extra_json = {}
                 extra_json["schema"] = schema
                 updates["extra_json"] = json.dumps(extra_json)
@@ -620,7 +625,7 @@ def postprocess_datasets(session: Session) -> None:  # noqa: C901
         print("")
 
 
-def postprocess_columns(session: Session) -> None:  # noqa: C901
+def postprocess_columns(session: Session) -> None:
     """
     At this step, we will
       - Add engine specific quotes to `expression` of physical columns
@@ -631,6 +636,7 @@ def postprocess_columns(session: Session) -> None:  # noqa: C901
         return
 
     def get_joined_tables(offset, limit):
+
         # Import aliased from sqlalchemy
         from sqlalchemy.orm import aliased
 
@@ -771,7 +777,7 @@ def postprocess_columns(session: Session) -> None:  # noqa: C901
         ) in session.execute(query):
             try:
                 extra = json.loads(extra_json) if extra_json else {}
-            except json.JSONDecodeError:
+            except json.decoder.JSONDecodeError:
                 extra = {}
             updated_extra = {**extra}
             updates = {}
@@ -782,7 +788,7 @@ def postprocess_columns(session: Session) -> None:  # noqa: C901
                 updates["external_url"] = external_url
 
             # update extra json
-            for key, val in (
+            for (key, val) in (
                 {
                     "verbose_name": verbose_name,
                     "python_date_format": python_date_format,
@@ -809,7 +815,7 @@ def postprocess_columns(session: Session) -> None:  # noqa: C901
                             updates["expression"] = quoted_expression
                 # duplicate physical columns for tables
                 physical_columns.append(
-                    dict(  # noqa: C408
+                    dict(
                         created_on=created_on,
                         changed_on=changed_on,
                         changed_by_fk=changed_by_fk,
@@ -903,7 +909,7 @@ def upgrade() -> None:
     assign_uuids(NewTable, session)
 
     print(">> Drop intermediate columns...")
-    # These columns are are used during migration, as datasets are independent of tables once created,  # noqa: E501
+    # These columns are are used during migration, as datasets are independent of tables once created,
     # dataset columns also the same to table columns.
     with op.batch_alter_table(NewTable.__tablename__) as batch_op:
         batch_op.drop_column("sqlatable_id")

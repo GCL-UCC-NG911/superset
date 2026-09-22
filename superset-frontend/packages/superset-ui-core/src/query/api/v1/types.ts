@@ -28,8 +28,8 @@ import {
 export type ParsedResponseType<T> = T extends 'text'
   ? string
   : T extends 'raw' | null
-    ? Response
-    : JsonValue;
+  ? Response
+  : JsonValue;
 
 /**
  * Runtime options when calling a Superset API. Currently only allow overriding
@@ -47,25 +47,25 @@ export interface SupersetApiRequestOptions {
  */
 export enum SupersetApiErrorType {
   // Generic unknown error
-  UnknownError = 'UNKNOWN_ERROR',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 
   // Frontend errors
-  FrontendCsrfError = 'FRONTEND_CSRF_ERROR',
-  FrontendNetworkError = 'FRONTEND_NETWORK_ERROR',
-  FrontendTimeoutError = 'FRONTEND_TIMEOUT_ERROR',
+  FRONTEND_CSRF_ERROR = 'FRONTEND_CSRF_ERROR',
+  FRONTEND_NETWORK_ERROR = 'FRONTEND_NETWORK_ERROR',
+  FRONTEND_TIMEOUT_ERROR = 'FRONTEND_TIMEOUT_ERROR',
 
   // DB Engine errors,
-  GenericDbEngineError = 'GENERIC_DB_ENGINE_ERROR',
+  GENERIC_DB_ENGINE_ERROR = 'GENERIC_DB_ENGINE_ERROR',
 
   // Viz errors,
-  VizGetDfError = 'VIZ_GET_DF_ERROR',
-  UnknownDatasourceTypeError = 'UNKNOWN_DATASOURCE_TYPE_ERROR',
-  FailedFetchingDatasourceInfoError = 'FAILED_FETCHING_DATASOURCE_INFO_ERROR',
+  VIZ_GET_DF_ERROR = 'VIZ_GET_DF_ERROR',
+  UNKNOWN_DATASOURCE_TYPE_ERROR = 'UNKNOWN_DATASOURCE_TYPE_ERROR',
+  FAILED_FETCHING_DATASOURCE_INFO_ERROR = 'FAILED_FETCHING_DATASOURCE_INFO_ERROR',
 
   // Security access errors,
-  TableSecurityAccessError = 'TABLE_SECURITY_ACCESS_ERROR',
-  DatasourceSecurityAccessError = 'DATASOURCE_SECURITY_ACCESS_ERROR',
-  MissingOwnershipError = 'MISSING_OWNERSHIP_ERROR',
+  TABLE_SECURITY_ACCESS_ERROR = 'TABLE_SECURITY_ACCESS_ERROR',
+  DATASOURCE_SECURITY_ACCESS_ERROR = 'DATASOURCE_SECURITY_ACCESS_ERROR',
+  MISSING_OWNERSHIP_ERROR = 'MISSING_OWNERSHIP_ERROR',
 }
 
 /**
@@ -129,7 +129,7 @@ export class SupersetApiError extends Error {
           ].join('\n')
         : this.stack;
     this.name = 'SupersetApiError';
-    this.errorType = errorType || SupersetApiErrorType.UnknownError;
+    this.errorType = errorType || SupersetApiErrorType.UNKNOWN_ERROR;
     this.extra = extra || {};
     if (link) {
       this.extra.link = link;

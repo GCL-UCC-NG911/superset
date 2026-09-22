@@ -16,16 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useCallback, useEffect, useMemo, useState, MouseEvent } from 'react';
-import {
-  isFeatureEnabled,
-  FeatureFlag,
-  styled,
-  t,
-  useTheme,
-} from '@superset-ui/core';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  MouseEvent,
+} from 'react';
+import { styled, t, useTheme } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
 import Tabs from 'src/components/Tabs';
+import { FeatureFlag, isFeatureEnabled } from 'src/featureFlags';
 import {
   getItem,
   setItem,
@@ -88,7 +89,6 @@ export const DataTablesPane = ({
   ownState,
   errorMessage,
   actions,
-  canDownload,
 }: DataTablesPaneProps) => {
   const theme = useTheme();
   const [activeTabKey, setActiveTabKey] = useState<string>(ResultTypes.Results);
@@ -97,14 +97,14 @@ export const DataTablesPane = ({
     samples: false,
   });
   const [panelOpen, setPanelOpen] = useState(
-    isFeatureEnabled(FeatureFlag.DatapanelClosedByDefault)
+    isFeatureEnabled(FeatureFlag.DATAPANEL_CLOSED_BY_DEFAULT)
       ? false
-      : getItem(LocalStorageKeys.IsDatapanelOpen, false),
+      : getItem(LocalStorageKeys.is_datapanel_open, false),
   );
 
   useEffect(() => {
-    if (!isFeatureEnabled(FeatureFlag.DatapanelClosedByDefault))
-      setItem(LocalStorageKeys.IsDatapanelOpen, panelOpen);
+    if (!isFeatureEnabled(FeatureFlag.DATAPANEL_CLOSED_BY_DEFAULT))
+      setItem(LocalStorageKeys.is_datapanel_open, panelOpen);
   }, [panelOpen]);
 
   useEffect(() => {
@@ -118,8 +118,7 @@ export const DataTablesPane = ({
     if (
       panelOpen &&
       activeTabKey.startsWith(ResultTypes.Results) &&
-      chartStatus &&
-      chartStatus !== 'loading'
+      chartStatus === 'rendered'
     ) {
       setIsRequest({
         results: true,
@@ -199,7 +198,6 @@ export const DataTablesPane = ({
     isRequest: isRequest.results,
     actions,
     isVisible: ResultTypes.Results === activeTabKey,
-    canDownload,
   }).map((pane, idx) => {
     if (idx === 0) {
       return (
@@ -237,7 +235,6 @@ export const DataTablesPane = ({
             isRequest={isRequest.samples}
             actions={actions}
             isVisible={ResultTypes.Samples === activeTabKey}
-            canDownload={canDownload}
           />
         </Tabs.TabPane>
       </Tabs>

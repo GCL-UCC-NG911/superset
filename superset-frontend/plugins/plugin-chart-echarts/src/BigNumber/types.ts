@@ -17,17 +17,16 @@
  * under the License.
  */
 
-import type { EChartsCoreOption } from 'echarts/core';
+import { EChartsCoreOption } from 'echarts';
 import {
+  BinaryQueryObjectFilterClause,
   ChartDataResponseResult,
-  ContextMenuFilters,
   DataRecordValue,
+  NumberFormatter,
   QueryFormData,
   QueryFormMetric,
   TimeFormatter,
-  ValueFormatter,
 } from '@superset-ui/core';
-import { ColorFormatters } from '@superset-ui/chart-controls';
 import { BaseChartProps, Refs } from '../types';
 
 export interface BigNumberDatum {
@@ -73,7 +72,7 @@ export type BigNumberVizProps = {
   height: number;
   bigNumber?: DataRecordValue;
   bigNumberFallback?: TimeSeriesDatum;
-  headerFormatter: ValueFormatter | TimeFormatter;
+  headerFormatter: NumberFormatter | TimeFormatter;
   formatTime?: TimeFormatter;
   headerFontSize: number;
   kickerFontSize?: number;
@@ -90,10 +89,9 @@ export type BigNumberVizProps = {
   onContextMenu?: (
     clientX: number,
     clientY: number,
-    filters?: ContextMenuFilters,
+    filters?: BinaryQueryObjectFilterClause[],
   ) => void;
   xValueFormatter?: TimeFormatter;
   formData?: BigNumberWithTrendlineFormData;
   refs: Refs;
-  colorThresholdFormatters?: ColorFormatters;
 };

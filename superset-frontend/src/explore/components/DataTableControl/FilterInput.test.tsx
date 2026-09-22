@@ -17,6 +17,7 @@
  * under the License.
  */
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 import { render, screen } from 'spec/helpers/testing-library';
 import { FilterInput } from '.';
 
@@ -30,8 +31,8 @@ test('Render a FilterInput', async () => {
   render(<FilterInput onChangeHandler={onChangeHandler} />);
   expect(await screen.findByRole('textbox')).toBeInTheDocument();
 
-  expect(onChangeHandler).toHaveBeenCalledTimes(0);
+  expect(onChangeHandler).toBeCalledTimes(0);
   userEvent.type(screen.getByRole('textbox'), 'test');
 
-  expect(onChangeHandler).toHaveBeenCalledTimes(4);
+  expect(onChangeHandler).toBeCalledTimes(4);
 });

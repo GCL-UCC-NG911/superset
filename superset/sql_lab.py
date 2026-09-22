@@ -14,21 +14,22 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-# pylint: disable=consider-using-transaction
 import dataclasses
 import logging
-import sys
 import uuid
 from contextlib import closing
 from datetime import datetime
 from sys import getsizeof
-from typing import Any, cast, Optional, Union
+from typing import Any, cast, Dict, List, Optional, Tuple, Union
 
 import backoff
 import msgpack
+import pyarrow as pa
+import simplejson as json
+from celery import Task
 from celery.exceptions import SoftTimeLimitExceeded
-from flask import current_app
 from flask_babel import gettext as __
+from sqlalchemy.orm import Session
 
 from superset import (
     app,
@@ -43,27 +44,17 @@ from superset.constants import QUERY_CANCEL_KEY, QUERY_EARLY_CANCEL_KEY
 from superset.dataframe import df_to_records
 from superset.db_engine_specs import BaseEngineSpec
 from superset.errors import ErrorLevel, SupersetError, SupersetErrorType
-from superset.exceptions import (
-    OAuth2RedirectError,
-    SupersetErrorException,
-    SupersetErrorsException,
-    SupersetParseError,
-)
-from superset.extensions import celery_app, event_logger
+from superset.exceptions import SupersetErrorException, SupersetErrorsException
+from superset.extensions import celery_app
 from superset.models.core import Database
 from superset.models.sql_lab import Query
 from superset.result_set import SupersetResultSet
-from superset.sql.parse import SQLStatement, Table
-from superset.sql_parse import (
-    CtasMethod,
-    insert_rls_as_subquery,
-    insert_rls_in_predicate,
-    ParsedQuery,
-)
+from superset.sql_parse import CtasMethod, insert_rls, ParsedQuery
 from superset.sqllab.limiting_factor import LimitingFactor
-from superset.sqllab.utils import write_ipc_buffer
-from superset.utils import json
+from superset.utils.celery import session_scope
 from superset.utils.core import (
+    get_username,
+    json_iso_dttm_ser,
     override_user,
     QuerySource,
     zlib_compress,
@@ -77,12 +68,12 @@ SQLLAB_TIMEOUT = config["SQLLAB_ASYNC_TIME_LIMIT_SEC"]
 SQLLAB_HARD_TIMEOUT = SQLLAB_TIMEOUT + 60
 SQL_MAX_ROW = config["SQL_MAX_ROW"]
 SQLLAB_CTAS_NO_LIMIT = config["SQLLAB_CTAS_NO_LIMIT"]
+SQL_QUERY_MUTATOR = config["SQL_QUERY_MUTATOR"]
 log_query = config["QUERY_LOGGER"]
 logger = logging.getLogger(__name__)
-BYTES_IN_MB = 1024 * 1024
 
 
-class SqlLabException(Exception):  # noqa: N818
+class SqlLabException(Exception):
     pass
 
 
@@ -97,16 +88,18 @@ class SqlLabQueryStoppedException(SqlLabException):
 def handle_query_error(
     ex: Exception,
     query: Query,
-    payload: Optional[dict[str, Any]] = None,
+    session: Session,
+    payload: Optional[Dict[str, Any]] = None,
     prefix_message: str = "",
-) -> dict[str, Any]:
+) -> Dict[str, Any]:
     """Local method handling error while processing the SQL"""
     payload = payload or {}
     msg = f"{prefix_message} {str(ex)}".strip()
+    troubleshooting_link = config["TROUBLESHOOTING_LINK"]
     query.error_message = msg
     query.tmp_table_name = None
     query.status = QueryStatus.FAILED
-    # TODO: re-enable this after updating the frontend to properly display timeout status  # noqa: E501
+    # TODO: re-enable this after updating the frontend to properly display timeout status
     # if query.status != QueryStatus.TIMED_OUT:
     #   query.status = QueryStatus.FAILED
     if not query.end_time:
@@ -124,19 +117,19 @@ def handle_query_error(
     if errors:
         query.set_extra_json_key("errors", errors_payload)
 
-    db.session.commit()
+    session.commit()
     payload.update({"status": query.status, "error": msg, "errors": errors_payload})
-    if troubleshooting_link := config["TROUBLESHOOTING_LINK"]:
+    if troubleshooting_link:
         payload["link"] = troubleshooting_link
     return payload
 
 
-def get_query_backoff_handler(details: dict[Any, Any]) -> None:
+def get_query_backoff_handler(details: Dict[Any, Any]) -> None:
     query_id = details["kwargs"]["query_id"]
     logger.error(
         "Query with id `%s` could not be retrieved", str(query_id), exc_info=True
     )
-    stats_logger.incr(f"error_attempting_orm_query_{details['tries'] - 1}")
+    stats_logger.incr("error_attempting_orm_query_{}".format(details["tries"] - 1))
     logger.error(
         "Query %s: Sleeping for a sec before retrying...", str(query_id), exc_info=True
     )
@@ -154,20 +147,22 @@ def get_query_giveup_handler(_: Any) -> None:
     on_giveup=get_query_giveup_handler,
     max_tries=5,
 )
-def get_query(query_id: int) -> Query:
+def get_query(query_id: int, session: Session) -> Query:
     """attempts to get the query and retry if it cannot"""
     try:
-        return db.session.query(Query).filter_by(id=query_id).one()
+        return session.query(Query).filter_by(id=query_id).one()
     except Exception as ex:
         raise SqlLabException("Failed at getting query") from ex
 
 
 @celery_app.task(
     name="sql_lab.get_sql_results",
+    bind=True,
     time_limit=SQLLAB_HARD_TIMEOUT,
     soft_time_limit=SQLLAB_TIMEOUT,
 )
 def get_sql_results(  # pylint: disable=too-many-arguments
+    ctask: Task,
     query_id: int,
     rendered_query: str,
     return_results: bool = True,
@@ -175,10 +170,10 @@ def get_sql_results(  # pylint: disable=too-many-arguments
     username: Optional[str] = None,
     start_time: Optional[float] = None,
     expand_data: bool = False,
-    log_params: Optional[dict[str, Any]] = None,
-) -> Optional[dict[str, Any]]:
+    log_params: Optional[Dict[str, Any]] = None,
+) -> Optional[Dict[str, Any]]:
     """Executes the sql query returns the results."""
-    with current_app.test_request_context():
+    with session_scope(not ctask.request.called_directly) as session:
         with override_user(security_manager.find_user(username)):
             try:
                 return execute_sql_statements(
@@ -186,6 +181,7 @@ def get_sql_results(  # pylint: disable=too-many-arguments
                     rendered_query,
                     return_results,
                     store_results,
+                    session=session,
                     start_time=start_time,
                     expand_data=expand_data,
                     log_params=log_params,
@@ -193,33 +189,24 @@ def get_sql_results(  # pylint: disable=too-many-arguments
             except Exception as ex:  # pylint: disable=broad-except
                 logger.debug("Query %d: %s", query_id, ex)
                 stats_logger.incr("error_sqllab_unhandled")
-                query = get_query(query_id=query_id)
-                return handle_query_error(ex, query)
+                query = get_query(query_id, session)
+                return handle_query_error(ex, query, session)
 
 
-def execute_sql_statement(  # pylint: disable=too-many-statements, too-many-locals  # noqa: C901
+def execute_sql_statement(  # pylint: disable=too-many-arguments,too-many-statements
     sql_statement: str,
     query: Query,
+    session: Session,
     cursor: Any,
-    log_params: Optional[dict[str, Any]],
+    log_params: Optional[Dict[str, Any]],
     apply_ctas: bool = False,
 ) -> SupersetResultSet:
     """Executes a single SQL statement"""
     database: Database = query.database
     db_engine_spec = database.db_engine_spec
 
-    parsed_query = ParsedQuery(sql_statement, engine=db_engine_spec.engine)
+    parsed_query = ParsedQuery(sql_statement)
     if is_feature_enabled("RLS_IN_SQLLAB"):
-        # There are two ways to insert RLS: either replacing the table with a subquery
-        # that has the RLS, or appending the RLS to the ``WHERE`` clause. The former is
-        # safer, but not supported in all databases.
-        insert_rls = (
-            insert_rls_as_subquery
-            if database.db_engine_spec.allows_subqueries
-            and database.db_engine_spec.allows_alias_in_select
-            else insert_rls_in_predicate
-        )
-
         # Insert any applicable RLS predicates
         parsed_query = ParsedQuery(
             str(
@@ -228,46 +215,28 @@ def execute_sql_statement(  # pylint: disable=too-many-statements, too-many-loca
                     database.id,
                     query.schema,
                 )
-            ),
-            engine=db_engine_spec.engine,
+            )
         )
 
     sql = parsed_query.stripped()
-
     # This is a test to see if the query is being
     # limited by either the dropdown or the sql.
     # We are testing to see if more rows exist than the limit.
     increased_limit = None if query.limit is None else query.limit + 1
 
-    if not database.allow_dml:
-        errors = []
-        try:
-            parsed_statement = SQLStatement(sql_statement, engine=db_engine_spec.engine)
-            disallowed = parsed_statement.is_mutating()
-        except SupersetParseError as ex:
-            # if we fail to parse the query, disallow by default
-            disallowed = True
-            errors.append(ex.error)
-
-        if disallowed:
-            errors.append(
-                SupersetError(
-                    message=__(
-                        "This database does not allow for DDL/DML, and the query "
-                        "could not be parsed to confirm it is a read-only query. Please "  # noqa: E501
-                        "contact your administrator for more assistance."
-                    ),
-                    error_type=SupersetErrorType.DML_NOT_ALLOWED_ERROR,
-                    level=ErrorLevel.ERROR,
-                )
+    if not db_engine_spec.is_readonly_query(parsed_query) and not database.allow_dml:
+        raise SupersetErrorException(
+            SupersetError(
+                message=__("Only SELECT statements are allowed against this database."),
+                error_type=SupersetErrorType.DML_NOT_ALLOWED_ERROR,
+                level=ErrorLevel.ERROR,
             )
-            raise SupersetErrorsException(errors)
-
+        )
     if apply_ctas:
         if not query.tmp_table_name:
             start_dttm = datetime.fromtimestamp(query.start_time)
-            query.tmp_table_name = (
-                f'tmp_{query.user_id}_table_{start_dttm.strftime("%Y_%m_%d_%H_%M_%S")}'
+            query.tmp_table_name = "tmp_{}_table_{}".format(
+                query.user_id, start_dttm.strftime("%Y_%m_%d_%H_%M_%S")
             )
         sql = parsed_query.as_create_table(
             query.tmp_table_name,
@@ -285,7 +254,12 @@ def execute_sql_statement(  # pylint: disable=too-many-statements, too-many-loca
         sql = apply_limit_if_exists(database, increased_limit, query, sql)
 
     # Hook to allow environment-specific mutation (usually comments) to the SQL
-    sql = database.mutate_sql_based_on_config(sql)
+    sql = SQL_QUERY_MUTATOR(
+        sql,
+        user_name=get_username(),  # TODO(john-bodley): Deprecate in 3.0.
+        security_manager=security_manager,
+        database=database,
+    )
     try:
         query.executed_sql = sql
         if log_query:
@@ -293,31 +267,30 @@ def execute_sql_statement(  # pylint: disable=too-many-statements, too-many-loca
                 query.database.sqlalchemy_uri,
                 query.executed_sql,
                 query.schema,
+                get_username(),
                 __name__,
                 security_manager,
                 log_params,
             )
-        db.session.commit()
-        with event_logger.log_context(
-            action="execute_sql",
-            database=database,
-            object_ref=__name__,
-        ):
-            with stats_timing("sqllab.query.time_executing_query", stats_logger):
-                db_engine_spec.execute_with_cursor(cursor, sql, query)
+        session.commit()
+        with stats_timing("sqllab.query.time_executing_query", stats_logger):
+            logger.debug("Query %d: Running query: %s", query.id, sql)
+            db_engine_spec.execute(cursor, sql, async_=True)
+            logger.debug("Query %d: Handling cursor", query.id)
+            db_engine_spec.handle_cursor(cursor, query, session)
 
-            with stats_timing("sqllab.query.time_fetching_results", stats_logger):
-                logger.debug(
-                    "Query %d: Fetching data for query object: %s",
-                    query.id,
-                    str(query.to_dict()),
-                )
-                data = db_engine_spec.fetch_data(cursor, increased_limit)
-                if query.limit is None or len(data) <= query.limit:
-                    query.limiting_factor = LimitingFactor.NOT_LIMITED
-                else:
-                    # return 1 row less than increased_query
-                    data = data[:-1]
+        with stats_timing("sqllab.query.time_fetching_results", stats_logger):
+            logger.debug(
+                "Query %d: Fetching data for query object: %s",
+                query.id,
+                str(query.to_dict()),
+            )
+            data = db_engine_spec.fetch_data(cursor, increased_limit)
+            if query.limit is None or len(data) <= query.limit:
+                query.limiting_factor = LimitingFactor.NOT_LIMITED
+            else:
+                # return 1 row less than increased_query
+                data = data[:-1]
     except SoftTimeLimitExceeded as ex:
         query.status = QueryStatus.TIMED_OUT
 
@@ -334,13 +307,10 @@ def execute_sql_statement(  # pylint: disable=too-many-statements, too-many-loca
                 level=ErrorLevel.ERROR,
             )
         ) from ex
-    except OAuth2RedirectError:
-        # user needs to authenticate with OAuth2 in order to run query
-        raise
     except Exception as ex:
         # query is stopped in another thread/worker
         # stopping raises expected exceptions which we should skip
-        db.session.refresh(query)
+        session.refresh(query)
         if query.status == QueryStatus.STOPPED:
             raise SqlLabQueryStoppedException() from ex
 
@@ -366,13 +336,13 @@ def apply_limit_if_exists(
 
 
 def _serialize_payload(
-    payload: dict[Any, Any], use_msgpack: Optional[bool] = False
+    payload: Dict[Any, Any], use_msgpack: Optional[bool] = False
 ) -> Union[bytes, str]:
     logger.debug("Serializing to msgpack: %r", use_msgpack)
     if use_msgpack:
-        return msgpack.dumps(payload, default=json.json_iso_dttm_ser, use_bin_type=True)
+        return msgpack.dumps(payload, default=json_iso_dttm_ser, use_bin_type=True)
 
-    return json.dumps(payload, default=json.json_iso_dttm_ser, ignore_nan=True)
+    return json.dumps(payload, default=json_iso_dttm_ser, ignore_nan=True)
 
 
 def _serialize_and_expand_data(
@@ -380,16 +350,21 @@ def _serialize_and_expand_data(
     db_engine_spec: BaseEngineSpec,
     use_msgpack: Optional[bool] = False,
     expand_data: bool = False,
-) -> tuple[Union[bytes, str], list[Any], list[Any], list[Any]]:
+) -> Tuple[Union[bytes, str], List[Any], List[Any], List[Any]]:
     selected_columns = result_set.columns
-    all_columns: list[Any]
-    expanded_columns: list[Any]
+    all_columns: List[Any]
+    expanded_columns: List[Any]
 
     if use_msgpack:
         with stats_timing(
             "sqllab.query.results_backend_pa_serialization", stats_logger
         ):
-            data = write_ipc_buffer(result_set.pa_table).to_pybytes()
+            data = (
+                pa.default_serialization_context()
+                .serialize(result_set.pa_table)
+                .to_buffer()
+                .to_pybytes()
+            )
 
         # expand when loading data from results backend
         all_columns, expanded_columns = (selected_columns, [])
@@ -408,23 +383,23 @@ def _serialize_and_expand_data(
     return (data, selected_columns, all_columns, expanded_columns)
 
 
-def execute_sql_statements(  # noqa: C901
-    # pylint: disable=too-many-arguments, too-many-locals, too-many-statements, too-many-branches
+def execute_sql_statements(  # pylint: disable=too-many-arguments, too-many-locals, too-many-statements, too-many-branches
     query_id: int,
     rendered_query: str,
     return_results: bool,
     store_results: bool,
+    session: Session,
     start_time: Optional[float],
     expand_data: bool,
-    log_params: Optional[dict[str, Any]],
-) -> Optional[dict[str, Any]]:
+    log_params: Optional[Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
     """Executes the sql query returns the results."""
     if store_results and start_time:
         # only asynchronous queries
         stats_logger.timing("sqllab.query.time_pending", now_as_float() - start_time)
 
-    query = get_query(query_id=query_id)
-    payload: dict[str, Any] = {"query_id": query_id}
+    query = get_query(query_id, session)
+    payload: Dict[str, Any] = dict(query_id=query_id)
     database = query.database
     db_engine_spec = database.db_engine_spec
     db_engine_spec.patch()
@@ -439,10 +414,7 @@ def execute_sql_statements(  # noqa: C901
         )
 
     # Breaking down into multiple statements
-    parsed_query = ParsedQuery(
-        rendered_query,
-        engine=db_engine_spec.engine,
-    )
+    parsed_query = ParsedQuery(rendered_query, strip_comments=True)
     if not db_engine_spec.run_multiple_statements_as_one:
         statements = parsed_query.get_statements()
         logger.info(
@@ -455,7 +427,7 @@ def execute_sql_statements(  # noqa: C901
     logger.info("Query %s: Set query to 'running'", str(query_id))
     query.status = QueryStatus.RUNNING
     query.start_running_time = now_as_float()
-    db.session.commit()
+    session.commit()
 
     # Should we create a table or view from the select?
     if (
@@ -492,22 +464,18 @@ def execute_sql_statements(  # noqa: C901
             )
         )
 
-    with database.get_raw_connection(
-        catalog=query.catalog,
-        schema=query.schema,
-        source=QuerySource.SQL_LAB,
-    ) as conn:
+    with database.get_raw_connection(query.schema, source=QuerySource.SQL_LAB) as conn:
         # Sharing a single connection and cursor across the
         # execution of all statements (if many)
         cursor = conn.cursor()
         cancel_query_id = db_engine_spec.get_cancel_query_id(cursor, query)
         if cancel_query_id is not None:
             query.set_extra_json_key(QUERY_CANCEL_KEY, cancel_query_id)
-            db.session.commit()
+            session.commit()
         statement_count = len(statements)
         for i, statement in enumerate(statements):
             # Check if stopped
-            db.session.refresh(query)
+            session.refresh(query)
             if query.status == QueryStatus.STOPPED:
                 payload.update({"status": query.status})
                 return payload
@@ -524,16 +492,16 @@ def execute_sql_statements(  # noqa: C901
             )
             logger.info("Query %s: %s", str(query_id), msg)
             query.set_extra_json_key("progress", msg)
-            db.session.commit()
+            session.commit()
             try:
                 result_set = execute_sql_statement(
                     statement,
                     query,
+                    session,
                     cursor,
                     log_params,
                     apply_ctas,
                 )
-
             except SqlLabQueryStoppedException:
                 payload.update({"status": QueryStatus.STOPPED})
                 return payload
@@ -548,16 +516,12 @@ def execute_sql_statements(  # noqa: C901
                     if statement_count > 1
                     else ""
                 )
-                payload = handle_query_error(ex, query, payload, prefix_message)
+                payload = handle_query_error(
+                    ex, query, session, payload, prefix_message
+                )
                 return payload
-
-        # Commit the connection so CTA queries will create the table and any DML.
-        should_commit = (
-            not db_engine_spec.is_select_query(parsed_query)  # check if query is DML
-            or apply_ctas
-        )
-        if should_commit:
-            conn.commit()
+        # Commit the connection so CTA queries will create the table.
+        conn.commit()
 
     # Success, updating the query entry in database
     query.rows = result_set.size
@@ -566,7 +530,8 @@ def execute_sql_statements(  # noqa: C901
     query.set_extra_json_key("columns", result_set.columns)
     if query.select_as_cta:
         query.select_sql = database.select_star(
-            Table(query.tmp_table_name, query.tmp_schema_name),
+            query.tmp_table_name,
+            schema=query.tmp_schema_name,
             limit=query.limit,
             show_cols=False,
             latest_partition=False,
@@ -604,22 +569,6 @@ def execute_sql_statements(  # noqa: C901
                 serialized_payload = _serialize_payload(
                     payload, cast(bool, results_backend_use_msgpack)
                 )
-
-                # Check the size of the serialized payload
-                if sql_lab_payload_max_mb := config.get("SQLLAB_PAYLOAD_MAX_MB"):
-                    serialized_payload_size = sys.getsizeof(serialized_payload)
-                    max_bytes = sql_lab_payload_max_mb * BYTES_IN_MB
-
-                    if serialized_payload_size > max_bytes:
-                        logger.info("Result size exceeds the allowed limit.")
-                        raise SupersetErrorException(
-                            SupersetError(
-                                message=f"Result size ({serialized_payload_size / BYTES_IN_MB:.2f} MB) exceeds the allowed limit of {sql_lab_payload_max_mb} MB.",  # noqa: E501
-                                error_type=SupersetErrorType.RESULT_TOO_LARGE_ERROR,
-                                level=ErrorLevel.ERROR,
-                            )
-                        )
-
             cache_timeout = database.cache_timeout
             if cache_timeout is None:
                 cache_timeout = config["CACHE_DEFAULT_TIMEOUT"]
@@ -633,7 +582,7 @@ def execute_sql_statements(  # noqa: C901
         query.results_key = key
 
     query.status = QueryStatus.SUCCESS
-    db.session.commit()
+    session.commit()
 
     if return_results:
         # since we're returning results we need to create non-arrow data
@@ -654,23 +603,6 @@ def execute_sql_statements(  # noqa: C901
                     "expanded_columns": expanded_columns,
                 }
             )
-        # Check the size of the serialized payload (opt-in logic for return_results)
-        if sql_lab_payload_max_mb := config.get("SQLLAB_PAYLOAD_MAX_MB"):
-            serialized_payload = _serialize_payload(
-                payload, cast(bool, results_backend_use_msgpack)
-            )
-            serialized_payload_size = sys.getsizeof(serialized_payload)
-            max_bytes = sql_lab_payload_max_mb * BYTES_IN_MB
-
-            if serialized_payload_size > max_bytes:
-                logger.info("Result size exceeds the allowed limit.")
-                raise SupersetErrorException(
-                    SupersetError(
-                        message=f"Result size ({serialized_payload_size / BYTES_IN_MB:.2f} MB) exceeds the allowed limit of {sql_lab_payload_max_mb} MB.",  # noqa: E501
-                        error_type=SupersetErrorType.RESULT_TOO_LARGE_ERROR,
-                        level=ErrorLevel.ERROR,
-                    )
-                )
         return payload
 
     return None
@@ -691,7 +623,7 @@ def cancel_query(query: Query) -> bool:
         return True
 
     # Some databases may need to make preparations for query cancellation
-    query.database.db_engine_spec.prepare_cancel_query(query)
+    query.database.db_engine_spec.prepare_cancel_query(query, db.session)
 
     if query.extra.get(QUERY_EARLY_CANCEL_KEY):
         # Query has been cancelled prior to being able to set the cancel key.
@@ -703,10 +635,8 @@ def cancel_query(query: Query) -> bool:
     if cancel_query_id is None:
         return False
 
-    with query.database.get_sqla_engine(
-        catalog=query.catalog,
-        schema=query.schema,
-        source=QuerySource.SQL_LAB,
+    with query.database.get_sqla_engine_with_context(
+        query.schema, source=QuerySource.SQL_LAB
     ) as engine:
         with closing(engine.raw_connection()) as conn:
             with closing(conn.cursor()) as cursor:

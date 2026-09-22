@@ -26,12 +26,13 @@ Create Date: 2020-03-25 10:42:11.047328
 revision = "f9a30386bd74"
 down_revision = "b5998378c225"
 
-from alembic import op  # noqa: E402
-from sqlalchemy import Column, Integer, String, Text  # noqa: E402
-from sqlalchemy.ext.declarative import declarative_base  # noqa: E402
+import json
 
-from superset import db  # noqa: E402
-from superset.utils import json  # noqa: E402
+from alembic import op
+from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy.ext.declarative import declarative_base
+
+from superset import db
 
 Base = declarative_base()
 
@@ -86,7 +87,7 @@ def upgrade():
                         del params[field]
 
                 slc.params = json.dumps(params, sort_keys=True)
-        except Exception:  # noqa: S110
+        except Exception:
             pass
 
     session.commit()

@@ -16,23 +16,23 @@
 # under the License.
 import logging
 
-from flask import request, Response, url_for
+from flask import request, Response
 from flask_appbuilder.api import expose, protect, safe
 from marshmallow import ValidationError
 
-from superset.commands.chart.exceptions import (
+from superset.charts.commands.exceptions import (
     ChartAccessDeniedError,
     ChartNotFoundError,
 )
-from superset.commands.dataset.exceptions import (
+from superset.constants import MODEL_API_RW_METHOD_PERMISSION_MAP
+from superset.datasets.commands.exceptions import (
     DatasetAccessDeniedError,
     DatasetNotFoundError,
 )
-from superset.commands.explore.permalink.create import CreateExplorePermalinkCommand
-from superset.commands.explore.permalink.get import GetExplorePermalinkCommand
-from superset.constants import MODEL_API_RW_METHOD_PERMISSION_MAP
+from superset.explore.permalink.commands.create import CreateExplorePermalinkCommand
+from superset.explore.permalink.commands.get import GetExplorePermalinkCommand
 from superset.explore.permalink.exceptions import ExplorePermalinkInvalidStateError
-from superset.explore.permalink.schemas import ExplorePermalinkStateSchema
+from superset.explore.permalink.schemas import ExplorePermalinkPostSchema
 from superset.extensions import event_logger
 from superset.key_value.exceptions import KeyValueAccessDeniedError
 from superset.views.base_api import BaseSupersetApi, requires_json, statsd_metrics
@@ -41,15 +41,15 @@ logger = logging.getLogger(__name__)
 
 
 class ExplorePermalinkRestApi(BaseSupersetApi):
-    add_model_schema = ExplorePermalinkStateSchema()
+    add_model_schema = ExplorePermalinkPostSchema()
     method_permission_name = MODEL_API_RW_METHOD_PERMISSION_MAP
     allow_browser_login = True
     class_permission_name = "ExplorePermalinkRestApi"
     resource_name = "explore"
     openapi_spec_tag = "Explore Permanent Link"
-    openapi_spec_component_schemas = (ExplorePermalinkStateSchema,)
+    openapi_spec_component_schemas = (ExplorePermalinkPostSchema,)
 
-    @expose("/permalink", methods=("POST",))
+    @expose("/permalink", methods=["POST"])
     @protect()
     @safe
     @statsd_metrics
@@ -59,16 +59,17 @@ class ExplorePermalinkRestApi(BaseSupersetApi):
     )
     @requires_json
     def post(self) -> Response:
-        """Create a new permanent link.
+        """Stores a new permanent link.
         ---
         post:
-          summary: Create a new permanent link
+          description: >-
+            Stores a new permanent link.
           requestBody:
             required: true
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/ExplorePermalinkStateSchema'
+                  $ref: '#/components/schemas/ExplorePermalinkPostSchema'
           responses:
             201:
               description: The permanent link was stored successfully.
@@ -82,7 +83,7 @@ class ExplorePermalinkRestApi(BaseSupersetApi):
                         description: The key to retrieve the permanent link data.
                       url:
                         type: string
-                        description: permanent link.
+                        description: pemanent link.
             400:
               $ref: '#/components/responses/400'
             401:
@@ -95,7 +96,8 @@ class ExplorePermalinkRestApi(BaseSupersetApi):
         try:
             state = self.add_model_schema.load(request.json)
             key = CreateExplorePermalinkCommand(state=state).run()
-            url = url_for("ExplorePermalinkView.permalink", key=key, _external=True)
+            http_origin = request.headers.environ.get("HTTP_ORIGIN")
+            url = f"{http_origin}/superset/explore/p/{key}/"
             return self.response(201, key=key, url=url)
         except ValidationError as ex:
             return self.response(400, message=ex.messages)
@@ -108,7 +110,7 @@ class ExplorePermalinkRestApi(BaseSupersetApi):
         except (ChartNotFoundError, DatasetNotFoundError) as ex:
             return self.response(404, message=str(ex))
 
-    @expose("/permalink/<string:key>", methods=("GET",))
+    @expose("/permalink/<string:key>", methods=["GET"])
     @protect()
     @safe
     @statsd_metrics
@@ -117,10 +119,11 @@ class ExplorePermalinkRestApi(BaseSupersetApi):
         log_to_statsd=False,
     )
     def get(self, key: str) -> Response:
-        """Get chart's permanent link state.
+        """Retrives permanent link state for chart.
         ---
         get:
-          summary: Get chart's permanent link state
+          description: >-
+            Retrives chart state associated with a permanent link.
           parameters:
           - in: path
             schema:

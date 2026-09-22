@@ -17,13 +17,13 @@
 import logging
 import re
 import urllib.request
-from typing import Any, Optional, Union
+from typing import Any, Dict, Optional
 from urllib.error import URLError
 
 import numpy as np
 import pandas as pd
+import simplejson
 
-from superset.utils import json
 from superset.utils.core import GenericDataType
 
 logger = logging.getLogger(__name__)
@@ -65,8 +65,7 @@ def escape_value(value: str) -> str:
 
 
 def df_to_escaped_csv(df: pd.DataFrame, **kwargs: Any) -> Any:
-    def escape_values(v: Any) -> Union[str, Any]:
-        return escape_value(v) if isinstance(v, str) else v
+    escape_values = lambda v: escape_value(v) if isinstance(v, str) else v
 
     # Escape csv headers
     df = df.rename(columns=escape_values)
@@ -78,11 +77,11 @@ def df_to_escaped_csv(df: pd.DataFrame, **kwargs: Any) -> Any:
                 if isinstance(value, str):
                     df.at[idx, name] = escape_value(value)
 
-    return df.to_csv(escapechar="\\", **kwargs)
+    return df.to_csv(**kwargs)
 
 
 def get_chart_csv_data(
-    chart_url: str, auth_cookies: Optional[dict[str, str]] = None
+    chart_url: str, auth_cookies: Optional[Dict[str, str]] = None
 ) -> Optional[bytes]:
     content = None
     if auth_cookies:
@@ -99,7 +98,7 @@ def get_chart_csv_data(
 
 
 def get_chart_dataframe(
-    chart_url: str, auth_cookies: Optional[dict[str, str]] = None
+    chart_url: str, auth_cookies: Optional[Dict[str, str]] = None
 ) -> Optional[pd.DataFrame]:
     # Disable all the unnecessary-lambda violations in this function
     # pylint: disable=unnecessary-lambda
@@ -107,13 +106,10 @@ def get_chart_dataframe(
     if content is None:
         return None
 
-    result = json.loads(content.decode("utf-8"))
+    result = simplejson.loads(content.decode("utf-8"))
     # need to convert float value to string to show full long number
     pd.set_option("display.float_format", lambda x: str(x))
     df = pd.DataFrame.from_dict(result["result"][0]["data"])
-
-    if df.empty:
-        return None
 
     try:
         # if any column type is equal to 2, need to convert data into

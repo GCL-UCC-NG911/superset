@@ -16,18 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { FC, ChangeEvent, useEffect, useState } from 'react';
-
+import React, { useEffect, useState } from 'react';
 import FormItem from 'src/components/Form/FormItem';
 import { Select } from 'src/components';
 import {
-  isFeatureEnabled,
-  FeatureFlag,
-  isDefined,
-  styled,
+  t,
   SupersetClient,
   SupersetTheme,
-  t,
+  styled,
+  hasGenericChartAxes,
+  isDefined,
 } from '@superset-ui/core';
 import {
   Operators,
@@ -40,10 +38,14 @@ import {
   OPERATOR_ENUM_TO_OPERATOR_TYPE,
 } from 'src/explore/constants';
 import FilterDefinitionOption from 'src/explore/components/controls/MetricControl/FilterDefinitionOption';
-import AdhocFilter from 'src/explore/components/controls/FilterControl/AdhocFilter';
+import AdhocFilter, {
+  EXPRESSION_TYPES,
+  CLAUSES,
+} from 'src/explore/components/controls/FilterControl/AdhocFilter';
 import { Tooltip } from 'src/components/Tooltip';
 import { Input } from 'src/components/Input';
 import { optionLabel } from 'src/utils/common';
+import { FeatureFlag, isFeatureEnabled } from 'src/featureFlags';
 import {
   ColumnMeta,
   Dataset,
@@ -52,7 +54,6 @@ import {
 import useAdvancedDataTypes from './useAdvancedDataTypes';
 import { useDatePickerInAdhocFilter } from '../utils';
 import { useDefaultTimeFilter } from '../../DateFilterControl/utils';
-import { Clauses, ExpressionTypes } from '../types';
 
 const StyledInput = styled(Input)`
   margin-bottom: ${({ theme }) => theme.gridUnit * 4}px;
@@ -75,13 +76,13 @@ const SelectWithLabel = styled(Select)<{ labelText: string }>`
 `;
 
 export interface SimpleExpressionType {
-  expressionType: keyof typeof ExpressionTypes;
+  expressionType: keyof typeof EXPRESSION_TYPES;
   column: ColumnMeta;
   aggregate: keyof typeof AGGREGATES;
   label: string;
 }
 export interface SQLExpressionType {
-  expressionType: keyof typeof ExpressionTypes;
+  expressionType: keyof typeof EXPRESSION_TYPES;
   sqlExpression: string;
   label: string;
 }
@@ -125,22 +126,24 @@ export const useSimpleTabFilterProps = (props: Props) => {
       !!column && (column.type === 'INT' || column.type === 'INTEGER');
     const isColumnFunction = !!column && !!column.expression;
 
-    if (operator && operator === Operators.LatestPartition) {
+    if (operator && operator === Operators.LATEST_PARTITION) {
       const { partitionColumn } = props;
       return partitionColumn && subject && subject === partitionColumn;
     }
-    if (operator && operator === Operators.TemporalRange) {
+    if (operator && operator === Operators.TEMPORAL_RANGE) {
       // hide the TEMPORAL_RANGE operator
       return false;
     }
-    if (operator === Operators.IsTrue || operator === Operators.IsFalse) {
+    if (operator === Operators.IS_TRUE || operator === Operators.IS_FALSE) {
       return isColumnBoolean || isColumnNumber || isColumnFunction;
     }
     if (isColumnBoolean) {
-      return operator === Operators.IsNull || operator === Operators.IsNotNull;
+      return (
+        operator === Operators.IS_NULL || operator === Operators.IS_NOT_NULL
+      );
     }
     return (
-      props.adhocFilter.clause !== Clauses.Having ||
+      props.adhocFilter.clause !== CLAUSES.HAVING ||
       HAVING_OPERATORS.indexOf(operator) !== -1
     );
   };
@@ -155,32 +158,30 @@ export const useSimpleTabFilterProps = (props: Props) => {
     // infer the new clause based on what subject was selected.
     if (option && 'column_name' in option) {
       subject = option.column_name;
-      clause = Clauses.Where;
+      clause = CLAUSES.WHERE;
     } else if (option && 'saved_metric_name' in option) {
       subject = option.saved_metric_name;
-      clause = Clauses.Having;
+      clause = CLAUSES.HAVING;
     } else if (option?.label) {
       subject = option.label;
-      clause = Clauses.Having;
+      clause = CLAUSES.HAVING;
     }
     let { operator, operatorId, comparator } = props.adhocFilter;
     operator =
       operator && operatorId && isOperatorRelevant(operatorId, subject)
-        ? OPERATOR_ENUM_TO_OPERATOR_TYPE[
-            operatorId as keyof typeof OPERATOR_ENUM_TO_OPERATOR_TYPE
-          ].operation
+        ? OPERATOR_ENUM_TO_OPERATOR_TYPE[operatorId].operation
         : null;
     if (!isDefined(operator)) {
       // if operator is `null`, use the `IN` and reset the comparator.
-      operator = Operators.In;
-      operatorId = Operators.In;
+      operator = Operators.IN;
+      operatorId = Operators.IN;
       comparator = undefined;
     }
 
-    if (isTemporalColumn(id, props.datasource)) {
+    if (hasGenericChartAxes && isTemporalColumn(id, props.datasource)) {
       subject = id;
-      operator = Operators.TemporalRange;
-      operatorId = Operators.TemporalRange;
+      operator = Operators.TEMPORAL_RANGE;
+      operatorId = Operators.TEMPORAL_RANGE;
       comparator = defaultTimeFilter;
     }
 
@@ -189,7 +190,7 @@ export const useSimpleTabFilterProps = (props: Props) => {
         subject,
         clause,
         operator,
-        expressionType: ExpressionTypes.Simple,
+        expressionType: EXPRESSION_TYPES.SIMPLE,
         operatorId,
         comparator,
       }),
@@ -209,14 +210,17 @@ export const useSimpleTabFilterProps = (props: Props) => {
         ? currentComparator[0]
         : currentComparator;
     }
+    if (operatorId === Operators.IS_TRUE || operatorId === Operators.IS_FALSE) {
+      newComparator = Operators.IS_TRUE === operatorId;
+    }
     if (operatorId && CUSTOM_OPERATORS.has(operatorId)) {
       props.onChange(
         props.adhocFilter.duplicateWith({
           subject: props.adhocFilter.subject,
-          clause: Clauses.Where,
+          clause: CLAUSES.WHERE,
           operatorId,
           operator: OPERATOR_ENUM_TO_OPERATOR_TYPE[operatorId].operation,
-          expressionType: ExpressionTypes.Sql,
+          expressionType: EXPRESSION_TYPES.SQL,
           datasource: props.datasource,
         }),
       );
@@ -226,7 +230,7 @@ export const useSimpleTabFilterProps = (props: Props) => {
           operatorId,
           operator: OPERATOR_ENUM_TO_OPERATOR_TYPE[operatorId].operation,
           comparator: newComparator,
-          expressionType: ExpressionTypes.Simple,
+          expressionType: EXPRESSION_TYPES.SIMPLE,
         }),
       );
     }
@@ -235,7 +239,7 @@ export const useSimpleTabFilterProps = (props: Props) => {
     props.onChange(
       props.adhocFilter.duplicateWith({
         comparator,
-        expressionType: ExpressionTypes.Simple,
+        expressionType: EXPRESSION_TYPES.SIMPLE,
       }),
     );
   };
@@ -251,9 +255,9 @@ export const useSimpleTabFilterProps = (props: Props) => {
     props.onChange(
       props.adhocFilter.duplicateWith({
         subject: columnName,
-        operator: Operators.TemporalRange,
+        operator: Operators.TEMPORAL_RANGE,
         comparator: timeRange,
-        expressionType: ExpressionTypes.Simple,
+        expressionType: EXPRESSION_TYPES.SIMPLE,
       }),
     );
   };
@@ -267,7 +271,7 @@ export const useSimpleTabFilterProps = (props: Props) => {
   };
 };
 
-const AdhocFilterEditPopoverSimpleTabContent: FC<Props> = props => {
+const AdhocFilterEditPopoverSimpleTabContent: React.FC<Props> = props => {
   const {
     onSubjectChange,
     onOperatorChange,
@@ -294,7 +298,9 @@ const AdhocFilterEditPopoverSimpleTabContent: FC<Props> = props => {
       ? isOperatorRelevant(operator, subject) &&
         advancedDataTypesState.advancedDataTypeOperatorList.includes(operator)
       : isOperatorRelevant(operator, subject);
-  const onInputComparatorChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const onInputComparatorChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const { value } = event.target;
     setComparator(value);
     onComparatorChange(value);
@@ -309,7 +315,7 @@ const AdhocFilterEditPopoverSimpleTabContent: FC<Props> = props => {
     const valuesFromSuggestionsLength = Array.isArray(comparator)
       ? comparator.filter(v => suggestions.includes(v)).length
       : 0;
-    return suggestions ? suggestions.length - valuesFromSuggestionsLength : 0;
+    return suggestions?.length - valuesFromSuggestionsLength ?? 0;
   };
   const createSuggestionsPlaceholder = () => {
     const optionsRemaining = getOptionsRemaining();
@@ -337,7 +343,7 @@ const AdhocFilterEditPopoverSimpleTabContent: FC<Props> = props => {
   };
 
   subjectSelectProps.placeholder =
-    props.adhocFilter.clause === Clauses.Where
+    props.adhocFilter.clause === CLAUSES.WHERE
       ? t('%s column(s)', columns.length)
       : t('To filter on a metric, use Custom SQL tab.');
   columns = props.options.filter(
@@ -382,7 +388,7 @@ const AdhocFilterEditPopoverSimpleTabContent: FC<Props> = props => {
   const datePicker = useDatePickerInAdhocFilter({
     columnName: props.adhocFilter.subject,
     timeRange:
-      props.adhocFilter.operator === Operators.TemporalRange
+      props.adhocFilter.operator === Operators.TEMPORAL_RANGE
         ? props.adhocFilter.comparator
         : undefined,
     datasource: props.datasource,
@@ -393,7 +399,7 @@ const AdhocFilterEditPopoverSimpleTabContent: FC<Props> = props => {
     const refreshComparatorSuggestions = () => {
       const { datasource } = props;
       const col = props.adhocFilter.subject;
-      const having = props.adhocFilter.clause === Clauses.Having;
+      const having = props.adhocFilter.clause === CLAUSES.HAVING;
 
       if (col && datasource && datasource.filter_select && !having) {
         const controller = new AbortController();
@@ -429,13 +435,13 @@ const AdhocFilterEditPopoverSimpleTabContent: FC<Props> = props => {
   }, [props.adhocFilter.subject]);
 
   useEffect(() => {
-    if (isFeatureEnabled(FeatureFlag.EnableAdvancedDataTypes)) {
+    if (isFeatureEnabled(FeatureFlag.ENABLE_ADVANCED_DATA_TYPES)) {
       fetchSubjectAdvancedDataType(props);
     }
   }, [props.adhocFilter.subject]);
 
   useEffect(() => {
-    if (isFeatureEnabled(FeatureFlag.EnableAdvancedDataTypes)) {
+    if (isFeatureEnabled(FeatureFlag.ENABLE_ADVANCED_DATA_TYPES)) {
       fetchAdvancedDataTypeValueCallback(
         comparator === undefined ? '' : comparator,
         advancedDataTypesState,
@@ -445,7 +451,7 @@ const AdhocFilterEditPopoverSimpleTabContent: FC<Props> = props => {
   }, [comparator, subjectAdvancedDataType, fetchAdvancedDataTypeValueCallback]);
 
   useEffect(() => {
-    if (isFeatureEnabled(FeatureFlag.EnableAdvancedDataTypes)) {
+    if (isFeatureEnabled(FeatureFlag.ENABLE_ADVANCED_DATA_TYPES)) {
       setComparator(props.adhocFilter.comparator);
     }
   }, [props.adhocFilter.comparator]);

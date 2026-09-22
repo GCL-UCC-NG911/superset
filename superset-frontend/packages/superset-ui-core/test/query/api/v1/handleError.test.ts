@@ -105,7 +105,7 @@ describe('handleError()', () => {
     const mockError = {
       error: {
         message: 'Request timeout',
-        error_type: SupersetApiErrorType.FrontendTimeoutError,
+        error_type: SupersetApiErrorType.FRONTEND_TIMEOUT_ERROR,
       },
     };
     await testHandleError(mockError, {

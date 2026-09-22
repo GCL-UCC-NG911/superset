@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactNode, useCallback, useContext, useEffect, useMemo } from 'react';
+import React, { ReactNode, useMemo } from 'react';
 import { useDrop } from 'react-dnd';
 import { t, useTheme } from '@superset-ui/core';
 import ControlHeader from 'src/explore/components/ControlHeader';
@@ -31,48 +31,38 @@ import {
 } from 'src/explore/components/DatasourcePanel/types';
 import Icons from 'src/components/Icons';
 import { DndItemType } from '../../DndItemType';
-import { DraggingContext, DropzoneContext } from '../../ExploreContainer';
 
 export type DndSelectLabelProps = {
   name: string;
   accept: DndItemType | DndItemType[];
-  ghostButtonText: string;
+  ghostButtonText?: string;
   onDrop: (item: DatasourcePanelDndItem) => void;
   canDrop: (item: DatasourcePanelDndItem) => boolean;
   canDropValue?: (value: DndItemValue) => boolean;
   onDropValue?: (value: DndItemValue) => void;
   valuesRenderer: () => ReactNode;
   displayGhostButton?: boolean;
-  onClickGhostButton: () => void;
-  isLoading?: boolean;
+  onClickGhostButton?: () => void;
 };
 
 export default function DndSelectLabel({
   displayGhostButton = true,
   accept,
   valuesRenderer,
-  isLoading,
   ...props
 }: DndSelectLabelProps) {
   const theme = useTheme();
-  const canDropProp = props.canDrop;
-  const canDropValueProp = props.canDropValue;
-
-  const dropValidator = useCallback(
-    (item: DatasourcePanelDndItem) =>
-      canDropProp(item) && (canDropValueProp?.(item.value) ?? true),
-    [canDropProp, canDropValueProp],
-  );
 
   const [{ isOver, canDrop }, datasourcePanelDrop] = useDrop({
-    accept: isLoading ? [] : accept,
+    accept,
 
     drop: (item: DatasourcePanelDndItem) => {
       props.onDrop(item);
       props.onDropValue?.(item.value);
     },
 
-    canDrop: dropValidator,
+    canDrop: (item: DatasourcePanelDndItem) =>
+      props.canDrop(item) && (props.canDropValue?.(item.value) ?? true),
 
     collect: monitor => ({
       isOver: monitor.isOver(),
@@ -80,17 +70,6 @@ export default function DndSelectLabel({
       type: monitor.getItemType(),
     }),
   });
-
-  const dispatch = useContext(DropzoneContext)[1];
-
-  useEffect(() => {
-    dispatch({ key: props.name, canDrop: dropValidator });
-    return () => {
-      dispatch({ key: props.name });
-    };
-  }, [dispatch, props.name, dropValidator]);
-
-  const isDragging = useContext(DraggingContext);
 
   const values = useMemo(() => valuesRenderer(), [valuesRenderer]);
 
@@ -101,7 +80,7 @@ export default function DndSelectLabel({
         onClick={props.onClickGhostButton}
       >
         <Icons.PlusSmall iconColor={theme.colors.grayscale.light1} />
-        {t(props.ghostButtonText)}
+        {t(props.ghostButtonText || 'Drop columns here')}
       </AddControlLabel>
     );
   }
@@ -115,8 +94,6 @@ export default function DndSelectLabel({
         data-test="dnd-labels-container"
         canDrop={canDrop}
         isOver={isOver}
-        isDragging={isDragging}
-        isLoading={isLoading}
       >
         {values}
         {displayGhostButton && renderGhostButton()}

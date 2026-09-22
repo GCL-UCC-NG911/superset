@@ -17,25 +17,19 @@
  * under the License.
  */
 
-import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import { ThemeProvider, supersetTheme } from '../../../src/style';
+import React from 'react';
+import { shallow } from 'enzyme';
+import { configure } from '@superset-ui/core';
 import NoResultsComponent from '../../../src/chart/components/NoResultsComponent';
 
-const renderNoResultsComponent = () =>
-  render(
-    <ThemeProvider theme={supersetTheme}>
-      <NoResultsComponent height="400" width="300" />
-    </ThemeProvider>,
-  );
+configure();
 
-test('renders the no results error', () => {
-  renderNoResultsComponent();
+describe('NoResultsComponent', () => {
+  it('renders the no results error', () => {
+    const wrapper = shallow(<NoResultsComponent height="400" width="300" />);
 
-  expect(screen.getByText(/No Results/)).toBeInTheDocument();
-  expect(
-    screen.getByText(
-      'No results were returned for this query. If you expected results to be returned, ensure any filters are configured properly and the datasource contains data for the selected time range.',
-    ),
-  ).toBeInTheDocument();
+    expect(wrapper.text()).toEqual(
+      'No ResultsNo results were returned for this query. If you expected results to be returned, ensure any filters are configured properly and the datasource contains data for the selected time range.',
+    );
+  });
 });
