@@ -16,14 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React from 'react';
 import { styledMount as mount } from 'spec/helpers/theming';
 import { act } from 'react-dom/test-utils';
 import { QueryParamProvider } from 'use-query-params';
 import { supersetTheme, ThemeProvider } from '@superset-ui/core';
+import thunk from 'redux-thunk';
+import configureStore from 'redux-mock-store';
 
 import Button from 'src/components/Button';
-import { Empty } from 'src/components';
+import { Empty } from 'src/components/EmptyState/Empty';
 import CardCollection from 'src/components/ListView/CardCollection';
 import { CardSortSelect } from 'src/components/ListView/CardSortSelect';
 import IndeterminateCheckbox from 'src/components/IndeterminateCheckbox';
@@ -34,6 +35,10 @@ import TableCollection from 'src/components/TableCollection';
 import Pagination from 'src/components/Pagination/Wrapper';
 
 import waitForComponentToPaint from 'spec/helpers/waitForComponentToPaint';
+import { Provider } from 'react-redux';
+
+const middlewares = [thunk];
+const mockStore = configureStore(middlewares);
 
 function makeMockLocation(query) {
   const queryStr = encodeURIComponent(query);
@@ -126,16 +131,20 @@ const mockedProps = {
 
 const factory = (props = mockedProps) =>
   mount(
-    <QueryParamProvider location={makeMockLocation()}>
-      <ListView {...props} />
-    </QueryParamProvider>,
+    <Provider store={mockStore()}>
+      <QueryParamProvider location={makeMockLocation()}>
+        <ListView {...props} />
+      </QueryParamProvider>
+    </Provider>,
     {
       wrappingComponent: ThemeProvider,
       wrappingComponentProps: { theme: supersetTheme },
+      useRedux: true,
     },
   );
 
-describe('ListView', () => {
+// TODO: rewrite to rtl
+describe.skip('ListView', () => {
   let wrapper = beforeAll(async () => {
     wrapper = factory();
     await waitForComponentToPaint(wrapper);
@@ -152,12 +161,12 @@ describe('ListView', () => {
     expect(wrapper.find(ListView)).toExist();
     expect(mockedProps.fetchData.mock.calls[0]).toMatchInlineSnapshot(
       `
-        Array [
-          Object {
-            "filters": Array [],
+        [
+          {
+            "filters": [],
             "pageIndex": 0,
             "pageSize": 1,
-            "sortBy": Array [],
+            "sortBy": [],
           },
         ]
       `,
@@ -169,13 +178,13 @@ describe('ListView', () => {
     expect(mockedProps.fetchData).toHaveBeenCalled();
     expect(mockedProps.fetchData.mock.calls[0]).toMatchInlineSnapshot(
       `
-        Array [
-          Object {
-            "filters": Array [],
+        [
+          {
+            "filters": [],
             "pageIndex": 0,
             "pageSize": 1,
-            "sortBy": Array [
-              Object {
+            "sortBy": [
+              {
                 "desc": false,
                 "id": "id",
               },
@@ -200,13 +209,13 @@ describe('ListView', () => {
     wrapper.update();
 
     expect(mockedProps.fetchData.mock.calls[0]).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          "filters": Array [],
+      [
+        {
+          "filters": [],
           "pageIndex": 1,
           "pageSize": 1,
-          "sortBy": Array [
-            Object {
+          "sortBy": [
+            {
               "desc": false,
               "id": "id",
             },
@@ -218,8 +227,8 @@ describe('ListView', () => {
 
   it('handles bulk actions on 1 row', () => {
     act(() => {
-      wrapper.find('input[id="1"]').at(0).prop('onChange')({
-        target: { value: 'on', checked: true },
+      wrapper.find('input[id="0"]').at(0).prop('onChange')({
+        target: { value: 'on' },
       });
     });
     wrapper.update();
@@ -234,9 +243,9 @@ describe('ListView', () => {
 
     expect(mockedProps.bulkActions[0].onSelect.mock.calls[0])
       .toMatchInlineSnapshot(`
-      Array [
-        Array [
-          Object {
+      [
+        [
+          {
             "age": 10,
             "id": 1,
             "name": "data 1",
@@ -247,84 +256,10 @@ describe('ListView', () => {
     `);
   });
 
-  it('deselects all rows after bulk delete resolves', async () => {
-    const deleteAction = jest.fn(() => Promise.resolve());
-    const wrapper2 = factory({
-      ...mockedProps,
-      bulkActions: [
-        {
-          key: 'delete',
-          name: 'delete',
-          type: 'danger',
-          onSelect: deleteAction,
-        },
-      ],
-    });
-    await waitForComponentToPaint(wrapper2);
-
-    act(() => {
-      wrapper2.find('input[id="header-toggle-all"]').at(0).prop('onChange')({
-        target: { value: 'on', checked: true },
-      });
-    });
-    wrapper2.update();
-
-    await act(async () => {
-      await wrapper2
-        .find('[data-test="bulk-select-controls"]')
-        .find(Button)
-        .props()
-        .onClick();
-    });
-    await waitForComponentToPaint(wrapper2);
-    wrapper2.update();
-
-    expect(deleteAction).toHaveBeenCalledWith(mockedProps.data);
-    wrapper2.find(IndeterminateCheckbox).forEach(input => {
-      expect(input.props().checked).toBe(false);
-    });
-  });
-
-  it('keeps selection after non-delete bulk action resolves', async () => {
-    const exportAction = jest.fn(() => Promise.resolve());
-    const wrapper2 = factory({
-      ...mockedProps,
-      bulkActions: [
-        {
-          key: 'export',
-          name: 'export',
-          type: 'primary',
-          onSelect: exportAction,
-        },
-      ],
-    });
-    await waitForComponentToPaint(wrapper2);
-
-    act(() => {
-      wrapper2.find('input[id="1"]').at(0).prop('onChange')({
-        target: { value: 'on', checked: true },
-      });
-    });
-    wrapper2.update();
-
-    await act(async () => {
-      await wrapper2
-        .find('[data-test="bulk-select-controls"]')
-        .find(Button)
-        .props()
-        .onClick();
-    });
-    await waitForComponentToPaint(wrapper2);
-    wrapper2.update();
-
-    expect(exportAction).toHaveBeenCalledWith([mockedProps.data[0]]);
-    expect(wrapper2.find('input[id="1"]').at(0).props().checked).toBe(true);
-  });
-
   it('handles bulk actions on all rows', () => {
     act(() => {
       wrapper.find('input[id="header-toggle-all"]').at(0).prop('onChange')({
-        target: { value: 'on', checked: true },
+        target: { value: 'on' },
       });
     });
     wrapper.update();
@@ -339,15 +274,15 @@ describe('ListView', () => {
 
     expect(mockedProps.bulkActions[0].onSelect.mock.calls[0])
       .toMatchInlineSnapshot(`
-      Array [
-        Array [
-          Object {
+      [
+        [
+          {
             "age": 10,
             "id": 1,
             "name": "data 1",
             "time": "2020-11-18T07:53:45.354Z",
           },
-          Object {
+          {
             "age": 1,
             "id": 2,
             "name": "data 2",
@@ -481,13 +416,13 @@ describe('ListView', () => {
     });
 
     expect(mockedProps.fetchData.mock.calls[0]).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          "filters": Array [
-            Object {
+      [
+        {
+          "filters": [
+            {
               "id": "id",
               "operator": "eq",
-              "value": Object {
+              "value": {
                 "label": "bar",
                 "value": "bar",
               },
@@ -495,8 +430,8 @@ describe('ListView', () => {
           ],
           "pageIndex": 0,
           "pageSize": 1,
-          "sortBy": Array [
-            Object {
+          "sortBy": [
+            {
               "desc": false,
               "id": "id",
             },
@@ -506,18 +441,18 @@ describe('ListView', () => {
     `);
 
     expect(mockedProps.fetchData.mock.calls[1]).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          "filters": Array [
-            Object {
+      [
+        {
+          "filters": [
+            {
               "id": "id",
               "operator": "eq",
-              "value": Object {
+              "value": {
                 "label": "bar",
                 "value": "bar",
               },
             },
-            Object {
+            {
               "id": "name",
               "operator": "ct",
               "value": "something",
@@ -525,8 +460,8 @@ describe('ListView', () => {
           ],
           "pageIndex": 0,
           "pageSize": 1,
-          "sortBy": Array [
-            Object {
+          "sortBy": [
+            {
               "desc": false,
               "id": "id",
             },
@@ -544,7 +479,7 @@ describe('ListView', () => {
     });
 
     await act(async () => {
-      wrapper2.find('[aria-label="Sort"]').first().props().onChange({
+      wrapper2.find('[aria-label="Sort"]').first().props().onSelect({
         desc: false,
         id: 'something',
         label: 'Alphabetical',

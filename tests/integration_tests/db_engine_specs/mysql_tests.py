@@ -30,8 +30,8 @@ class TestMySQLEngineSpecsDbEngineSpec(TestDbEngineSpec):
     )
     def test_get_datatype_mysql(self):
         """Tests related to datatype mapping for MySQL"""
-        self.assertEqual("TINY", MySQLEngineSpec.get_datatype(1))
-        self.assertEqual("VARCHAR", MySQLEngineSpec.get_datatype(15))
+        assert "TINY" == MySQLEngineSpec.get_datatype(1)
+        assert "VARCHAR" == MySQLEngineSpec.get_datatype(15)
 
     def test_column_datatype_to_string(self):
         test_cases = (
@@ -49,21 +49,19 @@ class TestMySQLEngineSpecsDbEngineSpec(TestDbEngineSpec):
             actual = MySQLEngineSpec.column_datatype_to_string(
                 original, mysql.dialect()
             )
-            self.assertEqual(actual, expected)
- 
-    # NGLS - BEGIN #
-    # def test_extract_error_message(self):
-    #     from MySQLdb._exceptions import OperationalError
+            assert actual == expected
 
-    #     message = "Unknown table 'BIRTH_NAMES1' in information_schema"
-    #     exception = OperationalError(message)
-    #     extracted_message = MySQLEngineSpec._extract_error_message(exception)
-    #     assert extracted_message == message
+    def test_extract_error_message(self):
+        from MySQLdb._exceptions import OperationalError
 
-    #     exception = OperationalError(123, message)
-    #     extracted_message = MySQLEngineSpec._extract_error_message(exception)
-    #     assert extracted_message == message
-    # NGLS - END #
+        message = "Unknown table 'BIRTH_NAMES1' in information_schema"
+        exception = OperationalError(message)
+        extracted_message = MySQLEngineSpec._extract_error_message(exception)
+        assert extracted_message == message
+
+        exception = OperationalError(123, message)
+        extracted_message = MySQLEngineSpec._extract_error_message(exception)
+        assert extracted_message == message
 
     def test_extract_errors(self):
         """
@@ -172,18 +170,18 @@ class TestMySQLEngineSpecsDbEngineSpec(TestDbEngineSpec):
                     "issue_codes": [
                         {
                             "code": 1015,
-                            "message": "Issue 1015 - Either the database is spelled incorrectly or does not exist.",
+                            "message": "Issue 1015 - Either the database is spelled incorrectly or does not exist.",  # noqa: E501
                         }
                     ],
                 },
             )
         ]
 
-        msg = "check the manual that corresponds to your MySQL server version for the right syntax to use near 'fromm"
+        msg = "check the manual that corresponds to your MySQL server version for the right syntax to use near 'from_"  # noqa: E501
         result = MySQLEngineSpec.extract_errors(Exception(msg))
         assert result == [
             SupersetError(
-                message='Please check your query for syntax errors near "fromm". Then, try running your query again.',
+                message='Please check your query for syntax errors near "from_". Then, try running your query again.',  # noqa: E501
                 error_type=SupersetErrorType.SYNTAX_ERROR,
                 level=ErrorLevel.ERROR,
                 extra={

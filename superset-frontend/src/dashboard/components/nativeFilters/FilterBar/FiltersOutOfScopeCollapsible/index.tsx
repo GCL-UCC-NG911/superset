@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import { css } from '@emotion/react';
 import { Divider, Filter, SupersetTheme, t } from '@superset-ui/core';
 import { AntdCollapse } from 'src/components';
@@ -83,7 +83,15 @@ export const FiltersOutOfScopeCollapsible = ({
   >
     <AntdCollapse.Panel
       forceRender={forceRender}
-      header={t('Filters out of scope (%d)', filtersOutOfScope.length)}
+      header={
+        <span
+          css={(theme: SupersetTheme) => css`
+            font-size: ${theme.typography.sizes.s}px;
+          `}
+        >
+          {t('Filters out of scope (%d)', filtersOutOfScope.length)}
+        </span>
+      }
       key="1"
     >
       {filtersOutOfScope.map(renderer)}
