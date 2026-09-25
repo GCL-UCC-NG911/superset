@@ -16,23 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactNode, PureComponent } from 'react';
+import React from 'react';
 import { Form } from 'src/components/Form';
 
 import { recurseReactClone } from './utils';
 import Field from './Field';
 
 interface FieldsetProps {
-  children: ReactNode;
+  children: React.ReactNode;
   onChange: Function;
   item: Record<string, any>;
-  title: ReactNode;
+  title: React.ReactNode;
   compact: boolean;
 }
 
 type fieldKeyType = string | number;
 
-export default class Fieldset extends PureComponent<FieldsetProps> {
+export default class Fieldset extends React.PureComponent<FieldsetProps> {
   static defaultProps = {
     compact: false,
     title: null,

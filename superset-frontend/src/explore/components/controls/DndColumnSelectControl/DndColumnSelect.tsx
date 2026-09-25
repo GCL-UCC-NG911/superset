@@ -16,15 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   AdhocColumn,
+  FeatureFlag,
+  isFeatureEnabled,
   tn,
   QueryFormColumn,
   t,
   isAdhocColumn,
 } from '@superset-ui/core';
-import { ColumnMeta, isColumnMeta } from '@superset-ui/chart-controls';
+import {
+  ColumnMeta,
+  isColumnMeta,
+  withDndFallback,
+} from '@superset-ui/chart-controls';
 import { isEmpty } from 'lodash';
 import DndSelectLabel from 'src/explore/components/controls/DndColumnSelectControl/DndSelectLabel';
 import OptionWrapper from 'src/explore/components/controls/DndColumnSelectControl/OptionWrapper';
@@ -33,11 +39,11 @@ import { DatasourcePanelDndItem } from 'src/explore/components/DatasourcePanel/t
 import { DndItemType } from 'src/explore/components/DndItemType';
 import ColumnSelectPopoverTrigger from './ColumnSelectPopoverTrigger';
 import { DndControlProps } from './types';
+import SelectControl from '../SelectControl';
 
 export type DndColumnSelectProps = DndControlProps<QueryFormColumn> & {
   options: ColumnMeta[];
   isTemporal?: boolean;
-  disabledTabs?: Set<string>;
 };
 
 function DndColumnSelect(props: DndColumnSelectProps) {
@@ -48,10 +54,10 @@ function DndColumnSelect(props: DndColumnSelectProps) {
     onChange,
     canDelete = true,
     ghostButtonText,
+    clickEnabledGhostButtonText,
     name,
     label,
     isTemporal,
-    disabledTabs,
   } = props;
   const [newColumnPopoverVisible, setNewColumnPopoverVisible] = useState(false);
 
@@ -102,6 +108,11 @@ function DndColumnSelect(props: DndColumnSelectProps) {
     [onChange, optionSelector],
   );
 
+  const clickEnabled = useMemo(
+    () => isFeatureEnabled(FeatureFlag.ENABLE_DND_WITH_CLICK_UX),
+    [],
+  );
+
   const valuesRenderer = useCallback(
     () =>
       optionSelector.values.map((column, idx) => {
@@ -109,9 +120,7 @@ function DndColumnSelect(props: DndColumnSelectProps) {
           isAdhocColumn(column) && column.datasourceWarning
             ? t('This column might be incompatible with current dataset')
             : undefined;
-        const withCaret = isAdhocColumn(column) || !column.error_text;
-
-        return (
+        return clickEnabled ? (
           <ColumnSelectPopoverTrigger
             key={idx}
             columns={options}
@@ -125,7 +134,6 @@ function DndColumnSelect(props: DndColumnSelectProps) {
             }}
             editedColumn={column}
             isTemporal={isTemporal}
-            disabledTabs={disabledTabs}
           >
             <OptionWrapper
               key={idx}
@@ -136,13 +144,25 @@ function DndColumnSelect(props: DndColumnSelectProps) {
               canDelete={canDelete}
               column={column}
               datasourceWarningMessage={datasourceWarningMessage}
-              withCaret={withCaret}
+              withCaret
             />
           </ColumnSelectPopoverTrigger>
+        ) : (
+          <OptionWrapper
+            key={idx}
+            index={idx}
+            clickClose={onClickClose}
+            onShiftOptions={onShiftOptions}
+            type={`${DndItemType.ColumnOption}_${name}_${label}`}
+            canDelete={canDelete}
+            column={column}
+            datasourceWarningMessage={datasourceWarningMessage}
+          />
         );
       }),
     [
       canDelete,
+      clickEnabled,
       isTemporal,
       label,
       name,
@@ -178,16 +198,24 @@ function DndColumnSelect(props: DndColumnSelectProps) {
     togglePopover(true);
   }, [togglePopover]);
 
-  const labelGhostButtonText = useMemo(
-    () =>
+  const labelGhostButtonText = useMemo(() => {
+    if (clickEnabled) {
+      return (
+        clickEnabledGhostButtonText ??
+        ghostButtonText ??
+        tn(
+          'Drop a column here or click',
+          'Drop columns here or click',
+          multi ? 2 : 1,
+        )
+      );
+    }
+
+    return (
       ghostButtonText ??
-      tn(
-        'Drop a column here or click',
-        'Drop columns here or click',
-        multi ? 2 : 1,
-      ),
-    [ghostButtonText, multi],
-  );
+      tn('Drop column here', 'Drop columns here', multi ? 2 : 1)
+    );
+  }, [clickEnabled, clickEnabledGhostButtonText, ghostButtonText, multi]);
 
   return (
     <div>
@@ -198,7 +226,7 @@ function DndColumnSelect(props: DndColumnSelectProps) {
         accept={DndItemType.Column}
         displayGhostButton={multi || optionSelector.values.length === 0}
         ghostButtonText={labelGhostButtonText}
-        onClickGhostButton={openPopover}
+        onClickGhostButton={clickEnabled ? openPopover : undefined}
         {...props}
       />
       <ColumnSelectPopoverTrigger
@@ -209,7 +237,6 @@ function DndColumnSelect(props: DndColumnSelectProps) {
         closePopover={closePopover}
         visible={newColumnPopoverVisible}
         isTemporal={isTemporal}
-        disabledTabs={disabledTabs}
       >
         <div />
       </ColumnSelectPopoverTrigger>
@@ -217,4 +244,9 @@ function DndColumnSelect(props: DndColumnSelectProps) {
   );
 }
 
-export { DndColumnSelect };
+const DndColumnSelectWithFallback = withDndFallback(
+  DndColumnSelect,
+  SelectControl,
+);
+
+export { DndColumnSelectWithFallback as DndColumnSelect };

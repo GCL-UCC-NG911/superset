@@ -16,15 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { dashboardLayout } from 'spec/fixtures/mockDashboardLayout';
 import { buildNativeFilter } from 'spec/fixtures/mockNativeFilters';
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from 'spec/helpers/testing-library';
-import userEvent from '@testing-library/user-event';
+import { act, fireEvent, render, screen } from 'spec/helpers/testing-library';
 import FilterConfigPane from './FilterConfigurePane';
 
 const scrollMock = jest.fn();
@@ -74,7 +69,7 @@ test('drag and drop', async () => {
     'div[draggable=true]',
   );
   // const productFilter = await screen.findByText('NATIVE_FILTER-3');
-  await waitFor(() => {
+  await act(async () => {
     fireEvent.dragStart(productFilter);
     fireEvent.dragEnter(countryStateFilter);
     fireEvent.dragOver(countryStateFilter);
@@ -89,22 +84,51 @@ test('remove filter', async () => {
   defaultRender();
   // First trash icon
   const removeFilterIcon = document.querySelector("[alt='RemoveFilter']")!;
-  userEvent.click(removeFilterIcon);
+  await act(async () => {
+    fireEvent(
+      removeFilterIcon,
+      new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+  });
   expect(defaultProps.onRemove).toHaveBeenCalledWith('NATIVE_FILTER-1');
 });
 
 test('add filter', async () => {
   defaultRender();
   // First trash icon
-  const addFilterButton = await screen.findByText('Add Filter');
-  userEvent.click(addFilterButton);
+  const addButton = screen.getByText('Add filters and dividers')!;
+  fireEvent.mouseOver(addButton);
+  const addFilterButton = await screen.findByText('Filter');
+
+  await act(async () => {
+    fireEvent(
+      addFilterButton,
+      new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+  });
   expect(defaultProps.onAdd).toHaveBeenCalledWith('NATIVE_FILTER');
 });
 
 test('add divider', async () => {
   defaultRender();
-  const addFilterButton = await screen.findByText('Add Divider');
-  userEvent.click(addFilterButton);
+  const addButton = screen.getByText('Add filters and dividers')!;
+  fireEvent.mouseOver(addButton);
+  const addFilterButton = await screen.findByText('Divider');
+  await act(async () => {
+    fireEvent(
+      addFilterButton,
+      new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+  });
   expect(defaultProps.onAdd).toHaveBeenCalledWith('DIVIDER');
 });
 
@@ -128,12 +152,20 @@ test('filter container should scroll to bottom when adding items', async () => {
 
   defaultRender(state, props);
 
-  const addFilterButton = await screen.findByText('Add Filter');
+  const addButton = screen.getByText('Add filters and dividers')!;
+  fireEvent.mouseOver(addButton);
 
-  userEvent.click(addFilterButton);
-
-  await waitFor(() => {
-    const containerElement = screen.getByTestId('filter-title-container');
-    expect(containerElement.scroll).toHaveBeenCalled();
+  const addFilterButton = await screen.findByText('Filter');
+  await act(async () => {
+    fireEvent(
+      addFilterButton,
+      new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
   });
+
+  const containerElement = screen.getByTestId('filter-title-container');
+  expect(containerElement.scroll).toHaveBeenCalled();
 });

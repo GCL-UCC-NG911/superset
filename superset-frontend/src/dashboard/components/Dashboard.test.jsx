@@ -16,10 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { shallow } from 'enzyme';
 import sinon from 'sinon';
 
 import Dashboard from 'src/dashboard/components/Dashboard';
+import DashboardBuilder from 'src/dashboard/components/DashboardBuilder/DashboardBuilder';
 import { CHART_TYPE } from 'src/dashboard/util/componentTypes';
 import newComponentFactory from 'src/dashboard/util/newComponentFactory';
 
@@ -37,9 +39,6 @@ import { dashboardLayout } from 'spec/fixtures/mockDashboardLayout';
 import dashboardState from 'spec/fixtures/mockDashboardState';
 import { sliceEntitiesForChart as sliceEntities } from 'spec/fixtures/mockSliceEntities';
 import { getAllActiveFilters } from 'src/dashboard/util/activeAllDashboardFilters';
-import { getRelatedCharts } from 'src/dashboard/util/getRelatedCharts';
-
-jest.mock('src/dashboard/util/getRelatedCharts');
 
 describe('Dashboard', () => {
   const props = {
@@ -49,6 +48,7 @@ describe('Dashboard', () => {
       triggerQuery() {},
       logEvent() {},
     },
+    initMessages: [],
     dashboardState,
     dashboardInfo,
     charts: chartQueries,
@@ -61,17 +61,10 @@ describe('Dashboard', () => {
     userId: dashboardInfo.userId,
     impressionId: 'id',
     loadStats: {},
-    chartConfiguration: {},
   };
 
-  const ChildrenComponent = () => <div>Test</div>;
-
   function setup(overrideProps) {
-    const wrapper = shallow(
-      <Dashboard {...props} {...overrideProps}>
-        <ChildrenComponent />
-      </Dashboard>,
-    );
+    const wrapper = shallow(<Dashboard {...props} {...overrideProps} />);
     return wrapper;
   }
 
@@ -83,9 +76,9 @@ describe('Dashboard', () => {
     '3_country_name': { values: ['USA'], scope: [] },
   };
 
-  it('should render the children component', () => {
+  it('should render a DashboardBuilder', () => {
     const wrapper = setup();
-    expect(wrapper.find(ChildrenComponent)).toExist();
+    expect(wrapper.find(DashboardBuilder)).toExist();
   });
 
   describe('UNSAFE_componentWillReceiveProps', () => {
@@ -134,7 +127,6 @@ describe('Dashboard', () => {
 
     afterEach(() => {
       refreshSpy.restore();
-      jest.clearAllMocks();
     });
 
     it('should not call refresh when is editMode', () => {
@@ -158,7 +150,6 @@ describe('Dashboard', () => {
     });
 
     it('should call refresh when native filters changed', () => {
-      getRelatedCharts.mockReturnValue([230]);
       wrapper.setProps({
         activeFilters: {
           ...OVERRIDE_FILTERS,
@@ -176,21 +167,11 @@ describe('Dashboard', () => {
         [NATIVE_FILTER_ID]: {
           scope: [230],
           values: extraFormData,
-          filterType: 'filter_select',
-          targets: [
-            {
-              datasetId: 13,
-              column: {
-                name: 'ethnic_minority',
-              },
-            },
-          ],
         },
       });
     });
 
     it('should call refresh if a filter is added', () => {
-      getRelatedCharts.mockReturnValue([1]);
       const newFilter = {
         gender: { values: ['boy', 'girl'], scope: [1] },
       };
@@ -202,7 +183,6 @@ describe('Dashboard', () => {
     });
 
     it('should call refresh if a filter is removed', () => {
-      getRelatedCharts.mockReturnValue([]);
       wrapper.setProps({
         activeFilters: {},
       });
@@ -211,7 +191,6 @@ describe('Dashboard', () => {
     });
 
     it('should call refresh if a filter is changed', () => {
-      getRelatedCharts.mockReturnValue([1]);
       const newFilters = {
         ...OVERRIDE_FILTERS,
         '1_region': { values: ['Canada'], scope: [1] },
@@ -225,7 +204,6 @@ describe('Dashboard', () => {
     });
 
     it('should call refresh with multiple chart ids', () => {
-      getRelatedCharts.mockReturnValue([1, 2]);
       const newFilters = {
         ...OVERRIDE_FILTERS,
         '2_country_name': { values: ['New Country'], scope: [1, 2] },
@@ -252,7 +230,6 @@ describe('Dashboard', () => {
     });
 
     it('should call refresh with empty [] if a filter is changed but scope is not applicable', () => {
-      getRelatedCharts.mockReturnValue([]);
       const newFilters = {
         ...OVERRIDE_FILTERS,
         '3_country_name': { values: ['CHINA'], scope: [] },

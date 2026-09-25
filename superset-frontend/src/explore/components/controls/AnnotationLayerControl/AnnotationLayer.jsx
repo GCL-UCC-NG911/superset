@@ -16,8 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { PureComponent } from 'react';
-import rison from 'rison';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { CompactPicker } from 'react-color';
 import Button from 'src/components/Button';
@@ -31,15 +30,11 @@ import {
   styled,
   getColumnLabel,
   withTheme,
-  VizType,
 } from '@superset-ui/core';
+
 import SelectControl from 'src/explore/components/controls/SelectControl';
-import { AsyncSelect } from 'src/components';
 import TextControl from 'src/explore/components/controls/TextControl';
 import CheckboxControl from 'src/explore/components/controls/CheckboxControl';
-import PopoverSection from 'src/components/PopoverSection';
-import ControlHeader from 'src/explore/components/ControlHeader';
-import { EmptyState } from 'src/components/EmptyState';
 import {
   ANNOTATION_SOURCE_TYPES,
   ANNOTATION_TYPES,
@@ -47,7 +42,10 @@ import {
   DEFAULT_ANNOTATION_TYPE,
   requiresQuery,
   ANNOTATION_SOURCE_TYPES_METADATA,
-} from './AnnotationTypes';
+} from 'src/modules/AnnotationTypes';
+import PopoverSection from 'src/components/PopoverSection';
+import ControlHeader from 'src/explore/components/ControlHeader';
+import { EmptyStateSmall } from 'src/components/EmptyState';
 
 const AUTOMATIC_COLOR = '';
 
@@ -112,9 +110,8 @@ const NotFoundContentWrapper = styled.div`
 
 const NotFoundContent = () => (
   <NotFoundContentWrapper>
-    <EmptyState
+    <EmptyStateSmall
       title={t('No annotation layers')}
-      size="small"
       description={
         <span>
           {t('Add an annotation layer')}{' '}
@@ -133,7 +130,7 @@ const NotFoundContent = () => (
   </NotFoundContentWrapper>
 );
 
-class AnnotationLayer extends PureComponent {
+class AnnotationLayer extends React.PureComponent {
   constructor(props) {
     super(props);
     const {
@@ -196,46 +193,28 @@ class AnnotationLayer extends PureComponent {
       hideLine,
       // refData
       isNew: !name,
-      slice: null,
+      isLoadingOptions: true,
+      valueOptions: [],
     };
     this.submitAnnotation = this.submitAnnotation.bind(this);
     this.deleteAnnotation = this.deleteAnnotation.bind(this);
     this.applyAnnotation = this.applyAnnotation.bind(this);
-    this.isValidForm = this.isValidForm.bind(this);
-    // Handlers
+    this.fetchOptions = this.fetchOptions.bind(this);
     this.handleAnnotationType = this.handleAnnotationType.bind(this);
     this.handleAnnotationSourceType =
       this.handleAnnotationSourceType.bind(this);
-    this.handleSelectValue = this.handleSelectValue.bind(this);
-    this.handleTextValue = this.handleTextValue.bind(this);
-    // Fetch related functions
-    this.fetchOptions = this.fetchOptions.bind(this);
-    this.fetchCharts = this.fetchCharts.bind(this);
-    this.fetchNativeAnnotations = this.fetchNativeAnnotations.bind(this);
-    this.fetchAppliedAnnotation = this.fetchAppliedAnnotation.bind(this);
-    this.fetchSliceData = this.fetchSliceData.bind(this);
-    this.shouldFetchSliceData = this.shouldFetchSliceData.bind(this);
-    this.fetchAppliedChart = this.fetchAppliedChart.bind(this);
-    this.fetchAppliedNativeAnnotation =
-      this.fetchAppliedNativeAnnotation.bind(this);
-    this.shouldFetchAppliedAnnotation =
-      this.shouldFetchAppliedAnnotation.bind(this);
+    this.handleValue = this.handleValue.bind(this);
+    this.isValidForm = this.isValidForm.bind(this);
   }
 
   componentDidMount() {
-    if (this.shouldFetchAppliedAnnotation()) {
-      const { value } = this.state;
-      /* The value prop is the id of the chart/native. This function will set
-      value in state to an object with the id as value.value to be used by
-      AsyncSelect */
-      this.fetchAppliedAnnotation(value);
-    }
+    const { annotationType, sourceType, isLoadingOptions } = this.state;
+    this.fetchOptions(annotationType, sourceType, isLoadingOptions);
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (this.shouldFetchSliceData(prevState)) {
-      const { value } = this.state;
-      this.fetchSliceData(value.value);
+    if (prevState.sourceType !== this.state.sourceType) {
+      this.fetchOptions(this.state.annotationType, this.state.sourceType, true);
     }
   }
 
@@ -247,7 +226,7 @@ class AnnotationLayer extends PureComponent {
         chartMetadata.canBeAnnotationType(annotationType),
       )
       .map(({ key, value: chartMetadata }) => ({
-        value: key === VizType.Line ? 'line' : key,
+        value: key,
         label: chartMetadata.name,
       }));
     // Prepend native source if applicable
@@ -255,20 +234,6 @@ class AnnotationLayer extends PureComponent {
       sources.unshift(ANNOTATION_SOURCE_TYPES_METADATA.NATIVE);
     }
     return sources;
-  }
-
-  shouldFetchAppliedAnnotation() {
-    const { value, sourceType } = this.state;
-    return value && requiresQuery(sourceType);
-  }
-
-  shouldFetchSliceData(prevState) {
-    const { value, sourceType } = this.state;
-    const isChart =
-      sourceType !== ANNOTATION_SOURCE_TYPES.NATIVE &&
-      requiresQuery(sourceType);
-    const valueIsNew = value && prevState.value !== value;
-    return valueIsNew && isChart;
   }
 
   isValidFormulaAnnotation(expression, annotationType) {
@@ -310,7 +275,6 @@ class AnnotationLayer extends PureComponent {
       annotationType,
       sourceType: null,
       value: null,
-      slice: null,
     });
   }
 
@@ -318,17 +282,13 @@ class AnnotationLayer extends PureComponent {
     const { sourceType: prevSourceType } = this.state;
 
     if (prevSourceType !== sourceType) {
-      this.setState({
-        sourceType,
-        value: null,
-        slice: null,
-      });
+      this.setState({ sourceType, value: null, isLoadingOptions: true });
     }
   }
 
-  handleSelectValue(selectedValueObject) {
+  handleValue(value) {
     this.setState({
-      value: selectedValueObject,
+      value,
       descriptionColumns: [],
       intervalEndColumn: null,
       timeColumn: null,
@@ -337,172 +297,59 @@ class AnnotationLayer extends PureComponent {
     });
   }
 
-  handleTextValue(inputValue) {
-    this.setState({
-      value: inputValue,
-    });
-  }
-
-  fetchNativeAnnotations = async (search, page, pageSize) => {
-    const queryParams = rison.encode({
-      filters: [
-        {
-          col: 'name',
-          opr: 'ct',
-          value: search,
-        },
-      ],
-      columns: ['id', 'name'],
-      page,
-      page_size: pageSize,
-    });
-
-    const { json } = await SupersetClient.get({
-      endpoint: `/api/v1/annotation_layer/?q=${queryParams}`,
-    });
-
-    const { result, count } = json;
-
-    const layersArray = result.map(layer => ({
-      value: layer.id,
-      label: layer.name,
-    }));
-
-    return {
-      data: layersArray,
-      totalCount: count,
-    };
-  };
-
-  fetchCharts = async (search, page, pageSize) => {
-    const { annotationType } = this.state;
-
-    const queryParams = rison.encode({
-      filters: [
-        { col: 'slice_name', opr: 'chart_all_text', value: search },
-        {
-          col: 'id',
-          opr: 'chart_owned_created_favored_by_me',
-          value: true,
-        },
-      ],
-      columns: ['id', 'slice_name', 'viz_type'],
-      order_column: 'slice_name',
-      order_direction: 'asc',
-      page,
-      page_size: pageSize,
-    });
-    const { json } = await SupersetClient.get({
-      endpoint: `/api/v1/chart/?q=${queryParams}`,
-    });
-
-    const { result, count } = json;
-    const registry = getChartMetadataRegistry();
-
-    const chartsArray = result
-      .filter(chart => {
-        const metadata = registry.get(chart.viz_type);
-        return metadata && metadata.canBeAnnotationType(annotationType);
-      })
-      .map(chart => ({
-        value: chart.id,
-        label: chart.slice_name,
-        viz_type: chart.viz_type,
-      }));
-
-    return {
-      data: chartsArray,
-      totalCount: count,
-    };
-  };
-
-  fetchOptions = (search, page, pageSize) => {
-    const { sourceType } = this.state;
-
-    if (sourceType === ANNOTATION_SOURCE_TYPES.NATIVE) {
-      return this.fetchNativeAnnotations(search, page, pageSize);
-    }
-    return this.fetchCharts(search, page, pageSize);
-  };
-
-  fetchSliceData = id => {
-    const queryParams = rison.encode({
-      columns: ['query_context'],
-    });
-    SupersetClient.get({
-      endpoint: `/api/v1/chart/${id}?q=${queryParams}`,
-    }).then(({ json }) => {
-      const { result } = json;
-      const queryContext = result.query_context;
-      const formData = JSON.parse(queryContext).form_data;
-      const dataObject = {
-        data: {
-          ...formData,
-          groupby: formData.groupby?.map(column => getColumnLabel(column)),
-        },
-      };
-      this.setState({
-        slice: dataObject,
-      });
-    });
-  };
-
-  fetchAppliedChart(id) {
-    const { annotationType } = this.state;
-    const registry = getChartMetadataRegistry();
-    const queryParams = rison.encode({
-      columns: ['slice_name', 'query_context', 'viz_type'],
-    });
-    SupersetClient.get({
-      endpoint: `/api/v1/chart/${id}?q=${queryParams}`,
-    }).then(({ json }) => {
-      const { result } = json;
-      const sliceName = result.slice_name;
-      const queryContext = result.query_context;
-      const vizType = result.viz_type;
-      const formData = JSON.parse(queryContext).form_data;
-      const metadata = registry.get(vizType);
-      const canBeAnnotationType =
-        metadata && metadata.canBeAnnotationType(annotationType);
-      if (canBeAnnotationType) {
+  fetchOptions(annotationType, sourceType, isLoadingOptions) {
+    if (isLoadingOptions) {
+      if (sourceType === ANNOTATION_SOURCE_TYPES.NATIVE) {
+        SupersetClient.get({
+          endpoint: '/api/v1/annotation_layer/',
+        }).then(({ json }) => {
+          const layers = json
+            ? json.result.map(layer => ({
+                value: layer.id,
+                label: layer.name,
+              }))
+            : [];
+          this.setState({
+            isLoadingOptions: false,
+            valueOptions: layers,
+          });
+        });
+      } else if (requiresQuery(sourceType)) {
+        SupersetClient.get({ endpoint: '/superset/user_slices' }).then(
+          ({ json }) => {
+            const registry = getChartMetadataRegistry();
+            this.setState({
+              isLoadingOptions: false,
+              valueOptions: json
+                .filter(x => {
+                  const metadata = registry.get(x.viz_type);
+                  return (
+                    metadata && metadata.canBeAnnotationType(annotationType)
+                  );
+                })
+                .map(x => ({
+                  value: x.id,
+                  label: x.title,
+                  slice: {
+                    ...x,
+                    data: {
+                      ...x.data,
+                      groupby: x.data.groupby?.map(column =>
+                        getColumnLabel(column),
+                      ),
+                    },
+                  },
+                })),
+            });
+          },
+        );
+      } else {
         this.setState({
-          value: {
-            value: id,
-            label: sliceName,
-          },
-          slice: {
-            data: {
-              ...formData,
-              groupby: formData.groupby?.map(column => getColumnLabel(column)),
-            },
-          },
+          isLoadingOptions: false,
+          valueOptions: [],
         });
       }
-    });
-  }
-
-  fetchAppliedNativeAnnotation(id) {
-    SupersetClient.get({
-      endpoint: `/api/v1/annotation_layer/${id}`,
-    }).then(({ json }) => {
-      const { result } = json;
-      const layer = result;
-      this.setState({
-        value: {
-          value: layer.id,
-          label: layer.name,
-        },
-      });
-    });
-  }
-
-  fetchAppliedAnnotation(id) {
-    const { sourceType } = this.state;
-
-    if (sourceType === ANNOTATION_SOURCE_TYPES.NATIVE) {
-      return this.fetchAppliedNativeAnnotation(id);
     }
-    return this.fetchAppliedChart(id);
   }
 
   deleteAnnotation() {
@@ -511,7 +358,6 @@ class AnnotationLayer extends PureComponent {
   }
 
   applyAnnotation() {
-    const { value, sourceType } = this.state;
     if (this.isValidForm()) {
       const annotationFields = [
         'name',
@@ -523,6 +369,7 @@ class AnnotationLayer extends PureComponent {
         'width',
         'showMarkers',
         'hideLine',
+        'value',
         'overrides',
         'show',
         'showLabel',
@@ -538,10 +385,6 @@ class AnnotationLayer extends PureComponent {
         }
       });
 
-      // Prepare newAnnotation.value for use in runAnnotationQuery()
-      const applicableValue = requiresQuery(sourceType) ? value.value : value;
-      newAnnotation.value = applicableValue;
-
       if (newAnnotation.color === AUTOMATIC_COLOR) {
         newAnnotation.color = null;
       }
@@ -556,19 +399,29 @@ class AnnotationLayer extends PureComponent {
     this.props.close();
   }
 
-  renderChartHeader(label, description, value) {
+  renderOption(option) {
     return (
-      <ControlHeader
-        hovered
-        label={label}
-        description={description}
-        validationErrors={!value ? ['Mandatory'] : []}
-      />
+      <span
+        css={{
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+        title={option.label}
+      >
+        {option.label}
+      </span>
     );
   }
 
   renderValueConfiguration() {
-    const { annotationType, sourceType, value } = this.state;
+    const {
+      annotationType,
+      sourceType,
+      value,
+      valueOptions,
+      isLoadingOptions,
+    } = this.state;
     let label = '';
     let description = '';
     if (requiresQuery(sourceType)) {
@@ -593,15 +446,20 @@ class AnnotationLayer extends PureComponent {
     }
     if (requiresQuery(sourceType)) {
       return (
-        <AsyncSelect
-          /* key to force re-render on sourceType change */
-          key={sourceType}
+        <SelectControl
           ariaLabel={t('Annotation layer value')}
           name="annotation-layer-value"
-          header={this.renderChartHeader(label, description, value)}
-          options={this.fetchOptions}
-          value={value || null}
-          onChange={this.handleSelectValue}
+          showHeader
+          hovered
+          description={description}
+          label={label}
+          placeholder=""
+          options={valueOptions}
+          isLoading={isLoadingOptions}
+          value={value}
+          onChange={this.handleValue}
+          validationErrors={!value ? ['Mandatory'] : []}
+          optionRenderer={this.renderOption}
           notFoundContent={<NotFoundContent />}
         />
       );
@@ -616,7 +474,7 @@ class AnnotationLayer extends PureComponent {
           label={label}
           placeholder=""
           value={value}
-          onChange={this.handleTextValue}
+          onChange={this.handleValue}
           validationErrors={
             !this.isValidFormulaAnnotation(value, annotationType)
               ? [t('Bad formula.')]
@@ -633,18 +491,14 @@ class AnnotationLayer extends PureComponent {
       annotationType,
       sourceType,
       value,
-      slice,
+      valueOptions,
       overrides,
       titleColumn,
       timeColumn,
       intervalEndColumn,
       descriptionColumns,
     } = this.state;
-
-    if (!slice || !value) {
-      return '';
-    }
-
+    const { slice } = valueOptions.find(x => x.value === value) || {};
     if (sourceType !== ANNOTATION_SOURCE_TYPES.NATIVE && slice) {
       const columns = (slice.data.groupby || [])
         .concat(slice.data.all_columns || [])

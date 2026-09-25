@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { useTheme } from '@superset-ui/core';
 
 export const CheckboxChecked = () => {

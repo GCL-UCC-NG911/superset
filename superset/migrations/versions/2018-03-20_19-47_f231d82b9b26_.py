@@ -21,7 +21,6 @@ Revises: e68c4473c581
 Create Date: 2018-03-20 19:47:54.991259
 
 """
-
 import sqlalchemy as sa
 from alembic import op
 
@@ -37,6 +36,7 @@ names = {"columns": "column_name", "metrics": "metric_name"}
 
 
 def upgrade():
+
     # Reduce the size of the metric_name column for constraint viability.
     with op.batch_alter_table("metrics", naming_convention=conv) as batch_op:
         batch_op.alter_column(
@@ -50,11 +50,12 @@ def upgrade():
     for table, column in names.items():
         with op.batch_alter_table(table, naming_convention=conv) as batch_op:
             batch_op.create_unique_constraint(
-                f"uq_{table}_{column}", [column, "datasource_id"]
+                "uq_{}_{}".format(table, column), [column, "datasource_id"]
             )
 
 
 def downgrade():
+
     bind = op.get_bind()
     insp = sa.engine.reflection.Inspector.from_engine(bind)
 
@@ -72,6 +73,6 @@ def downgrade():
         with op.batch_alter_table(table, naming_convention=conv) as batch_op:
             batch_op.drop_constraint(
                 generic_find_uq_constraint_name(table, {column, "datasource_id"}, insp)
-                or f"uq_{table}_{column}",
+                or "uq_{}_{}".format(table, column),
                 type_="unique",
             )

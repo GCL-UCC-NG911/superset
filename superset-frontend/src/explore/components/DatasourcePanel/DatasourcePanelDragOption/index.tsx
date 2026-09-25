@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { RefObject } from 'react';
+import React from 'react';
 import { useDrag } from 'react-dnd';
 import { css, Metric, styled } from '@superset-ui/core';
 import { ColumnMeta } from '@superset-ui/chart-controls';
@@ -51,7 +51,7 @@ const DatasourceItemContainer = styled.div`
 `;
 
 interface DatasourcePanelDragOptionProps extends DatasourcePanelDndItem {
-  labelRef?: RefObject<any>;
+  labelRef?: React.RefObject<any>;
   showTooltip?: boolean;
 }
 

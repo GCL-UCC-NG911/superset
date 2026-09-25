@@ -42,9 +42,6 @@ export type UiConfigType = {
     visible?: boolean
     expanded?: boolean
   }
-  urlParams?: {
-    [key: string]: any
-  }
 }
 
 export type EmbedDashboardParams = {
@@ -60,10 +57,6 @@ export type EmbedDashboardParams = {
   dashboardUiConfig?: UiConfigType
   /** Are we in debug mode? */
   debug?: boolean
-  /** The iframe title attribute */
-  iframeTitle?: string
-  /** additional iframe sandbox attributes ex (allow-top-navigation, allow-popups-to-escape-sandbox) **/
-  iframeSandboxExtras?: string[]
 }
 
 export type Size = {
@@ -86,9 +79,7 @@ export async function embedDashboard({
   mountPoint,
   fetchGuestToken,
   dashboardUiConfig,
-  debug = false,
-  iframeTitle = "Embedded Dashboard",
-  iframeSandboxExtras = []
+  debug = false
 }: EmbedDashboardParams): Promise<EmbeddedDashboard> {
   function log(...info: unknown[]) {
     if (debug) {
@@ -97,10 +88,6 @@ export async function embedDashboard({
   }
 
   log('embedding');
-
-  if (supersetDomain.endsWith("/")) {
-    supersetDomain = supersetDomain.slice(0, -1);
-  }
 
   function calculateConfig() {
     let configNumber = 0
@@ -121,15 +108,14 @@ export async function embedDashboard({
   async function mountIframe(): Promise<Switchboard> {
     return new Promise(resolve => {
       const iframe = document.createElement('iframe');
-      const dashboardConfigUrlParams = dashboardUiConfig ? {uiConfig: `${calculateConfig()}`} : undefined;
+      const dashboardConfig = dashboardUiConfig ? `?uiConfig=${calculateConfig()}` : ""
       const filterConfig = dashboardUiConfig?.filters || {}
       const filterConfigKeys = Object.keys(filterConfig)
-      const filterConfigUrlParams = Object.fromEntries(filterConfigKeys.map(
-        key => [DASHBOARD_UI_FILTER_CONFIG_URL_PARAM_KEY[key], filterConfig[key]]))
-
-      // Allow url query parameters from dashboardUiConfig.urlParams to override the ones from filterConfig
-      const urlParams = {...dashboardConfigUrlParams, ...filterConfigUrlParams, ...dashboardUiConfig?.urlParams}
-      const urlParamsString = Object.keys(urlParams).length ? '?' + new URLSearchParams(urlParams).toString() : ''
+      const filterConfigUrlParams = filterConfigKeys.length > 0
+        ? "&"
+        + filterConfigKeys
+          .map(key => DASHBOARD_UI_FILTER_CONFIG_URL_PARAM_KEY[key] + '=' + filterConfig[key]).join('&')
+        : ""
 
       // set up the iframe's sandbox configuration
       iframe.sandbox.add("allow-same-origin"); // needed for postMessage to work
@@ -138,10 +124,8 @@ export async function embedDashboard({
       iframe.sandbox.add("allow-downloads"); // for downloading charts as image
       iframe.sandbox.add("allow-forms"); // for forms to submit
       iframe.sandbox.add("allow-popups"); // for exporting charts as csv
-      // additional sandbox props
-      iframeSandboxExtras.forEach((key: string) => {
-        iframe.sandbox.add(key);
-      });
+      // add these if it turns out we need them:
+      // iframe.sandbox.add("allow-top-navigation");
 
       // add the event listener before setting src, to be 100% sure that we capture the load event
       iframe.addEventListener('load', () => {
@@ -164,9 +148,8 @@ export async function embedDashboard({
         // return our port from the promise
         resolve(new Switchboard({ port: ourPort, name: 'superset-embedded-sdk', debug }));
       });
-      iframe.src = `${supersetDomain}/embedded/${id}${urlParamsString}`;
-      iframe.title = iframeTitle;
-      //@ts-ignore
+
+      iframe.src = `${supersetDomain}/embedded/${id}${dashboardConfig}${filterConfigUrlParams}`;
       mountPoint.replaceChildren(iframe);
       log('placed the iframe')
     });
@@ -190,7 +173,6 @@ export async function embedDashboard({
 
   function unmount() {
     log('unmounting');
-    //@ts-ignore
     mountPoint.replaceChildren();
   }
 

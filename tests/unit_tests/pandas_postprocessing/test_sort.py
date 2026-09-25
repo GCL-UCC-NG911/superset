@@ -48,6 +48,6 @@ def test_sort():
     df = sort(df=timeseries_df)
     assert df.equals(timeseries_df)
 
-    with pytest.raises(InvalidPostProcessingError):  # noqa: PT012
+    with pytest.raises(InvalidPostProcessingError):
         sort(df=df, by="abc", ascending=False)
         sort(df=df, by=["abc", "def"])

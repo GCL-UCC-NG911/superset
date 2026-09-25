@@ -16,16 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { Behavior, t } from '@superset-ui/core';
+import { Behavior, ChartMetadata, ChartPlugin, t } from '@superset-ui/core';
 import buildQuery from './buildQuery';
 import controlPanel from './controlPanel';
 import transformProps from './transformProps';
 import thumbnail from './images/thumbnail.png';
 import example from './images/example.jpg';
 import { EchartsFunnelChartProps, EchartsFunnelFormData } from './types';
-import { EchartsChartPlugin } from '../types';
 
-export default class EchartsFunnelChartPlugin extends EchartsChartPlugin<
+export default class EchartsFunnelChartPlugin extends ChartPlugin<
   EchartsFunnelFormData,
   EchartsFunnelChartProps
 > {
@@ -44,12 +43,8 @@ export default class EchartsFunnelChartPlugin extends EchartsChartPlugin<
       buildQuery,
       controlPanel,
       loadChart: () => import('./EchartsFunnel'),
-      metadata: {
-        behaviors: [
-          Behavior.InteractiveChart,
-          Behavior.DrillToDetail,
-          Behavior.DrillBy,
-        ],
+      metadata: new ChartMetadata({
+        behaviors: [Behavior.INTERACTIVE_CHART, Behavior.DRILL_TO_DETAIL],
         category: t('KPI'),
         credits: ['https://echarts.apache.org'],
         description: t(
@@ -64,10 +59,9 @@ export default class EchartsFunnelChartPlugin extends EchartsChartPlugin<
           t('Report'),
           t('Sequential'),
           t('Trend'),
-          t('Featured'),
         ],
         thumbnail,
-      },
+      }),
       transformProps,
     });
   }

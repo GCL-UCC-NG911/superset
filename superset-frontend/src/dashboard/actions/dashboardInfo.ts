@@ -17,46 +17,76 @@
  * under the License.
  */
 import { Dispatch } from 'redux';
-import { makeApi, t, getErrorText } from '@superset-ui/core';
+import { makeApi, CategoricalColorNamespace } from '@superset-ui/core';
+import { isString } from 'lodash';
+import { getErrorText } from 'src/utils/getClientErrorObject';
 import { addDangerToast } from 'src/components/MessageToasts/actions';
 import {
-  ChartConfiguration,
   DashboardInfo,
   FilterBarOrientation,
-  GlobalChartCrossFilterConfig,
   RootState,
 } from 'src/dashboard/types';
+import { ChartConfiguration } from 'src/dashboard/reducers/types';
 import { onSave } from './dashboardState';
 
 export const DASHBOARD_INFO_UPDATED = 'DASHBOARD_INFO_UPDATED';
-export const DASHBOARD_INFO_FILTERS_CHANGED = 'DASHBOARD_INFO_FILTERS_CHANGED';
+
+export function updateColorSchema(
+  metadata: Record<string, any>,
+  labelColors: Record<string, string>,
+) {
+  const categoricalNamespace = CategoricalColorNamespace.getNamespace(
+    metadata?.color_namespace,
+  );
+  const colorMap = isString(labelColors)
+    ? JSON.parse(labelColors)
+    : labelColors;
+  Object.keys(colorMap).forEach(label => {
+    categoricalNamespace.setColor(label, colorMap[label]);
+  });
+}
 
 // updates partially changed dashboard info
 export function dashboardInfoChanged(newInfo: { metadata: any }) {
+  const { metadata } = newInfo;
+
+  const categoricalNamespace = CategoricalColorNamespace.getNamespace(
+    metadata?.color_namespace,
+  );
+
+  categoricalNamespace.resetColors();
+
+  if (metadata?.shared_label_colors) {
+    updateColorSchema(metadata, metadata?.shared_label_colors);
+  }
+
+  if (metadata?.label_colors) {
+    updateColorSchema(metadata, metadata?.label_colors);
+  }
+
   return { type: DASHBOARD_INFO_UPDATED, newInfo };
 }
-
-export function nativeFiltersConfigChanged(newInfo: Record<string, any>) {
-  return { type: DASHBOARD_INFO_FILTERS_CHANGED, newInfo };
+export const SET_CHART_CONFIG_BEGIN = 'SET_CHART_CONFIG_BEGIN';
+export interface SetChartConfigBegin {
+  type: typeof SET_CHART_CONFIG_BEGIN;
+  chartConfiguration: ChartConfiguration;
 }
-
-export const SAVE_CHART_CONFIG_BEGIN = 'SAVE_CHART_CONFIG_BEGIN';
-export const SAVE_CHART_CONFIG_COMPLETE = 'SAVE_CHART_CONFIG_COMPLETE';
-export const SAVE_CHART_CONFIG_FAIL = 'SAVE_CHART_CONFIG_FAIL';
-
-export const saveChartConfiguration =
-  ({
-    chartConfiguration,
-    globalChartConfiguration,
-  }: {
-    chartConfiguration?: ChartConfiguration;
-    globalChartConfiguration?: GlobalChartCrossFilterConfig;
-  }) =>
-  async (dispatch: Dispatch, getState: () => RootState) => {
+export const SET_CHART_CONFIG_COMPLETE = 'SET_CHART_CONFIG_COMPLETE';
+export interface SetChartConfigComplete {
+  type: typeof SET_CHART_CONFIG_COMPLETE;
+  chartConfiguration: ChartConfiguration;
+}
+export const SET_CHART_CONFIG_FAIL = 'SET_CHART_CONFIG_FAIL';
+export interface SetChartConfigFail {
+  type: typeof SET_CHART_CONFIG_FAIL;
+  chartConfiguration: ChartConfiguration;
+}
+export const setChartConfiguration =
+  (chartConfiguration: ChartConfiguration) =>
+  async (dispatch: Dispatch, getState: () => any) => {
     dispatch({
-      type: SAVE_CHART_CONFIG_BEGIN,
+      type: SET_CHART_CONFIG_BEGIN,
       chartConfiguration,
-      globalChartConfiguration,
     });
     const { id, metadata } = getState().dashboardInfo;
 
@@ -73,10 +103,7 @@ export const saveChartConfiguration =
       const response = await updateDashboard({
         json_metadata: JSON.stringify({
           ...metadata,
-          chart_configuration:
-            chartConfiguration ?? metadata.chart_configuration,
-          global_chart_configuration:
-            globalChartConfiguration ?? metadata.global_chart_configuration,
+          chart_configuration: chartConfiguration,
         }),
       });
       dispatch(
@@ -85,22 +112,19 @@ export const saveChartConfiguration =
         }),
       );
       dispatch({
-        type: SAVE_CHART_CONFIG_COMPLETE,
+        type: SET_CHART_CONFIG_COMPLETE,
         chartConfiguration,
-        globalChartConfiguration,
       });
     } catch (err) {
-      dispatch({
-        type: SAVE_CHART_CONFIG_FAIL,
-        chartConfiguration,
-        globalChartConfiguration,
-      });
-      dispatch(addDangerToast(t('Failed to save cross-filter scoping')));
+      dispatch({ type: SET_CHART_CONFIG_FAIL, chartConfiguration });
     }
   };
 
 export const SET_FILTER_BAR_ORIENTATION = 'SET_FILTER_BAR_ORIENTATION';
-
+export interface SetFilterBarOrientation {
+  type: typeof SET_FILTER_BAR_ORIENTATION;
+  filterBarOrientation: FilterBarOrientation;
+}
 export function setFilterBarOrientation(
   filterBarOrientation: FilterBarOrientation,
 ) {
@@ -108,7 +132,10 @@ export function setFilterBarOrientation(
 }
 
 export const SET_CROSS_FILTERS_ENABLED = 'SET_CROSS_FILTERS_ENABLED';
-
+export interface SetCrossFiltersEnabled {
+  type: typeof SET_CROSS_FILTERS_ENABLED;
+  crossFiltersEnabled: boolean;
+}
 export function setCrossFiltersEnabled(crossFiltersEnabled: boolean) {
   return { type: SET_CROSS_FILTERS_ENABLED, crossFiltersEnabled };
 }

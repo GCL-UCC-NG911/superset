@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Input } from 'src/components/Input';
 import Button from 'src/components/Button';
@@ -96,7 +96,7 @@ const ButtonBar = styled.div`
   justify-content: center;
 `;
 
-export default class TimeSeriesColumnControl extends Component {
+export default class TimeSeriesColumnControl extends React.Component {
   constructor(props) {
     super(props);
 
@@ -248,9 +248,7 @@ export default class TimeSeriesColumnControl extends Component {
         {['time', 'avg'].indexOf(this.state.colType) >= 0 &&
           this.formRow(
             t('Time lag'),
-            t(
-              'Number of periods to compare against. You can use negative numbers to compare from the beginning of the time range.',
-            ),
+            t('Number of periods to compare against'),
             'time-lag',
             <Input
               value={this.state.timeLag}

@@ -267,8 +267,6 @@ export function handleComponentDrop(dropResult) {
   };
 }
 
-export const clearDashboardHistory = () => UndoActionCreators.clearHistory();
-
 // Undo redo ------------------------------------------------------------------
 export function undoLayoutAction() {
   return (dispatch, getState) => {

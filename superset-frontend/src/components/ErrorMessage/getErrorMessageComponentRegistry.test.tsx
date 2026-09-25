@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import getErrorMessageComponentRegistry from 'src/components/ErrorMessage/getErrorMessageComponentRegistry';
 import { ErrorMessageComponentProps } from 'src/components/ErrorMessage/types';
 
@@ -29,7 +30,7 @@ const OVERRIDE_ERROR_MESSAGE_COMPONENT = (_: ErrorMessageComponentProps) => (
   <div>Custom error</div>
 );
 
-test('should return undefined for a nonexistent key', () => {
+test('should return undefined for a non existent key', () => {
   expect(getErrorMessageComponentRegistry().get('INVALID_KEY')).toEqual(
     undefined,
   );

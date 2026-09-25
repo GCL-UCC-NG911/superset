@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { Component } from 'react';
+import React from 'react';
 import { t } from '@superset-ui/core';
 import PropTypes from 'prop-types';
 import Popover from 'src/components/Popover';
@@ -56,7 +56,7 @@ const defaultProps = {
   value: DEFAULT_VIEWPORT,
 };
 
-export default class ViewportControl extends Component {
+export default class ViewportControl extends React.Component {
   constructor(props) {
     super(props);
     this.onChange = this.onChange.bind(this);

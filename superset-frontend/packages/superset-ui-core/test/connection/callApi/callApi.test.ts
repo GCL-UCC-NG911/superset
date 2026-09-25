@@ -29,41 +29,43 @@ const corruptObject = new BadObject();
 /* @ts-expect-error */
 BadObject.prototype.toString = undefined;
 
-const mockGetUrl = '/mock/get/url';
-const mockPostUrl = '/mock/post/url';
-const mockPutUrl = '/mock/put/url';
-const mockPatchUrl = '/mock/patch/url';
-const mockCacheUrl = '/mock/cache/url';
-const mockNotFound = '/mock/notfound';
-const mockErrorUrl = '/mock/error/url';
-const mock503 = '/mock/503';
-
-const mockGetPayload = { get: 'payload' };
-const mockPostPayload = { post: 'payload' };
-const mockPutPayload = { post: 'payload' };
-const mockPatchPayload = { post: 'payload' };
-const mockCachePayload = {
-  status: 200,
-  body: 'BODY',
-  headers: { Etag: 'etag' },
-};
-const mockErrorPayload = { status: 500, statusText: 'Internal error' };
-
 describe('callApi()', () => {
-  beforeAll(() => fetchMock.get(LOGIN_GLOB, { result: '1234' }));
-
-  beforeEach(() => {
-    fetchMock.get(mockGetUrl, mockGetPayload);
-    fetchMock.post(mockPostUrl, mockPostPayload);
-    fetchMock.put(mockPutUrl, mockPutPayload);
-    fetchMock.patch(mockPatchUrl, mockPatchPayload);
-    fetchMock.get(mockCacheUrl, mockCachePayload);
-    fetchMock.get(mockNotFound, { status: 404 });
-    fetchMock.get(mock503, { status: 503 });
-    fetchMock.get(mockErrorUrl, () => Promise.reject(mockErrorPayload));
+  beforeAll(() => {
+    fetchMock.get(LOGIN_GLOB, { result: '1234' });
   });
 
-  afterEach(() => fetchMock.reset());
+  afterAll(fetchMock.restore);
+
+  const mockGetUrl = '/mock/get/url';
+  const mockPostUrl = '/mock/post/url';
+  const mockPutUrl = '/mock/put/url';
+  const mockPatchUrl = '/mock/patch/url';
+  const mockCacheUrl = '/mock/cache/url';
+  const mockNotFound = '/mock/notfound';
+  const mockErrorUrl = '/mock/error/url';
+  const mock503 = '/mock/503';
+
+  const mockGetPayload = { get: 'payload' };
+  const mockPostPayload = { post: 'payload' };
+  const mockPutPayload = { post: 'payload' };
+  const mockPatchPayload = { post: 'payload' };
+  const mockCachePayload = {
+    status: 200,
+    body: 'BODY',
+    headers: { Etag: 'etag' },
+  };
+  const mockErrorPayload = { status: 500, statusText: 'Internal error' };
+
+  fetchMock.get(mockGetUrl, mockGetPayload);
+  fetchMock.post(mockPostUrl, mockPostPayload);
+  fetchMock.put(mockPutUrl, mockPutPayload);
+  fetchMock.patch(mockPatchUrl, mockPatchPayload);
+  fetchMock.get(mockCacheUrl, mockCachePayload);
+  fetchMock.get(mockNotFound, { status: 404 });
+  fetchMock.get(mock503, { status: 503 });
+  fetchMock.get(mockErrorUrl, () => Promise.reject(mockErrorPayload));
+
+  afterEach(fetchMock.reset);
 
   describe('request config', () => {
     it('calls the right url with the specified method', async () => {
@@ -216,7 +218,7 @@ describe('callApi()', () => {
       const unstringified = (calls[0][1] as RequestInit).body as FormData;
       const hasCorruptKey = unstringified.has('corrupt');
       expect(hasCorruptKey).toBeFalsy();
-      // When a corrupt attribute is encountered, a console.error call is made with info about the corrupt attribute
+      // When a corrupt attribute is encountred, a console.error call is made with info about the corrupt attribute
       // eslint-disable-next-line no-console
       expect(console.error).toHaveBeenCalledTimes(1);
     });
@@ -399,7 +401,7 @@ describe('callApi()', () => {
       Object.defineProperty(constants, 'CACHE_AVAILABLE', { value: false });
 
       const firstResponse = await callApi({ url: mockCacheUrl, method: 'GET' });
-      let calls = fetchMock.calls(mockCacheUrl);
+      const calls = fetchMock.calls(mockCacheUrl);
       expect(calls).toHaveLength(1);
       const firstBody = await firstResponse.text();
       expect(firstBody).toEqual('BODY');
@@ -408,7 +410,6 @@ describe('callApi()', () => {
         url: mockCacheUrl,
         method: 'GET',
       });
-      calls = fetchMock.calls(mockCacheUrl);
       const fetchParams = calls[1][1] as RequestInit;
       expect(calls).toHaveLength(2);
       // second call should not have If-None-Match header
@@ -424,12 +425,11 @@ describe('callApi()', () => {
       expect.assertions(3);
       // first call sets the cache
       await callApi({ url: mockCacheUrl, method: 'GET' });
-      let calls = fetchMock.calls(mockCacheUrl);
+      const calls = fetchMock.calls(mockCacheUrl);
       expect(calls).toHaveLength(1);
 
       // second call sends the Etag in the If-None-Match header
       await callApi({ url: mockCacheUrl, method: 'GET' });
-      calls = fetchMock.calls(mockCacheUrl);
       const fetchParams = calls[1][1] as RequestInit;
       const headers = { 'If-None-Match': 'etag' };
       expect(calls).toHaveLength(2);
@@ -442,7 +442,8 @@ describe('callApi()', () => {
       expect.assertions(3);
       // first call sets the cache
       await callApi({ url: mockCacheUrl, method: 'GET' });
-      expect(fetchMock.calls(mockCacheUrl)).toHaveLength(1);
+      const calls = fetchMock.calls(mockCacheUrl);
+      expect(calls).toHaveLength(1);
       // second call reuses the cached payload on a 304
       const mockCachedPayload = { status: 304 };
       fetchMock.get(mockCacheUrl, mockCachedPayload, { overwriteRoutes: true });
@@ -451,7 +452,7 @@ describe('callApi()', () => {
         url: mockCacheUrl,
         method: 'GET',
       });
-      expect(fetchMock.calls(mockCacheUrl)).toHaveLength(2);
+      expect(calls).toHaveLength(2);
       const secondBody = await secondResponse.text();
       expect(secondBody).toEqual('BODY');
     });
@@ -640,7 +641,6 @@ describe('callApi()', () => {
   it('should ignore "null" postPayload string', async () => {
     expect.assertions(1);
     fetchMock.post('/post-null-postpayload', {});
-    fetchMock.post('/post-formdata', {});
     await callApi({
       url: '/post-formdata',
       method: 'POST',

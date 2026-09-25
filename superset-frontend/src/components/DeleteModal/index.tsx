@@ -17,7 +17,7 @@
  * under the License.
  */
 import { t, styled } from '@superset-ui/core';
-import { useState, ReactNode, ChangeEvent } from 'react';
+import React, { useState } from 'react';
 import { Input } from 'src/components/Input';
 import Modal from 'src/components/Modal';
 import { FormLabel } from 'src/components/Form';
@@ -27,20 +27,21 @@ const StyledDiv = styled.div`
   width: 50%;
   label {
     color: ${({ theme }) => theme.colors.grayscale.base};
+    text-transform: uppercase;
   }
 `;
 
 const DescriptionContainer = styled.div`
-  line-height: ${({ theme }) => theme.gridUnit * 4}px;
+  line-height: 40px;
   padding-top: 16px;
 `;
 
 interface DeleteModalProps {
-  description: ReactNode;
+  description: React.ReactNode;
   onConfirm: () => void;
   onHide: () => void;
   open: boolean;
-  title: ReactNode;
+  title: React.ReactNode;
 }
 
 export default function DeleteModal({
@@ -63,7 +64,7 @@ export default function DeleteModal({
     onConfirm();
   };
 
-  const onChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const targetValue = event.target.value ?? '';
     setDisableChange(targetValue.toUpperCase() !== t('DELETE'));
     setConfirmation(targetValue);
@@ -80,11 +81,10 @@ export default function DeleteModal({
       disablePrimaryButton={disableChange}
       onHide={hide}
       onHandledPrimaryAction={confirm}
-      primaryButtonName={t('Delete')}
+      primaryButtonName={t('delete')}
       primaryButtonType="danger"
       show={open}
       title={title}
-      centered
     >
       <DescriptionContainer>{description}</DescriptionContainer>
       <StyledDiv>

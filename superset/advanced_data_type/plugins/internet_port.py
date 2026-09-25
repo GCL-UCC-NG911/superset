@@ -1,10 +1,10 @@
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
+# regarding coperatoryright ownership.  The ASF licenses this file
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
+# with the License.  You may obtain a coperatory of the License at
 #
 #   http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 import itertools
-from typing import Any
+from typing import Any, Dict, List
 
 from sqlalchemy import Column
 
@@ -26,7 +26,7 @@ from superset.advanced_data_type.types import (
 )
 from superset.utils.core import FilterOperator, FilterStringOperators
 
-port_conversion_dict: dict[str, list[int]] = {
+port_conversion_dict: Dict[str, List[int]] = {
     "http": [80],
     "ssh": [22],
     "https": [443],
@@ -48,11 +48,6 @@ port_conversion_dict: dict[str, list[int]] = {
     "ldaps": [636],
     "imap2": [143],  # aka imap
     "imaps": [993],
-    "MySQL": [3306],
-    "Remote Desktop": [3389],
-    "dns": [53],
-    "ctf": [84],
-    "pdap": [344],
 }
 
 
@@ -88,13 +83,13 @@ def port_translation_func(req: AdvancedDataTypeRequest) -> AdvancedDataTypeRespo
                 else port_conversion_dict[string_value]
             )
         except (KeyError, ValueError):
-            resp["error_message"] = (
+            resp["error_message"] = str(
                 f"'{string_value}' does not appear to be a port name or number"
             )
             break
         else:
             resp["display_value"] = ", ".join(
-                map(  # noqa: C417
+                map(
                     lambda x: f"{x['start']} - {x['end']}"
                     if isinstance(x, dict)
                     else str(x),
@@ -104,8 +99,8 @@ def port_translation_func(req: AdvancedDataTypeRequest) -> AdvancedDataTypeRespo
     return resp
 
 
-def port_translate_filter_func(  # noqa: C901
-    col: Column, operator: FilterOperator, values: list[Any]
+def port_translate_filter_func(
+    col: Column, operator: FilterOperator, values: List[Any]
 ) -> Any:
     """
     Convert a passed in column, FilterOperator

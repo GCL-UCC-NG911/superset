@@ -1,33 +1,19 @@
-name: Prefer TypeScript
+name: Prefer Typescript
 
 on:
   push:
-    branches:
-      - "master"
-      - "[0-9].[0-9]*"
-    paths:
-      - "superset-frontend/src/**"
+    branches-ignore:
+      - "dependabot/**"
   pull_request:
-    types: [synchronize, opened, reopened, ready_for_review]
-    paths:
-      - "superset-frontend/src/**"
-
-# cancel previous workflow jobs for PRs
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: true
 
 jobs:
   prefer_typescript:
     if: github.ref == 'ref/heads/master' && github.event_name == 'pull_request'
-    name: Prefer TypeScript
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      pull-requests: write
+    name: Prefer Typescript
+    runs-on: ubuntu-latest
     steps:
       - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
         with:
           persist-credentials: false
           submodules: recursive
@@ -35,7 +21,7 @@ jobs:
         id: changed
         uses: ./.github/actions/file-changes-action
         with:
-          githubToken: ${{ github.token }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Determine if a .js or .jsx file was added
         id: check
@@ -49,14 +35,14 @@ jobs:
               ) | join("\n")
             ' ${HOME}/files_added.json
           }
-          echo "js_files_added=$(js_files_added)" >> $GITHUB_OUTPUT
+          echo ::set-output name=js_files_added::$(js_files_added)
 
       - if: steps.check.outputs.js_files_added
         name: Add Comment to PR
         uses: ./.github/actions/comment-on-pr
         continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           msg: |
             ### WARNING: Prefer TypeScript

@@ -25,11 +25,11 @@ from inspect import (
     isclass,
     isfunction,
     ismethod,
-    Signature,
     signature,
+    Signature,
 )
 from logging import Logger
-from typing import Any, Callable, cast, Union
+from typing import Any, Callable, cast, Optional, Type, Union
 
 _DEFAULT_ENTER_MSG_PREFIX = "enter to "
 _DEFAULT_ENTER_MSG_SUFFIX = ""
@@ -48,11 +48,11 @@ empty_and_none = {Signature.empty, "None"}
 
 
 Function = Callable[..., Any]
-Decorated = Union[type[Any], Function]
+Decorated = Union[Type[Any], Function]
 
 
 def log(
-    decorated: Decorated | None = None,
+    decorated: Optional[Decorated] = None,
     *,
     prefix_enter_msg: str = _DEFAULT_ENTER_MSG_PREFIX,
     suffix_enter_msg: str = _DEFAULT_ENTER_MSG_SUFFIX,
@@ -61,6 +61,7 @@ def log(
     suffix_exit_msg: str = _DEFAULT_EXIT_MSG_SUFFIX,
     return_value_msg_part=_DEFAULT_RETURN_VALUE_MSG_PART,
 ) -> Decorated:
+
     decorator: Decorated = _make_decorator(
         prefix_enter_msg,
         suffix_enter_msg,
@@ -74,7 +75,7 @@ def log(
     return decorator(decorated)
 
 
-def _make_decorator(  # noqa: C901
+def _make_decorator(
     prefix_enter_msg: str,
     suffix_enter_msg: str,
     with_arguments_msg_part,
@@ -82,21 +83,21 @@ def _make_decorator(  # noqa: C901
     suffix_out_msg: str,
     return_value_msg_part,
 ) -> Decorated:
-    def decorator(decorated: Decorated):  # noqa: C901
+    def decorator(decorated: Decorated):
         decorated_logger = _get_logger(decorated)
 
-        def decorator_class(clazz: type[Any]) -> type[Any]:
+        def decorator_class(clazz: Type[Any]) -> Type[Any]:
             _decorate_class_members_with_logs(clazz)
             return clazz
 
-        def _decorate_class_members_with_logs(clazz: type[Any]) -> None:
+        def _decorate_class_members_with_logs(clazz: Type[Any]) -> None:
             members = getmembers(
                 clazz, predicate=lambda val: ismethod(val) or isfunction(val)
             )
             for member_name, member in members:
                 setattr(clazz, member_name, decorator_func(member, f"{clazz.__name__}"))
 
-        def decorator_func(func: Function, prefix_name: str = "") -> Function:  # noqa: C901
+        def decorator_func(func: Function, prefix_name: str = "") -> Function:
             func_name = func.__name__
             func_signature: Signature = signature(func)
             is_fixture = hasattr(func, _FIXTURE_ATTRIBUTE)
@@ -160,7 +161,7 @@ def _make_decorator(  # noqa: C901
             return _wrapper_func
 
         if isclass(decorated):
-            return decorator_class(cast(type[Any], decorated))
+            return decorator_class(cast(Type[Any], decorated))
         return decorator_func(cast(Function, decorated))
 
     return decorator
@@ -169,6 +170,5 @@ def _make_decorator(  # noqa: C901
 def _get_logger(decorated: Decorated) -> Logger:
     module = getmodule(decorated)
     return module.__dict__.get(
-        _LOGGER_VAR_NAME,
-        logging.getLogger(module.__name__),  # type: ignore
+        _LOGGER_VAR_NAME, logging.getLogger(module.__name__)  # type: ignore
     )

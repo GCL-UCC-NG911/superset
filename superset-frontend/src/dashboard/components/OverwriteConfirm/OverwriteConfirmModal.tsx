@@ -16,8 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { Fragment, useMemo, useCallback, RefObject, createRef } from 'react';
-import { extendedDayjs } from 'src/utils/dates';
+import React, { useMemo, useCallback, RefObject, createRef } from 'react';
+import moment from 'moment';
 import { useDispatch } from 'react-redux';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 import { useInView } from 'react-intersection-observer';
@@ -165,7 +165,7 @@ const OverrideConfirmModal = ({ overwriteConfirmMetadata }: Props) => {
           <StyledEditor>
             {overwriteConfirmMetadata.overwriteConfirmItems.map(
               ({ keyPath, oldValue, newValue }, index) => (
-                <Fragment key={keyPath}>
+                <React.Fragment key={keyPath}>
                   <div ref={anchors[index]} />
                   <StackableHeader
                     top={index * STICKY_HEADER_HEIGHT - STICKY_HEADER_TOP}
@@ -179,14 +179,12 @@ const OverrideConfirmModal = ({ overwriteConfirmMetadata }: Props) => {
                     newValue={newValue}
                     leftTitle={t(
                       'Last Updated %s by %s',
-                      extendedDayjs
-                        .utc(overwriteConfirmMetadata.updatedAt)
-                        .calendar(),
+                      moment.utc(overwriteConfirmMetadata.updatedAt).calendar(),
                       overwriteConfirmMetadata.updatedBy,
                     )}
                     rightTitle="new value"
                   />
-                </Fragment>
+                </React.Fragment>
               ),
             )}
             <StyledBottom ref={bottomRef} inView={hasReviewed}>

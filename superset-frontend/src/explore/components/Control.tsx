@@ -16,18 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactNode, useCallback, useState, useEffect } from 'react';
+import React, { ReactNode, useCallback, useState, useEffect } from 'react';
 import { isEqual } from 'lodash';
 import {
   ControlType,
   ControlComponentProps as BaseControlComponentProps,
 } from '@superset-ui/chart-controls';
-import {
-  styled,
-  JsonValue,
-  QueryFormData,
-  usePrevious,
-} from '@superset-ui/core';
+import { styled, JsonValue, QueryFormData } from '@superset-ui/core';
+import { usePrevious } from 'src/hooks/usePrevious';
 import ErrorBoundary from 'src/components/ErrorBoundary';
 import { ExploreActions } from 'src/explore/actions/exploreActions';
 import controlMap from './controls';
@@ -102,10 +98,7 @@ export default function Control(props: ControlProps) {
 
   if (!type || isVisible === false) return null;
 
-  const ControlComponent =
-    typeof type === 'string'
-      ? controlMap[type as keyof typeof controlMap]
-      : type;
+  const ControlComponent = typeof type === 'string' ? controlMap[type] : type;
   if (!ControlComponent) {
     // eslint-disable-next-line no-console
     console.warn(`Unknown controlType: ${type}`);

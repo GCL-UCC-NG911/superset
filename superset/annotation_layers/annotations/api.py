@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 import logging
-from typing import Any
+from typing import Any, Dict
 
 from flask import request, Response
 from flask_appbuilder.api import expose, permission_name, protect, rison, safe
@@ -24,6 +24,26 @@ from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_babel import ngettext
 from marshmallow import ValidationError
 
+from superset.annotation_layers.annotations.commands.bulk_delete import (
+    BulkDeleteAnnotationCommand,
+)
+from superset.annotation_layers.annotations.commands.create import (
+    CreateAnnotationCommand,
+)
+from superset.annotation_layers.annotations.commands.delete import (
+    DeleteAnnotationCommand,
+)
+from superset.annotation_layers.annotations.commands.exceptions import (
+    AnnotationBulkDeleteFailedError,
+    AnnotationCreateFailedError,
+    AnnotationDeleteFailedError,
+    AnnotationInvalidError,
+    AnnotationNotFoundError,
+    AnnotationUpdateFailedError,
+)
+from superset.annotation_layers.annotations.commands.update import (
+    UpdateAnnotationCommand,
+)
 from superset.annotation_layers.annotations.filters import AnnotationAllTextFilter
 from superset.annotation_layers.annotations.schemas import (
     AnnotationPostSchema,
@@ -31,17 +51,7 @@ from superset.annotation_layers.annotations.schemas import (
     get_delete_ids_schema,
     openapi_spec_methods_override,
 )
-from superset.commands.annotation_layer.annotation.create import CreateAnnotationCommand
-from superset.commands.annotation_layer.annotation.delete import DeleteAnnotationCommand
-from superset.commands.annotation_layer.annotation.exceptions import (
-    AnnotationCreateFailedError,
-    AnnotationDeleteFailedError,
-    AnnotationInvalidError,
-    AnnotationNotFoundError,
-    AnnotationUpdateFailedError,
-)
-from superset.commands.annotation_layer.annotation.update import UpdateAnnotationCommand
-from superset.commands.annotation_layer.exceptions import AnnotationLayerNotFoundError
+from superset.annotation_layers.commands.exceptions import AnnotationLayerNotFoundError
 from superset.constants import MODEL_API_RW_METHOD_PERMISSION_MAP, RouteMethod
 from superset.models.annotations import Annotation
 from superset.views.base_api import (
@@ -117,7 +127,7 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
 
     @staticmethod
     def _apply_layered_relation_to_rison(  # pylint: disable=invalid-name
-        layer_id: int, rison_parameters: dict[str, Any]
+        layer_id: int, rison_parameters: Dict[str, Any]
     ) -> None:
         if "filters" not in rison_parameters:
             rison_parameters["filters"] = []
@@ -125,7 +135,7 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
             {"col": "layer", "opr": "rel_o_m", "value": layer_id}
         )
 
-    @expose("/<int:pk>/annotation/", methods=("GET",))
+    @expose("/<int:pk>/annotation/", methods=["GET"])
     @protect()
     @safe
     @permission_name("get")
@@ -133,10 +143,11 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
     def get_list(  # pylint: disable=arguments-differ
         self, pk: int, **kwargs: Any
     ) -> Response:
-        """Get a list of annotations.
+        """Get a list of annotations
         ---
         get:
-          summary: Get a list of annotations
+          description: >-
+            Get a list of annotations
           parameters:
           - in: path
             schema:
@@ -181,11 +192,11 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
               $ref: '#/components/responses/422'
             500:
               $ref: '#/components/responses/500'
-        """  # noqa: E501
+        """
         self._apply_layered_relation_to_rison(pk, kwargs["rison"])
         return self.get_list_headless(**kwargs)
 
-    @expose("/<int:pk>/annotation/<int:annotation_id>", methods=("GET",))
+    @expose("/<int:pk>/annotation/<int:annotation_id>", methods=["GET"])
     @protect()
     @safe
     @permission_name("get")
@@ -193,10 +204,11 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
     def get(  # pylint: disable=arguments-differ
         self, pk: int, annotation_id: int, **kwargs: Any
     ) -> Response:
-        """Get item from model.
+        """Get item from Model
         ---
         get:
-          summary: Get an item model
+          description: >-
+            Get an item model
           parameters:
           - in: path
             schema:
@@ -241,17 +253,18 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
         self._apply_layered_relation_to_rison(pk, kwargs["rison"])
         return self.get_headless(annotation_id, **kwargs)
 
-    @expose("/<int:pk>/annotation/", methods=("POST",))
+    @expose("/<int:pk>/annotation/", methods=["POST"])
     @protect()
     @safe
     @statsd_metrics
     @permission_name("post")
     @requires_json
     def post(self, pk: int) -> Response:  # pylint: disable=arguments-differ
-        """Create a new annotation.
+        """Creates a new Annotation
         ---
         post:
-          summary: Create a new annotation
+          description: >-
+            Create a new Annotation
           parameters:
           - in: path
             schema:
@@ -308,7 +321,7 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
             )
             return self.response_422(message=str(ex))
 
-    @expose("/<int:pk>/annotation/<int:annotation_id>", methods=("PUT",))
+    @expose("/<int:pk>/annotation/<int:annotation_id>", methods=["PUT"])
     @protect()
     @safe
     @statsd_metrics
@@ -317,10 +330,11 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
     def put(  # pylint: disable=arguments-differ
         self, pk: int, annotation_id: int
     ) -> Response:
-        """Update an annotation.
+        """Updates an Annotation
         ---
         put:
-          summary: Update an annotation
+          description: >-
+            Update an annotation
           parameters:
           - in: path
             schema:
@@ -382,7 +396,7 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
             )
             return self.response_422(message=str(ex))
 
-    @expose("/<int:pk>/annotation/<int:annotation_id>", methods=("DELETE",))
+    @expose("/<int:pk>/annotation/<int:annotation_id>", methods=["DELETE"])
     @protect()
     @safe
     @statsd_metrics
@@ -390,10 +404,11 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
     def delete(  # pylint: disable=arguments-differ
         self, pk: int, annotation_id: int
     ) -> Response:
-        """Delete an annotation.
+        """Deletes an Annotation
         ---
         delete:
-          summary: Delete an annotation
+          description: >-
+            Delete an annotation
           parameters:
           - in: path
             schema:
@@ -423,7 +438,7 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
               $ref: '#/components/responses/500'
         """
         try:
-            DeleteAnnotationCommand([annotation_id]).run()
+            DeleteAnnotationCommand(annotation_id).run()
             return self.response(200, message="OK")
         except AnnotationNotFoundError:
             return self.response_404()
@@ -436,16 +451,17 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
             )
             return self.response_422(message=str(ex))
 
-    @expose("/<int:pk>/annotation/", methods=("DELETE",))
+    @expose("/<int:pk>/annotation/", methods=["DELETE"])
     @protect()
     @safe
     @statsd_metrics
     @rison(get_delete_ids_schema)
     def bulk_delete(self, **kwargs: Any) -> Response:
-        """Bulk delete annotation layers.
+        """Delete bulk Annotation layers
         ---
         delete:
-          summary: Bulk delete annotation layers
+          description: >-
+            Deletes multiple annotation in a bulk operation.
           parameters:
           - in: path
             schema:
@@ -479,7 +495,7 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
         """
         item_ids = kwargs["rison"]
         try:
-            DeleteAnnotationCommand(item_ids).run()
+            BulkDeleteAnnotationCommand(item_ids).run()
             return self.response(
                 200,
                 message=ngettext(
@@ -490,5 +506,5 @@ class AnnotationRestApi(BaseSupersetModelRestApi):
             )
         except AnnotationNotFoundError:
             return self.response_404()
-        except AnnotationDeleteFailedError as ex:
+        except AnnotationBulkDeleteFailedError as ex:
             return self.response_422(message=str(ex))

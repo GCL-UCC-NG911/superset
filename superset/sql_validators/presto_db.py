@@ -15,18 +15,16 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from __future__ import annotations
-
 import logging
 import time
 from contextlib import closing
-from typing import Any, cast
+from typing import Any, Dict, List, Optional
 
-from superset import app
+from superset import app, security_manager
 from superset.models.core import Database
-from superset.sql.parse import SQLScript, SQLStatement
+from superset.sql_parse import ParsedQuery
 from superset.sql_validators.base import BaseSQLValidator, SQLValidationAnnotation
-from superset.utils.core import QuerySource
+from superset.utils.core import get_username, QuerySource
 
 MAX_ERROR_ROWS = 10
 
@@ -46,15 +44,24 @@ class PrestoDBSQLValidator(BaseSQLValidator):
     @classmethod
     def validate_statement(
         cls,
-        statement: SQLStatement,
+        statement: str,
         database: Database,
         cursor: Any,
-    ) -> SQLValidationAnnotation | None:
+    ) -> Optional[SQLValidationAnnotation]:
         # pylint: disable=too-many-locals
         db_engine_spec = database.db_engine_spec
+        parsed_query = ParsedQuery(statement)
+        sql = parsed_query.stripped()
 
         # Hook to allow environment-specific mutation (usually comments) to the SQL
-        sql = database.mutate_sql_based_on_config(str(statement))
+        sql_query_mutator = config["SQL_QUERY_MUTATOR"]
+        if sql_query_mutator:
+            sql = sql_query_mutator(
+                sql,
+                user_name=get_username(),  # TODO(john-bodley): Deprecate in 3.0.
+                security_manager=security_manager,
+                database=database,
+            )
 
         # Transform the final statement to an explain call before sending it on
         # to presto to validate
@@ -68,7 +75,7 @@ class PrestoDBSQLValidator(BaseSQLValidator):
         from pyhive.exc import DatabaseError
 
         try:
-            db_engine_spec.execute(cursor, sql, database)
+            db_engine_spec.execute(cursor, sql)
             polled = cursor.poll()
             while polled:
                 logger.info("polling presto for validation progress")
@@ -102,9 +109,9 @@ class PrestoDBSQLValidator(BaseSQLValidator):
             # we update at some point in the future.
             if not db_error.args or not isinstance(db_error.args[0], dict):
                 raise PrestoSQLValidationError(
-                    "The pyhive presto client returned an unhandled database error."
+                    "The pyhive presto client returned an unhandled " "database error."
                 ) from db_error
-            error_args: dict[str, Any] = db_error.args[0]
+            error_args: Dict[str, Any] = db_error.args[0]
 
             # Confirm the two fields we need to be able to present an annotation
             # are present in the error response -- a message, and a location.
@@ -115,6 +122,7 @@ class PrestoDBSQLValidator(BaseSQLValidator):
             if "errorLocation" not in error_args:
                 # Pylint is confused about the type of error_args, despite the hints
                 # and checks above.
+                # pylint: disable=invalid-sequence-index
                 message = error_args["message"] + "\n(Error location unknown)"
                 # If we have a message but no error location, return the message and
                 # set the location as the beginning.
@@ -122,6 +130,7 @@ class PrestoDBSQLValidator(BaseSQLValidator):
                     message=message, line_number=1, start_column=1, end_column=1
                 )
 
+            # pylint: disable=invalid-sequence-index
             message = error_args["message"]
             err_loc = error_args["errorLocation"]
             line_number = err_loc.get("lineNumber", None)
@@ -136,16 +145,12 @@ class PrestoDBSQLValidator(BaseSQLValidator):
             )
         except Exception as ex:
             logger.exception("Unexpected error running validation query: %s", str(ex))
-            raise
+            raise ex
 
     @classmethod
     def validate(
-        cls,
-        sql: str,
-        catalog: str | None,
-        schema: str | None,
-        database: Database,
-    ) -> list[SQLValidationAnnotation]:
+        cls, sql: str, schema: Optional[str], database: Database
+    ) -> List[SQLValidationAnnotation]:
         """
         Presto supports query-validation queries by running them with a
         prepended explain.
@@ -153,27 +158,22 @@ class PrestoDBSQLValidator(BaseSQLValidator):
         For example, "SELECT 1 FROM default.mytable" becomes "EXPLAIN (TYPE
         VALIDATE) SELECT 1 FROM default.mytable.
         """
-        parsed_script = SQLScript(sql, engine=database.db_engine_spec.engine)
+        parsed_query = ParsedQuery(sql)
+        statements = parsed_query.get_statements()
 
-        logger.info("Validating %i statement(s)", len(parsed_script.statements))
+        logger.info("Validating %i statement(s)", len(statements))
         # todo(hughhh): update this to use new database.get_raw_connection()
         # this function keeps stalling CI
-        with database.get_sqla_engine(
-            catalog=catalog,
-            schema=schema,
-            source=QuerySource.SQL_LAB,
+        with database.get_sqla_engine_with_context(
+            schema, source=QuerySource.SQL_LAB
         ) as engine:
             # Sharing a single connection and cursor across the
             # execution of all statements (if many)
-            annotations: list[SQLValidationAnnotation] = []
+            annotations: List[SQLValidationAnnotation] = []
             with closing(engine.raw_connection()) as conn:
                 cursor = conn.cursor()
-                for statement in parsed_script.statements:
-                    annotation = cls.validate_statement(
-                        cast(SQLStatement, statement),
-                        database,
-                        cursor,
-                    )
+                for statement in parsed_query.get_statements():
+                    annotation = cls.validate_statement(statement, database, cursor)
                     if annotation:
                         annotations.append(annotation)
             logger.debug("Validation found %i error(s)", len(annotations))

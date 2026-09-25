@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import Button, { ButtonStyle, ButtonSize } from 'src/components/Button';
 
 type onClickFunction = (row: object, index: number) => void;

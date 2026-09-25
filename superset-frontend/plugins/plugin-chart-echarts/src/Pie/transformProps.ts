@@ -23,14 +23,11 @@ import {
   getNumberFormatter,
   getTimeFormatter,
   NumberFormats,
+  NumberFormatter,
   t,
-  ValueFormatter,
-  getValueFormatter,
-  tooltipHtml,
 } from '@superset-ui/core';
-import type { CallbackDataParams } from 'echarts/types/src/util/types';
-import type { EChartsCoreOption } from 'echarts/core';
-import type { PieSeriesOption } from 'echarts/charts';
+import { CallbackDataParams } from 'echarts/types/src/util/types';
+import { EChartsCoreOption, PieSeriesOption } from 'echarts';
 import {
   DEFAULT_FORM_DATA as DEFAULT_PIE_FORM_DATA,
   EchartsPieChartProps,
@@ -53,20 +50,38 @@ import { Refs } from '../types';
 
 const percentFormatter = getNumberFormatter(NumberFormats.PERCENT_2_POINT);
 
-export function parseParams({
+export function formatPieLabel({
   params,
+  labelType,
   numberFormatter,
   sanitizeName = false,
 }: {
   params: Pick<CallbackDataParams, 'name' | 'value' | 'percent'>;
-  numberFormatter: ValueFormatter;
+  labelType: EchartsPieLabelType;
+  numberFormatter: NumberFormatter;
   sanitizeName?: boolean;
-}): string[] {
+}): string {
   const { name: rawName = '', value, percent } = params;
   const name = sanitizeName ? sanitizeHtml(rawName) : rawName;
   const formattedValue = numberFormatter(value as number);
   const formattedPercent = percentFormatter((percent as number) / 100);
-  return [name, formattedValue, formattedPercent];
+
+  switch (labelType) {
+    case EchartsPieLabelType.Key:
+      return name;
+    case EchartsPieLabelType.Value:
+      return formattedValue;
+    case EchartsPieLabelType.Percent:
+      return formattedPercent;
+    case EchartsPieLabelType.KeyValue:
+      return `${name}: ${formattedValue}`;
+    case EchartsPieLabelType.KeyValuePercent:
+      return `${name}: ${formattedValue} (${formattedPercent})`;
+    case EchartsPieLabelType.KeyPercent:
+      return `${name}: ${formattedPercent}`;
+    default:
+      return name;
+  }
 }
 
 function getTotalValuePadding({
@@ -130,9 +145,7 @@ export default function transformProps(
     theme,
     inContextMenu,
     emitCrossFilters,
-    datasource,
   } = chartProps;
-  const { columnFormats = {}, currencyFormats = {} } = datasource;
   const { data = [] } = queriesData[0];
   const coltypeMapping = getColtypesMapping(queriesData[0]);
 
@@ -144,13 +157,11 @@ export default function transformProps(
     labelsOutside,
     labelLine,
     labelType,
-    labelTemplate,
     legendMargin,
     legendOrientation,
     legendType,
     metric = '',
     numberFormat,
-    currencyFormat,
     dateFormat,
     outerRadius,
     showLabels,
@@ -158,7 +169,6 @@ export default function transformProps(
     showLabelsThreshold,
     sliceId,
     showTotal,
-    roseType,
   }: EchartsPieFormData = {
     ...DEFAULT_LEGEND_FORM_DATA,
     ...DEFAULT_PIE_FORM_DATA,
@@ -191,15 +201,9 @@ export default function transformProps(
   }, {});
 
   const { setDataMask = () => {}, onContextMenu } = hooks;
-  const colorFn = CategoricalColorNamespace.getScale(colorScheme as string);
-  const numberFormatter = getValueFormatter(
-    metric,
-    currencyFormats,
-    columnFormats,
-    numberFormat,
-    currencyFormat,
-  );
 
+  const colorFn = CategoricalColorNamespace.getScale(colorScheme as string);
+  const numberFormatter = getNumberFormatter(numberFormat);
   let totalValue = 0;
 
   const transformedData: PieSeriesOption[] = data.map(datum => {
@@ -243,75 +247,12 @@ export default function transformProps(
     {},
   );
 
-  const formatTemplate = (
-    template: string,
-    formattedParams: {
-      name: string;
-      value: string;
-      percent: string;
-    },
-    rawParams: CallbackDataParams,
-  ) => {
-    // This function supports two forms of template variables:
-    // 1. {name}, {value}, {percent}, for values formatted by number formatter.
-    // 2. {a}, {b}, {c}, {d}, compatible with ECharts formatter.
-    //
-    // \n is supported to represent a new line.
-
-    const items = {
-      '{name}': formattedParams.name,
-      '{value}': formattedParams.value,
-      '{percent}': formattedParams.percent,
-      '{a}': rawParams.seriesName || '',
-      '{b}': rawParams.name,
-      '{c}': `${rawParams.value}`,
-      '{d}': `${rawParams.percent}`,
-      '\\n': '\n',
-    };
-
-    return Object.entries(items).reduce(
-      (acc, [key, value]) => acc.replaceAll(key, value),
-      template,
-    );
-  };
-
-  const formatter = (params: CallbackDataParams) => {
-    const [name, formattedValue, formattedPercent] = parseParams({
+  const formatter = (params: CallbackDataParams) =>
+    formatPieLabel({
       params,
       numberFormatter,
+      labelType,
     });
-    switch (labelType) {
-      case EchartsPieLabelType.Key:
-        return name;
-      case EchartsPieLabelType.Value:
-        return formattedValue;
-      case EchartsPieLabelType.Percent:
-        return formattedPercent;
-      case EchartsPieLabelType.KeyValue:
-        return `${name}: ${formattedValue}`;
-      case EchartsPieLabelType.KeyValuePercent:
-        return `${name}: ${formattedValue} (${formattedPercent})`;
-      case EchartsPieLabelType.KeyPercent:
-        return `${name}: ${formattedPercent}`;
-      case EchartsPieLabelType.ValuePercent:
-        return `${formattedValue} (${formattedPercent})`;
-      case EchartsPieLabelType.Template:
-        if (!labelTemplate) {
-          return '';
-        }
-        return formatTemplate(
-          labelTemplate,
-          {
-            name,
-            value: formattedValue,
-            percent: formattedPercent,
-          },
-          params,
-        );
-      default:
-        return name;
-    }
-  };
 
   const defaultLabel = {
     formatter,
@@ -330,7 +271,6 @@ export default function transformProps(
       type: 'pie',
       ...chartPadding,
       animation: false,
-      roseType: roseType || undefined,
       radius: [`${donut ? innerRadius : 0}%`, `${outerRadius}%`],
       center: ['50%', '50%'],
       avoidLabelOverlap: true,
@@ -366,20 +306,16 @@ export default function transformProps(
       ...getDefaultTooltip(refs),
       show: !inContextMenu,
       trigger: 'item',
-      formatter: (params: any) => {
-        const [name, formattedValue, formattedPercent] = parseParams({
+      formatter: (params: any) =>
+        formatPieLabel({
           params,
           numberFormatter,
+          labelType: EchartsPieLabelType.KeyValuePercent,
           sanitizeName: true,
-        });
-        return tooltipHtml(
-          [[metricLabel, formattedValue, formattedPercent]],
-          name,
-        );
-      },
+        }),
     },
     legend: {
-      ...getLegendProps(legendType, legendOrientation, showLegend, theme),
+      ...getLegendProps(legendType, legendOrientation, showLegend),
       data: keys,
     },
     graphic: showTotal
@@ -409,6 +345,5 @@ export default function transformProps(
     onContextMenu,
     refs,
     emitCrossFilters,
-    coltypeMapping,
   };
 }

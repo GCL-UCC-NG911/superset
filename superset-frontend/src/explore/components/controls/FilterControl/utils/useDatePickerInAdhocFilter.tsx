@@ -16,9 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactElement } from 'react';
+import React from 'react';
 
-import { t } from '@superset-ui/core';
+import { hasGenericChartAxes, t } from '@superset-ui/core';
 import { Dataset, isTemporalColumn } from '@superset-ui/chart-controls';
 import DateFilterControl from 'src/explore/components/controls/DateFilterControl/DateFilterLabel';
 import ControlHeader from 'src/explore/components/ControlHeader';
@@ -35,10 +35,10 @@ export const useDatePickerInAdhocFilter = ({
   timeRange,
   datasource,
   onChange,
-}: DatePickerInFilterProps): ReactElement | undefined => {
+}: DatePickerInFilterProps): React.ReactElement | undefined => {
   const onTimeRangeChange = (val: string) => onChange(columnName, val);
 
-  return isTemporalColumn(columnName, datasource) ? (
+  return hasGenericChartAxes && isTemporalColumn(columnName, datasource) ? (
     <>
       <ControlHeader label={t('Time Range')} />
       <DateFilterControl

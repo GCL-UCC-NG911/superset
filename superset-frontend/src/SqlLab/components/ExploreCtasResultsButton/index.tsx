@@ -16,8 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { t, JsonObject, VizType } from '@superset-ui/core';
+import { t, JsonObject } from '@superset-ui/core';
 import {
   createCtasDatasource,
   addInfoToast,
@@ -28,7 +29,7 @@ import Button from 'src/components/Button';
 import { exploreChart } from 'src/explore/exploreUtils';
 import { SqlLabRootState } from 'src/SqlLab/types';
 
-export interface ExploreCtasResultsButtonProps {
+interface ExploreCtasResultsButtonProps {
   table: string;
   schema?: string | null;
   dbId: number;
@@ -60,7 +61,7 @@ const ExploreCtasResultsButton = ({
           datasource: `${data.table_id}__table`,
           metrics: ['count'],
           groupby: [],
-          viz_type: VizType.Table,
+          viz_type: 'table',
           since: '100 years ago',
           all_columns: [],
           row_limit: 1000,

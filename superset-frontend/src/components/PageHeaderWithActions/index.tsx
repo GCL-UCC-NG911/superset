@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactNode, ReactElement } from 'react';
+import React, { ReactNode, ReactElement } from 'react';
 import { css, SupersetTheme, t, useTheme } from '@superset-ui/core';
 import { AntdDropdown, AntdDropdownProps } from 'src/components';
 import { TooltipPlacement } from 'src/components/Tooltip';
@@ -35,16 +35,13 @@ export const menuTriggerStyles = (theme: SupersetTheme) => css`
   padding: 0;
   border: 1px solid ${theme.colors.primary.dark2};
 
-  &.antd5-btn > span.anticon {
+  &.ant-btn > span.anticon {
     line-height: 0;
     transition: inherit;
   }
 
   &:hover:not(:focus) > span.anticon {
     color: ${theme.colors.primary.light1};
-  }
-  &:focus-visible {
-    outline: 2px solid ${theme.colors.primary.dark2};
   }
 `;
 
@@ -111,7 +108,6 @@ export type PageHeaderWithActionsProps = {
   showTitlePanelItems: boolean;
   certificatiedBadgeProps?: CertifiedBadgeProps;
   showFaveStar: boolean;
-  showMenuDropdown?: boolean;
   faveStarProps: FaveStarProps;
   titlePanelAdditionalItems: ReactNode;
   rightPanelAdditionalItems: ReactNode;
@@ -133,7 +129,6 @@ export const PageHeaderWithActions = ({
   rightPanelAdditionalItems,
   additionalActionsMenu,
   menuDropdownProps,
-  showMenuDropdown = true,
   tooltipProps,
 }: PageHeaderWithActionsProps) => {
   const theme = useTheme();
@@ -154,27 +149,25 @@ export const PageHeaderWithActions = ({
       <div className="right-button-panel">
         {rightPanelAdditionalItems}
         <div css={additionalActionsContainerStyles}>
-          {showMenuDropdown && (
-            <AntdDropdown
-              trigger={['click']}
-              overlay={additionalActionsMenu}
-              {...menuDropdownProps}
+          <AntdDropdown
+            trigger={['click']}
+            overlay={additionalActionsMenu}
+            {...menuDropdownProps}
+          >
+            <Button
+              css={menuTriggerStyles}
+              buttonStyle="tertiary"
+              aria-label={t('Menu actions trigger')}
+              tooltip={tooltipProps?.text}
+              placement={tooltipProps?.placement}
+              data-test="actions-trigger"
             >
-              <Button
-                css={menuTriggerStyles}
-                buttonStyle="tertiary"
-                aria-label={t('Menu actions trigger')}
-                tooltip={tooltipProps?.text}
-                placement={tooltipProps?.placement}
-                data-test="actions-trigger"
-              >
-                <Icons.MoreHoriz
-                  iconColor={theme.colors.primary.dark2}
-                  iconSize="l"
-                />
-              </Button>
-            </AntdDropdown>
-          )}
+              <Icons.MoreHoriz
+                iconColor={theme.colors.primary.dark2}
+                iconSize="l"
+              />
+            </Button>
+          </AntdDropdown>
         </div>
       </div>
     </div>

@@ -17,98 +17,26 @@
  * under the License.
  */
 
-import { TimeLocaleDefinition } from 'd3-time-format';
-import { TimeFormatter, createSmartDateFormatter } from '@superset-ui/core';
+import { TimeFormatter, smartDateFormatter } from '@superset-ui/core';
 
-describe('createSmartDateFormatter', () => {
-  describe('when locale is default', () => {
-    const smartDateFormatter = createSmartDateFormatter();
-
-    it('is a function', () => {
-      expect(smartDateFormatter).toBeInstanceOf(TimeFormatter);
-    });
-
-    it('shows only year when 1st day of the year', () => {
-      expect(smartDateFormatter(new Date('2020-01-01'))).toBe('2020');
-    });
-
-    it('shows only month when 1st of month', () => {
-      expect(smartDateFormatter(new Date('2020-03-01'))).toBe('March');
-    });
-
-    it('does not show day of week when it is Sunday', () => {
-      expect(smartDateFormatter(new Date('2020-03-15'))).toBe('Mar 15');
-    });
-
-    it('shows weekday when it is not Sunday (and no ms/sec/min/hr)', () => {
-      expect(smartDateFormatter(new Date('2020-03-03'))).toBe('Tue 03');
-    });
+describe('smartDateFormatter', () => {
+  it('is a function', () => {
+    expect(smartDateFormatter).toBeInstanceOf(TimeFormatter);
   });
-  describe('when different locale is not default', () => {
-    const locale: TimeLocaleDefinition = {
-      dateTime: '%A, %e de %B de %Y. %X',
-      date: '%d/%m/%Y',
-      time: '%H:%M:%S',
-      periods: ['AM', 'PM'],
-      days: [
-        'Domingo',
-        'Segunda',
-        'Terça',
-        'Quarta',
-        'Quinta',
-        'Sexta',
-        'Sábado',
-      ],
-      shortDays: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
-      months: [
-        'Janeiro',
-        'Fevereiro',
-        'Março',
-        'Abril',
-        'Maio',
-        'Junho',
-        'Julho',
-        'Agosto',
-        'Setembro',
-        'Outubro',
-        'Novembro',
-        'Dezembro',
-      ],
-      shortMonths: [
-        'Jan',
-        'Fev',
-        'Mar',
-        'Abr',
-        'Mai',
-        'Jun',
-        'Jul',
-        'Ago',
-        'Set',
-        'Out',
-        'Nov',
-        'Dez',
-      ],
-    };
-    const smartDateFormatter = createSmartDateFormatter(locale);
 
-    it('is a function', () => {
-      expect(smartDateFormatter).toBeInstanceOf(TimeFormatter);
-    });
+  it('shows only year when 1st day of the year', () => {
+    expect(smartDateFormatter(new Date('2020-01-01'))).toBe('2020');
+  });
 
-    it('shows only year when 1st day of the year', () => {
-      expect(smartDateFormatter(new Date('2020-01-01'))).toBe('2020');
-    });
+  it('shows only month when 1st of month', () => {
+    expect(smartDateFormatter(new Date('2020-03-01'))).toBe('March');
+  });
 
-    it('shows only month when 1st of month', () => {
-      expect(smartDateFormatter(new Date('2020-03-01'))).toBe('Março');
-    });
+  it('does not show day of week when it is Sunday', () => {
+    expect(smartDateFormatter(new Date('2020-03-15'))).toBe('Mar 15');
+  });
 
-    it('does not show day of week when it is Sunday', () => {
-      expect(smartDateFormatter(new Date('2023-10-15'))).toBe('Out 15');
-    });
-
-    it('shows weekday when it is not Sunday (and no ms/sec/min/hr)', () => {
-      expect(smartDateFormatter(new Date('2020-03-03'))).toBe('Ter 03');
-    });
+  it('shows weekday when it is not Sunday (and no ms/sec/min/hr)', () => {
+    expect(smartDateFormatter(new Date('2020-03-03'))).toBe('Tue 03');
   });
 });

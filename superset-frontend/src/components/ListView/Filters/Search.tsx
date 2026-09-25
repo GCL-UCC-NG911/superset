@@ -16,27 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import {
-  forwardRef,
-  useImperativeHandle,
-  useState,
-  RefObject,
-  ChangeEvent,
-} from 'react';
-
+import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import { t, styled } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
 import { AntdInput } from 'src/components';
 import { SELECT_WIDTH } from 'src/components/ListView/utils';
 import { FormLabel } from 'src/components/Form';
-import InfoTooltip from 'src/components/InfoTooltip';
 import { BaseFilter, FilterHandler } from './Base';
 
 interface SearchHeaderProps extends BaseFilter {
   Header: string;
   onSubmit: (val: string) => void;
   name: string;
-  toolTipDescription: string | undefined;
 }
 
 const Container = styled.div`
@@ -52,14 +43,8 @@ const StyledInput = styled(AntdInput)`
 `;
 
 function SearchFilter(
-  {
-    Header,
-    name,
-    initialValue,
-    toolTipDescription,
-    onSubmit,
-  }: SearchHeaderProps,
-  ref: RefObject<FilterHandler>,
+  { Header, name, initialValue, onSubmit }: SearchHeaderProps,
+  ref: React.RefObject<FilterHandler>,
 ) {
   const [value, setValue] = useState(initialValue || '');
   const handleSubmit = () => {
@@ -67,7 +52,7 @@ function SearchFilter(
       onSubmit(value.trim());
     }
   };
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.currentTarget.value);
     if (e.currentTarget.value === '') {
       onSubmit('');
@@ -84,9 +69,6 @@ function SearchFilter(
   return (
     <Container>
       <FormLabel>{Header}</FormLabel>
-      {toolTipDescription && (
-        <InfoTooltip tooltip={toolTipDescription} viewBox="0 -7 28 28" />
-      )}
       <StyledInput
         allowClear
         data-test="filters-search"

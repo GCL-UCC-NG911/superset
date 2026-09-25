@@ -16,20 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { t, validateNonEmpty } from '@superset-ui/core';
 import {
   ColumnMeta,
   ControlPanelConfig,
-  ControlSubSectionHeader,
   D3_FORMAT_DOCS,
   D3_FORMAT_OPTIONS,
   D3_TIME_FORMAT_OPTIONS,
   getStandardizedControls,
+  sections,
 } from '@superset-ui/chart-controls';
 import OptionDescription from './OptionDescription';
 
 const config: ControlPanelConfig = {
   controlPanelSections: [
+    sections.legacyRegularTime,
     {
       label: t('Query'),
       expanded: true,
@@ -239,11 +241,7 @@ const config: ControlPanelConfig = {
       ),
       controlSetRows: [
         // eslint-disable-next-line react/jsx-key
-        [
-          <ControlSubSectionHeader>
-            {t('Rolling Window')}
-          </ControlSubSectionHeader>,
-        ],
+        [<div className="section-header">{t('Rolling Window')}</div>],
         [
           {
             name: 'rolling_type',
@@ -295,11 +293,7 @@ const config: ControlPanelConfig = {
           },
         ],
         // eslint-disable-next-line react/jsx-key
-        [
-          <ControlSubSectionHeader>
-            {t('Time Comparison')}
-          </ControlSubSectionHeader>,
-        ],
+        [<div className="section-header">{t('Time Comparison')}</div>],
         [
           {
             name: 'time_compare',
@@ -348,7 +342,7 @@ const config: ControlPanelConfig = {
             },
           },
         ],
-        [<ControlSubSectionHeader>{t('Resample')}</ControlSubSectionHeader>],
+        [<div className="section-header">{t('Resample')}</div>],
         [
           {
             name: 'resample_rule',

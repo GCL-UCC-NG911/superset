@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { styled, css } from '@superset-ui/core';
 import ControlHeader from '../ControlHeader';
@@ -44,7 +44,7 @@ const CheckBoxControlWrapper = styled.div`
   `}
 `;
 
-export default class CheckboxControl extends Component {
+export default class CheckboxControl extends React.Component {
   onChange() {
     this.props.onChange(!this.props.value);
   }

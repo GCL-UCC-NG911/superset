@@ -18,10 +18,10 @@
  */
 /* eslint-disable react/jsx-sort-default-props, react/sort-prop-types */
 /* eslint-disable react/forbid-prop-types, react/require-default-props */
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import MapGL from 'react-map-gl';
-import { WebMercatorViewport } from '@math.gl/web-mercator';
+import ViewportMercator from 'viewport-mercator-project';
 import ScatterPlotGlowOverlay from './ScatterPlotGlowOverlay';
 import './MapBox.css';
 
@@ -55,7 +55,7 @@ const defaultProps = {
   pointRadiusUnit: 'Pixels',
 };
 
-class MapBox extends Component {
+class MapBox extends React.Component {
   constructor(props) {
     super(props);
 
@@ -63,7 +63,7 @@ class MapBox extends Component {
     // Get a viewport that fits the given bounds, which all marks to be clustered.
     // Derive lat, lon and zoom from this viewport. This is only done on initial
     // render as the bounds don't update as we pan/zoom in the current design.
-    const mercator = new WebMercatorViewport({
+    const mercator = new ViewportMercator({
       width,
       height,
     }).fitBounds(bounds);

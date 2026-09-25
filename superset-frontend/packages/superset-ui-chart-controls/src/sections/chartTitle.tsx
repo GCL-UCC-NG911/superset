@@ -16,9 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { t } from '@superset-ui/core';
-
-import { ControlSubSectionHeader } from '../components/ControlSubSectionHeader';
 import { ControlPanelSectionConfig } from '../types';
 import { formatSelectOptions } from '../utils';
 
@@ -34,7 +33,7 @@ export const titleControls: ControlPanelSectionConfig = {
   tabOverride: 'customize',
   expanded: true,
   controlSetRows: [
-    [<ControlSubSectionHeader>{t('X Axis')}</ControlSubSectionHeader>],
+    [<div className="section-header">{t('X Axis')}</div>],
     [
       {
         name: 'x_axis_title',
@@ -54,7 +53,7 @@ export const titleControls: ControlPanelSectionConfig = {
           type: 'SelectControl',
           freeForm: true,
           clearable: true,
-          label: t('X Axis Title Margin'),
+          label: t('X AXIS TITLE BOTTOM MARGIN'),
           renderTrigger: true,
           default: TITLE_MARGIN_OPTIONS[0],
           choices: formatSelectOptions(TITLE_MARGIN_OPTIONS),
@@ -62,7 +61,7 @@ export const titleControls: ControlPanelSectionConfig = {
         },
       },
     ],
-    [<ControlSubSectionHeader>{t('Y Axis')}</ControlSubSectionHeader>],
+    [<div className="section-header">{t('Y Axis')}</div>],
     [
       {
         name: 'y_axis_title',
@@ -82,9 +81,9 @@ export const titleControls: ControlPanelSectionConfig = {
           type: 'SelectControl',
           freeForm: true,
           clearable: true,
-          label: t('Y Axis Title Margin'),
+          label: t('Y AXIS TITLE MARGIN'),
           renderTrigger: true,
-          default: TITLE_MARGIN_OPTIONS[1],
+          default: TITLE_MARGIN_OPTIONS[0],
           choices: formatSelectOptions(TITLE_MARGIN_OPTIONS),
           description: t('Changing this control takes effect instantly'),
         },
@@ -97,7 +96,7 @@ export const titleControls: ControlPanelSectionConfig = {
           type: 'SelectControl',
           freeForm: true,
           clearable: false,
-          label: t('Y Axis Title Position'),
+          label: t('Y AXIS TITLE POSITION'),
           renderTrigger: true,
           default: TITLE_POSITION_OPTIONS[0][0],
           choices: TITLE_POSITION_OPTIONS,

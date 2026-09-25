@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Tag } from 'antd';
 import {
   BinaryQueryObjectFilterClause,

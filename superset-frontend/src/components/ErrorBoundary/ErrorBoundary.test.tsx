@@ -16,17 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactElement } from 'react';
+import React from 'react';
 import { render, screen } from 'spec/helpers/testing-library';
-import ErrorBoundary, { ErrorBoundaryProps } from '.';
+import ErrorBoundary from '.';
 
-const mockedProps: Partial<ErrorBoundaryProps> = {
+const mockedProps = {
   children: <span>Error children</span>,
-  onError: jest.fn(),
+  onError: () => null,
   showMessage: false,
 };
 
-const Child = (): ReactElement => {
+const Child = () => {
   throw new Error('Thrown error');
 };
 

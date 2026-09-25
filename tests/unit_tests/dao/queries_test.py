@@ -14,29 +14,29 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+import json
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Iterator
 
 import pytest
-from pytest_mock import MockerFixture
+from pytest_mock import MockFixture
 from sqlalchemy.orm.session import Session
 
 from superset.exceptions import QueryNotFoundException, SupersetCancelQueryException
 
 
 def test_query_dao_save_metadata(session: Session) -> None:
-    from superset import db
     from superset.models.core import Database
     from superset.models.sql_lab import Query
 
-    engine = db.session.get_bind()
+    engine = session.get_bind()
     Query.metadata.create_all(engine)  # pylint: disable=no-member
 
-    database = Database(database_name="my_database", sqlalchemy_uri="sqlite://")
+    db = Database(database_name="my_database", sqlalchemy_uri="sqlite://")
 
     query_obj = Query(
         client_id="foo",
-        database=database,
+        database=db,
         tab_name="test_tab",
         sql_editor_id="test_editor_id",
         sql="select * from bar",
@@ -49,31 +49,30 @@ def test_query_dao_save_metadata(session: Session) -> None:
         results_key="abc",
     )
 
-    db.session.add(database)
-    db.session.add(query_obj)
+    session.add(db)
+    session.add(query_obj)
 
-    from superset.daos.query import QueryDAO
+    from superset.queries.dao import QueryDAO
 
-    query = db.session.query(Query).one()
+    query = session.query(Query).one()
     QueryDAO.save_metadata(query=query, payload={"columns": []})
     assert query.extra.get("columns", None) == []
 
 
 def test_query_dao_get_queries_changed_after(session: Session) -> None:
-    from superset import db
     from superset.models.core import Database
     from superset.models.sql_lab import Query
 
-    engine = db.session.get_bind()
+    engine = session.get_bind()
     Query.metadata.create_all(engine)  # pylint: disable=no-member
 
-    database = Database(database_name="my_database", sqlalchemy_uri="sqlite://")
+    db = Database(database_name="my_database", sqlalchemy_uri="sqlite://")
 
     now = datetime.utcnow()
 
     old_query_obj = Query(
         client_id="foo",
-        database=database,
+        database=db,
         tab_name="test_tab",
         sql_editor_id="test_editor_id",
         sql="select * from bar",
@@ -89,7 +88,7 @@ def test_query_dao_get_queries_changed_after(session: Session) -> None:
 
     updated_query_obj = Query(
         client_id="updated_foo",
-        database=database,
+        database=db,
         tab_name="test_tab",
         sql_editor_id="test_editor_id",
         sql="select * from foo",
@@ -103,11 +102,11 @@ def test_query_dao_get_queries_changed_after(session: Session) -> None:
         changed_on=now - timedelta(days=1),
     )
 
-    db.session.add(database)
-    db.session.add(old_query_obj)
-    db.session.add(updated_query_obj)
+    session.add(db)
+    session.add(old_query_obj)
+    session.add(updated_query_obj)
 
-    from superset.daos.query import QueryDAO
+    from superset.queries.dao import QueryDAO
 
     timestamp = datetime.timestamp(now - timedelta(days=2)) * 1000
     result = QueryDAO.get_queries_changed_after(timestamp)
@@ -116,21 +115,20 @@ def test_query_dao_get_queries_changed_after(session: Session) -> None:
 
 
 def test_query_dao_stop_query_not_found(
-    mocker: MockerFixture, app: Any, session: Session
+    mocker: MockFixture, app: Any, session: Session
 ) -> None:
-    from superset import db
     from superset.common.db_query_status import QueryStatus
     from superset.models.core import Database
     from superset.models.sql_lab import Query
 
-    engine = db.session.get_bind()
+    engine = session.get_bind()
     Query.metadata.create_all(engine)  # pylint: disable=no-member
 
-    database = Database(database_name="my_database", sqlalchemy_uri="sqlite://")
+    db = Database(database_name="my_database", sqlalchemy_uri="sqlite://")
 
     query_obj = Query(
         client_id="foo",
-        database=database,
+        database=db,
         tab_name="test_tab",
         sql_editor_id="test_editor_id",
         sql="select * from bar",
@@ -144,36 +142,35 @@ def test_query_dao_stop_query_not_found(
         status=QueryStatus.RUNNING,
     )
 
-    db.session.add(database)
-    db.session.add(query_obj)
+    session.add(db)
+    session.add(query_obj)
 
     mocker.patch("superset.sql_lab.cancel_query", return_value=False)
 
-    from superset.daos.query import QueryDAO
+    from superset.queries.dao import QueryDAO
 
     with pytest.raises(QueryNotFoundException):
         QueryDAO.stop_query("foo2")
 
-    query = db.session.query(Query).one()
+    query = session.query(Query).one()
     assert query.status == QueryStatus.RUNNING
 
 
 def test_query_dao_stop_query_not_running(
-    mocker: MockerFixture, app: Any, session: Session
+    mocker: MockFixture, app: Any, session: Session
 ) -> None:
-    from superset import db
     from superset.common.db_query_status import QueryStatus
     from superset.models.core import Database
     from superset.models.sql_lab import Query
 
-    engine = db.session.get_bind()
+    engine = session.get_bind()
     Query.metadata.create_all(engine)  # pylint: disable=no-member
 
-    database = Database(database_name="my_database", sqlalchemy_uri="sqlite://")
+    db = Database(database_name="my_database", sqlalchemy_uri="sqlite://")
 
     query_obj = Query(
         client_id="foo",
-        database=database,
+        database=db,
         tab_name="test_tab",
         sql_editor_id="test_editor_id",
         sql="select * from bar",
@@ -187,32 +184,31 @@ def test_query_dao_stop_query_not_running(
         status=QueryStatus.FAILED,
     )
 
-    db.session.add(database)
-    db.session.add(query_obj)
+    session.add(db)
+    session.add(query_obj)
 
-    from superset.daos.query import QueryDAO
+    from superset.queries.dao import QueryDAO
 
     QueryDAO.stop_query(query_obj.client_id)
-    query = db.session.query(Query).one()
+    query = session.query(Query).one()
     assert query.status == QueryStatus.FAILED
 
 
 def test_query_dao_stop_query_failed(
-    mocker: MockerFixture, app: Any, session: Session
+    mocker: MockFixture, app: Any, session: Session
 ) -> None:
-    from superset import db
     from superset.common.db_query_status import QueryStatus
     from superset.models.core import Database
     from superset.models.sql_lab import Query
 
-    engine = db.session.get_bind()
+    engine = session.get_bind()
     Query.metadata.create_all(engine)  # pylint: disable=no-member
 
-    database = Database(database_name="my_database", sqlalchemy_uri="sqlite://")
+    db = Database(database_name="my_database", sqlalchemy_uri="sqlite://")
 
     query_obj = Query(
         client_id="foo",
-        database=database,
+        database=db,
         tab_name="test_tab",
         sql_editor_id="test_editor_id",
         sql="select * from bar",
@@ -226,36 +222,33 @@ def test_query_dao_stop_query_failed(
         status=QueryStatus.RUNNING,
     )
 
-    db.session.add(database)
-    db.session.add(query_obj)
+    session.add(db)
+    session.add(query_obj)
 
     mocker.patch("superset.sql_lab.cancel_query", return_value=False)
 
-    from superset.daos.query import QueryDAO
+    from superset.queries.dao import QueryDAO
 
     with pytest.raises(SupersetCancelQueryException):
         QueryDAO.stop_query(query_obj.client_id)
 
-    query = db.session.query(Query).one()
+    query = session.query(Query).one()
     assert query.status == QueryStatus.RUNNING
 
 
-def test_query_dao_stop_query(
-    mocker: MockerFixture, app: Any, session: Session
-) -> None:
-    from superset import db
+def test_query_dao_stop_query(mocker: MockFixture, app: Any, session: Session) -> None:
     from superset.common.db_query_status import QueryStatus
     from superset.models.core import Database
     from superset.models.sql_lab import Query
 
-    engine = db.session.get_bind()
+    engine = session.get_bind()
     Query.metadata.create_all(engine)  # pylint: disable=no-member
 
-    database = Database(database_name="my_database", sqlalchemy_uri="sqlite://")
+    db = Database(database_name="my_database", sqlalchemy_uri="sqlite://")
 
     query_obj = Query(
         client_id="foo",
-        database=database,
+        database=db,
         tab_name="test_tab",
         sql_editor_id="test_editor_id",
         sql="select * from bar",
@@ -269,13 +262,13 @@ def test_query_dao_stop_query(
         status=QueryStatus.RUNNING,
     )
 
-    db.session.add(database)
-    db.session.add(query_obj)
+    session.add(db)
+    session.add(query_obj)
 
     mocker.patch("superset.sql_lab.cancel_query", return_value=True)
 
-    from superset.daos.query import QueryDAO
+    from superset.queries.dao import QueryDAO
 
     QueryDAO.stop_query(query_obj.client_id)
-    query = db.session.query(Query).one()
+    query = session.query(Query).one()
     assert query.status == QueryStatus.STOPPED

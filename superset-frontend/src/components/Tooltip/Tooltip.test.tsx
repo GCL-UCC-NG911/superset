@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { render, screen } from 'spec/helpers/testing-library';
 import userEvent from '@testing-library/user-event';
 import { supersetTheme } from '@superset-ui/core';
@@ -44,13 +45,17 @@ test('renders on hover', async () => {
 
 test('renders with theme', () => {
   render(
-    <Tooltip title="Simple tooltip" defaultOpen>
+    <Tooltip title="Simple tooltip" defaultVisible>
       <Button>Hover me</Button>
     </Tooltip>,
   );
   const tooltip = screen.getByRole('tooltip');
   expect(tooltip).toHaveStyle({
-    'background-color': `${supersetTheme.colors.grayscale.dark2}e6`,
+    background: `${supersetTheme.colors.grayscale.dark2}e6`,
+  });
+  expect(tooltip.parentNode?.parentNode).toHaveStyle({
+    lineHeight: 1.6,
+    fontSize: 12,
   });
 });
 

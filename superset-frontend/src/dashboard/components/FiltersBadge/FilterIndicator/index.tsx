@@ -17,35 +17,36 @@
  * under the License.
  */
 
-import { forwardRef } from 'react';
+import React, { FC } from 'react';
 import { css } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
-import { getFilterValueForDisplay } from 'src/dashboard/components/nativeFilters/utils';
+import { getFilterValueForDisplay } from 'src/dashboard/components/nativeFilters/FilterBar/FilterSets/utils';
 import {
+  FilterIndicatorText,
   FilterValue,
-  FilterItem,
-  FilterName,
+  Item,
+  ItemIcon,
+  Title,
 } from 'src/dashboard/components/FiltersBadge/Styles';
-import { Indicator } from 'src/dashboard/components/nativeFilters/selectors';
+import { Indicator } from 'src/dashboard/components/FiltersBadge/selectors';
 
 export interface IndicatorProps {
   indicator: Indicator;
   onClick?: (path: string[]) => void;
+  text?: string;
 }
 
-const FilterIndicator = forwardRef<HTMLButtonElement, IndicatorProps>(
-  ({ indicator: { column, name, value, path = [] }, onClick }, ref) => {
-    const resultValue = getFilterValueForDisplay(value);
-    return (
-      <FilterItem
-        ref={ref}
-        onClick={
-          onClick ? () => onClick([...path, `LABEL-${column}`]) : undefined
-        }
-        tabIndex={-1}
-      >
-        {onClick && (
-          <i>
+const FilterIndicator: FC<IndicatorProps> = ({
+  indicator: { column, name, value, path = [] },
+  onClick = () => {},
+  text,
+}) => {
+  const resultValue = getFilterValueForDisplay(value);
+  return (
+    <>
+      <Item onClick={() => onClick([...path, `LABEL-${column}`])}>
+        <Title bold>
+          <ItemIcon>
             <Icons.SearchOutlined
               iconSize="m"
               css={css`
@@ -54,18 +55,15 @@ const FilterIndicator = forwardRef<HTMLButtonElement, IndicatorProps>(
                 }
               `}
             />
-          </i>
-        )}
-        <div>
-          <FilterName>
-            {name}
-            {resultValue ? ': ' : ''}
-          </FilterName>
-          <FilterValue>{resultValue}</FilterValue>
-        </div>
-      </FilterItem>
-    );
-  },
-);
+          </ItemIcon>
+          {name}
+          {resultValue ? ': ' : ''}
+        </Title>
+        <FilterValue>{resultValue}</FilterValue>
+      </Item>
+      {text && <FilterIndicatorText>{text}</FilterIndicatorText>}
+    </>
+  );
+};
 
 export default FilterIndicator;

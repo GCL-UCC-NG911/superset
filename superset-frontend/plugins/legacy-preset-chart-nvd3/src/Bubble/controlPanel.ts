@@ -21,6 +21,7 @@ import {
   ControlPanelConfig,
   formatSelectOptions,
   D3_FORMAT_OPTIONS,
+  sections,
   getStandardizedControls,
 } from '@superset-ui/chart-controls';
 import {
@@ -39,6 +40,7 @@ import {
 
 const config: ControlPanelConfig = {
   controlPanelSections: [
+    sections.legacyRegularTime,
     {
       label: t('Query'),
       expanded: true,

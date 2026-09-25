@@ -16,18 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useState, useEffect, ReactElement } from 'react';
-
+import React, { useState, useEffect } from 'react';
 import {
   ensureIsArray,
   styled,
   t,
   getChartMetadataRegistry,
-  getClientErrorObject,
 } from '@superset-ui/core';
 import Loading from 'src/components/Loading';
-import { EmptyState } from 'src/components/EmptyState';
+import { EmptyStateMedium } from 'src/components/EmptyState';
 import { getChartDataRequest } from 'src/components/Chart/chartAction';
+import { getClientErrorObject } from 'src/utils/getClientErrorObject';
 import { ResultsPaneProps, QueryResultInterface } from '../types';
 import { SingleQueryResultPane } from './SingleQueryResultPane';
 import { TableControls } from './DataTableControls';
@@ -47,8 +46,7 @@ export const useResultsPane = ({
   actions,
   isVisible,
   dataSize = 50,
-  canDownload,
-}: ResultsPaneProps): ReactElement[] => {
+}: ResultsPaneProps): React.ReactElement[] => {
   const metadata = getChartMetadataRegistry().get(
     queryFormData?.viz_type || queryFormData?.vizType,
   );
@@ -110,7 +108,7 @@ export const useResultsPane = ({
   if (errorMessage) {
     const title = t('Run a query to display results');
     return Array(queryCount).fill(
-      <EmptyState image="document.svg" title={title} />,
+      <EmptyStateMedium image="document.svg" title={title} />,
     );
   }
 
@@ -121,11 +119,9 @@ export const useResultsPane = ({
           data={[]}
           columnNames={[]}
           columnTypes={[]}
-          rowcount={0}
           datasourceId={queryFormData.datasource}
           onInputChange={() => {}}
           isLoading={false}
-          canDownload={canDownload}
         />
         <Error>{responseError}</Error>
       </>
@@ -136,9 +132,10 @@ export const useResultsPane = ({
   if (resultResp.length === 0) {
     const title = t('No results were returned for this query');
     return Array(queryCount).fill(
-      <EmptyState image="document.svg" title={title} />,
+      <EmptyStateMedium image="document.svg" title={title} />,
     );
   }
+
   return resultResp
     .slice(0, queryCount)
     .map((result, idx) => (
@@ -146,12 +143,10 @@ export const useResultsPane = ({
         data={result.data}
         colnames={result.colnames}
         coltypes={result.coltypes}
-        rowcount={result.rowcount}
         dataSize={dataSize}
         datasourceId={queryFormData.datasource}
         key={idx}
         isVisible={isVisible}
-        canDownload={canDownload}
       />
     ));
 };

@@ -16,18 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import {
-  ReactNode,
-  DetailedHTMLProps,
-  TdHTMLAttributes,
-  PureComponent,
-} from 'react';
-
-import { nanoid } from 'nanoid';
-
-import { InfoTooltipWithTrigger } from '@superset-ui/chart-controls';
+import React, { ReactNode } from 'react';
+import shortid from 'shortid';
 import { t, styled } from '@superset-ui/core';
-
 import Button from 'src/components/Button';
 import Icons from 'src/components/Icons';
 import Fieldset from './Fieldset';
@@ -36,9 +27,8 @@ import { recurseReactClone } from './utils';
 interface CRUDCollectionProps {
   allowAddItem?: boolean;
   allowDeletes?: boolean;
-  collection: Record<PropertyKey, any>[];
-  columnLabels?: Record<PropertyKey, any>;
-  columnLabelTooltips?: Record<PropertyKey, any>;
+  collection: Array<object>;
+  columnLabels?: object;
   emptyMessage?: ReactNode;
   expandFieldset?: ReactNode;
   extraButtons?: ReactNode;
@@ -47,8 +37,8 @@ interface CRUDCollectionProps {
     val: unknown,
     label: string,
     record: any,
-  ) => DetailedHTMLProps<
-    TdHTMLAttributes<HTMLTableCellElement>,
+  ) => React.DetailedHTMLProps<
+    React.TdHTMLAttributes<HTMLTableCellElement>,
     HTMLTableCellElement
   >)[];
   itemRenderers?: ((
@@ -58,38 +48,38 @@ interface CRUDCollectionProps {
     record: any,
   ) => ReactNode)[];
   onChange?: (arg0: any) => void;
-  tableColumns: any[];
-  sortColumns: string[];
+  tableColumns: Array<any>;
+  sortColumns: Array<string>;
   stickyHeader?: boolean;
 }
 
 type Sort = number | string | boolean | any;
 
 enum SortOrder {
-  Asc = 1,
-  Desc = 2,
-  Unsorted = 0,
+  asc = 1,
+  desc = 2,
+  unsort = 0,
 }
 
 interface CRUDCollectionState {
-  collection: Record<PropertyKey, any>;
-  collectionArray: Record<PropertyKey, any>[];
-  expandedColumns: Record<PropertyKey, any>;
+  collection: object;
+  collectionArray: Array<object>;
+  expandedColumns: object;
   sortColumn: string;
   sort: SortOrder;
 }
 
-function createCollectionArray(collection: Record<PropertyKey, any>) {
+function createCollectionArray(collection: object) {
   return Object.keys(collection).map(k => collection[k]);
 }
 
 function createKeyedCollection(arr: Array<object>) {
   const collectionArray = arr.map((o: any) => ({
     ...o,
-    id: o.id || nanoid(),
+    id: o.id || shortid.generate(),
   }));
 
-  const collection: Record<PropertyKey, any> = {};
+  const collection = {};
   collectionArray.forEach((o: any) => {
     collection[o.id] = o;
   });
@@ -155,7 +145,7 @@ const StyledButtonWrapper = styled.span`
   `}
 `;
 
-export default class CRUDCollection extends PureComponent<
+export default class CRUDCollection extends React.PureComponent<
   CRUDCollectionProps,
   CRUDCollectionState
 > {
@@ -209,7 +199,7 @@ export default class CRUDCollection extends PureComponent<
     if (this.props.itemGenerator) {
       let newItem = this.props.itemGenerator();
       if (!newItem.id) {
-        newItem = { ...newItem, id: nanoid() };
+        newItem = { ...newItem, id: shortid.generate() };
       }
       this.changeCollection(this.state.collection, newItem);
     }
@@ -230,11 +220,6 @@ export default class CRUDCollection extends PureComponent<
       label = '';
     }
     return label;
-  }
-
-  getTooltip(col: string) {
-    const { columnLabelTooltips } = this.props;
-    return columnLabelTooltips?.[col];
   }
 
   changeCollection(collection: any, newItem?: object) {
@@ -276,7 +261,7 @@ export default class CRUDCollection extends PureComponent<
     }));
   }
 
-  sortColumn(col: string, sort = SortOrder.Unsorted) {
+  sortColumn(col: string, sort = SortOrder.unsort) {
     const { sortColumns } = this.props;
     // default sort logic sorting string, boolean and number
     const compareSort = (m: Sort, n: Sort) => {
@@ -288,7 +273,7 @@ export default class CRUDCollection extends PureComponent<
     return () => {
       if (sortColumns?.includes(col)) {
         // display in unsorted order if no sort specified
-        if (sort === SortOrder.Unsorted) {
+        if (sort === SortOrder.unsort) {
           const { collection } = createKeyedCollection(this.props.collection);
           const collectionArray = createCollectionArray(collection);
           this.setState({
@@ -301,11 +286,10 @@ export default class CRUDCollection extends PureComponent<
 
         // newly ordered collection
         const sorted = [...this.state.collectionArray].sort(
-          (a: Record<PropertyKey, any>, b: Record<PropertyKey, any>) =>
-            compareSort(a[col], b[col]),
+          (a: object, b: object) => compareSort(a[col], b[col]),
         );
         const newCollection =
-          sort === SortOrder.Asc ? sorted : sorted.reverse();
+          sort === SortOrder.asc ? sorted : sorted.reverse();
 
         this.setState(prevState => ({
           ...prevState,
@@ -318,32 +302,13 @@ export default class CRUDCollection extends PureComponent<
   }
 
   renderSortIcon(col: string) {
-    if (this.state.sortColumn === col && this.state.sort === SortOrder.Asc) {
+    if (this.state.sortColumn === col && this.state.sort === SortOrder.asc) {
       return <Icons.SortAsc onClick={this.sortColumn(col, 2)} />;
     }
-    if (this.state.sortColumn === col && this.state.sort === SortOrder.Desc) {
+    if (this.state.sortColumn === col && this.state.sort === SortOrder.desc) {
       return <Icons.SortDesc onClick={this.sortColumn(col, 0)} />;
     }
     return <Icons.Sort onClick={this.sortColumn(col, 1)} />;
-  }
-
-  renderTH(col: string, sortColumns: Array<string>) {
-    const tooltip = this.getTooltip(col);
-    return (
-      <th key={col} className="no-wrap">
-        {this.getLabel(col)}
-        {tooltip && (
-          <>
-            {' '}
-            <InfoTooltipWithTrigger
-              label={t('description')}
-              tooltip={tooltip}
-            />
-          </>
-        )}
-        {sortColumns?.includes(col) && this.renderSortIcon(col)}
-      </th>
-    );
   }
 
   renderHeaderRow() {
@@ -354,7 +319,12 @@ export default class CRUDCollection extends PureComponent<
       <thead>
         <tr>
           {expandFieldset && <th aria-label="Expand" className="tiny-cell" />}
-          {cols.map(col => this.renderTH(col, sortColumns))}
+          {cols.map(col => (
+            <th key={col}>
+              {this.getLabel(col)}
+              {sortColumns?.includes(col) && this.renderSortIcon(col)}
+            </th>
+          ))}
           {extraButtons}
           {allowDeletes && (
             <th key="delete-item" aria-label="Delete" className="tiny-cell" />
@@ -416,7 +386,7 @@ export default class CRUDCollection extends PureComponent<
       )),
     );
     if (allowAddItem) {
-      tds.push(<td key="add" aria-label="Add" />);
+      tds.push(<td key="add" />);
     }
     if (allowDeletes) {
       tds.push(

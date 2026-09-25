@@ -14,10 +14,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-"""Superset utilities for pandas.DataFrame."""
-
+""" Superset utilities for pandas.DataFrame.
+"""
 import logging
-from typing import Any
+from typing import Any, Dict, List
 
 import pandas as pd
 
@@ -37,7 +37,7 @@ def _convert_big_integers(val: Any) -> Any:
     return str(val) if isinstance(val, int) and abs(val) > JS_MAX_INTEGER else val
 
 
-def df_to_records(dframe: pd.DataFrame) -> list[dict[str, Any]]:
+def df_to_records(dframe: pd.DataFrame) -> List[Dict[str, Any]]:
     """
     Convert a DataFrame to a set of records.
 
@@ -48,10 +48,8 @@ def df_to_records(dframe: pd.DataFrame) -> list[dict[str, Any]]:
         logger.warning(
             "DataFrame columns are not unique, some columns will be omitted."
         )
-    records = dframe.to_dict(orient="records")
-
-    for record in records:
-        for key in record:
-            record[key] = _convert_big_integers(record[key])
-
-    return records
+    columns = dframe.columns
+    return list(
+        dict(zip(columns, map(_convert_big_integers, row)))
+        for row in zip(*[dframe[col] for col in columns])
+    )

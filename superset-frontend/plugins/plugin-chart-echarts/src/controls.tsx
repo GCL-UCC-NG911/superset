@@ -16,24 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { t, VizType } from '@superset-ui/core';
+import React from 'react';
+import { t } from '@superset-ui/core';
 import {
   ControlPanelsContainerProps,
   ControlSetItem,
   ControlSetRow,
-  ControlSubSectionHeader,
-  DEFAULT_SORT_SERIES_DATA,
-  SORT_SERIES_CHOICES,
   sharedControls,
 } from '@superset-ui/chart-controls';
-import { DEFAULT_LEGEND_FORM_DATA, StackControlOptions } from './constants';
+import { DEFAULT_LEGEND_FORM_DATA } from './constants';
 import { DEFAULT_FORM_DATA } from './Timeseries/constants';
-import { defaultXAxis } from './defaults';
 
 const { legendMargin, legendOrientation, legendType, showLegend } =
   DEFAULT_LEGEND_FORM_DATA;
 
-export const showLegendControl: ControlSetItem = {
+const showLegendControl: ControlSetItem = {
   name: 'show_legend',
   config: {
     type: 'CheckboxControl',
@@ -97,7 +94,7 @@ const legendOrientationControl: ControlSetItem = {
 };
 
 export const legendSection: ControlSetRow[] = [
-  [<ControlSubSectionHeader>{t('Legend')}</ControlSubSectionHeader>],
+  [<div className="section-header">{t('Legend')}</div>],
   [showLegendControl],
   [legendTypeControl],
   [legendOrientationControl],
@@ -118,11 +115,10 @@ export const showValueControl: ControlSetItem = {
 export const stackControl: ControlSetItem = {
   name: 'stack',
   config: {
-    type: 'SelectControl',
-    label: t('Stacked Style'),
+    type: 'CheckboxControl',
+    label: t('Stack series'),
     renderTrigger: true,
-    choices: StackControlOptions,
-    default: null,
+    default: false,
     description: t('Stack series on top of each other'),
   },
 };
@@ -142,7 +138,7 @@ export const onlyTotalControl: ControlSetItem = {
   },
 };
 
-export const percentageThresholdControl: ControlSetItem = {
+const percentageThresholdControl: ControlSetItem = {
   name: 'percentage_threshold',
   config: {
     type: 'TextControl',
@@ -210,143 +206,9 @@ const tooltipSortByMetricControl: ControlSetItem = {
   },
 };
 
-const tooltipTotalControl: ControlSetItem = {
-  name: 'showTooltipTotal',
-  config: {
-    type: 'CheckboxControl',
-    label: t('Show total'),
-    renderTrigger: true,
-    default: true,
-    description: t('Whether to display the total value in the tooltip'),
-    visibility: ({ controls, form_data }: ControlPanelsContainerProps) =>
-      Boolean(controls?.rich_tooltip?.value) &&
-      form_data.viz_type !== VizType.MixedTimeseries,
-  },
-};
-
-const tooltipPercentageControl: ControlSetItem = {
-  name: 'showTooltipPercentage',
-  config: {
-    type: 'CheckboxControl',
-    label: t('Show percentage'),
-    renderTrigger: true,
-    default: false,
-    description: t('Whether to display the percentage value in the tooltip'),
-    visibility: ({ controls, form_data }: ControlPanelsContainerProps) =>
-      Boolean(controls?.rich_tooltip?.value) &&
-      !controls?.contributionMode?.value &&
-      form_data.viz_type !== VizType.MixedTimeseries,
-  },
-};
-
 export const richTooltipSection: ControlSetRow[] = [
-  [<ControlSubSectionHeader>{t('Tooltip')}</ControlSubSectionHeader>],
+  [<div className="section-header">{t('Tooltip')}</div>],
   [richTooltipControl],
-  [tooltipTotalControl],
-  [tooltipPercentageControl],
   [tooltipSortByMetricControl],
   [tooltipTimeFormatControl],
 ];
-
-const sortSeriesType: ControlSetItem = {
-  name: 'sort_series_type',
-  config: {
-    type: 'SelectControl',
-    freeForm: false,
-    label: t('Sort Series By'),
-    choices: SORT_SERIES_CHOICES,
-    default: DEFAULT_SORT_SERIES_DATA.sort_series_type,
-    renderTrigger: true,
-    description: t(
-      'Based on what should series be ordered on the chart and legend',
-    ),
-  },
-};
-
-const sortSeriesAscending: ControlSetItem = {
-  name: 'sort_series_ascending',
-  config: {
-    type: 'CheckboxControl',
-    label: t('Sort Series Ascending'),
-    default: DEFAULT_SORT_SERIES_DATA.sort_series_ascending,
-    renderTrigger: true,
-    description: t('Sort series in ascending order'),
-  },
-};
-
-export const xAxisLabelRotation = {
-  name: 'xAxisLabelRotation',
-  config: {
-    type: 'SelectControl',
-    freeForm: true,
-    clearable: false,
-    label: t('Rotate x axis label'),
-    choices: [
-      [0, '0°'],
-      [45, '45°'],
-      [90, '90°'],
-    ],
-    default: defaultXAxis.xAxisLabelRotation,
-    renderTrigger: true,
-    description: t('Input field supports custom rotation. e.g. 30 for 30°'),
-  },
-};
-
-export const seriesOrderSection: ControlSetRow[] = [
-  [<ControlSubSectionHeader>{t('Series Order')}</ControlSubSectionHeader>],
-  [sortSeriesType],
-  [sortSeriesAscending],
-];
-
-export const truncateXAxis: ControlSetItem = {
-  name: 'truncateXAxis',
-  config: {
-    type: 'CheckboxControl',
-    label: t('Truncate X Axis'),
-    default: DEFAULT_FORM_DATA.truncateXAxis,
-    renderTrigger: true,
-    description: t(
-      'Truncate X Axis. Can be overridden by specifying a min or max bound. Only applicable for numerical X axis.',
-    ),
-  },
-};
-
-export const xAxisBounds: ControlSetItem = {
-  name: 'xAxisBounds',
-  config: {
-    type: 'BoundsControl',
-    label: t('X Axis Bounds'),
-    renderTrigger: true,
-    default: DEFAULT_FORM_DATA.xAxisBounds,
-    description: t(
-      'Bounds for numerical X axis. Not applicable for temporal or categorical axes. ' +
-        'When left empty, the bounds are dynamically defined based on the min/max of the data. ' +
-        "Note that this feature will only expand the axis range. It won't " +
-        "narrow the data's extent.",
-    ),
-    visibility: ({ controls }: ControlPanelsContainerProps) =>
-      Boolean(controls?.truncateXAxis?.value),
-  },
-};
-
-export const minorTicks: ControlSetItem = {
-  name: 'minorTicks',
-  config: {
-    type: 'CheckboxControl',
-    label: t('Minor ticks'),
-    default: false,
-    renderTrigger: true,
-    description: t('Show minor ticks on axes.'),
-  },
-};
-
-export const forceCategorical: ControlSetItem = {
-  name: 'forceCategorical',
-  config: {
-    type: 'CheckboxControl',
-    label: t('Force categorical'),
-    default: false,
-    renderTrigger: true,
-    description: t('Make the x-axis categorical'),
-  },
-};

@@ -16,48 +16,72 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useMemo } from 'react';
-import { Filter, useTheme } from '@superset-ui/core';
+import { useTheme } from '@superset-ui/core';
 import { useSelector } from 'react-redux';
 
-import { RootState } from 'src/dashboard/types';
-import { getRelatedCharts } from './getRelatedCharts';
+import { getChartIdsInFilterBoxScope } from 'src/dashboard/util/activeDashboardFilters';
+import { DashboardState, RootState } from 'src/dashboard/types';
 
-const unfocusedChartStyles = { opacity: 0.3, pointerEvents: 'none' };
-const EMPTY = {};
+const selectFocusedFilterScope = (
+  dashboardState: DashboardState,
+  dashboardFilters: any,
+) => {
+  if (!dashboardState.focusedFilterField) return null;
+  const { chartId, column } = dashboardState.focusedFilterField;
+  return {
+    chartId,
+    scope: dashboardFilters[chartId].scopes[column],
+  };
+};
 
 const useFilterFocusHighlightStyles = (chartId: number) => {
   const theme = useTheme();
 
-  const focusedChartStyles = useMemo(
-    () => ({
-      borderColor: theme.colors.primary.light2,
-      opacity: 1,
-      boxShadow: `0px 0px ${theme.gridUnit * 2}px ${theme.colors.primary.base}`,
-      pointerEvents: 'auto',
-    }),
-    [theme],
-  );
-
   const nativeFilters = useSelector((state: RootState) => state.nativeFilters);
-
-  const slices =
-    useSelector((state: RootState) => state.sliceEntities.slices) || {};
+  const dashboardState = useSelector(
+    (state: RootState) => state.dashboardState,
+  );
+  const dashboardFilters = useSelector(
+    (state: RootState) => state.dashboardFilters,
+  );
+  const focusedFilterScope = selectFocusedFilterScope(
+    dashboardState,
+    dashboardFilters,
+  );
 
   const highlightedFilterId =
     nativeFilters?.focusedFilterId || nativeFilters?.hoveredFilterId;
-
-  if (!highlightedFilterId) {
-    return EMPTY;
+  if (!(focusedFilterScope || highlightedFilterId)) {
+    return {};
   }
 
-  const relatedCharts = getRelatedCharts(
-    highlightedFilterId as string,
-    nativeFilters.filters[highlightedFilterId as string] as Filter,
-    slices,
-  );
+  // we use local styles here instead of a conditionally-applied class,
+  // because adding any conditional class to this container
+  // causes performance issues in Chrome.
 
-  if (highlightedFilterId && relatedCharts.includes(chartId)) {
+  // default to the "de-emphasized" state
+  const unfocusedChartStyles = { opacity: 0.3, pointerEvents: 'none' };
+  const focusedChartStyles = {
+    borderColor: theme.colors.primary.light2,
+    opacity: 1,
+    boxShadow: `0px 0px ${theme.gridUnit * 2}px ${theme.colors.primary.base}`,
+    pointerEvents: 'auto',
+  };
+
+  if (highlightedFilterId) {
+    if (
+      nativeFilters.filters[highlightedFilterId]?.chartsInScope?.includes(
+        chartId,
+      )
+    ) {
+      return focusedChartStyles;
+    }
+  } else if (
+    chartId === focusedFilterScope?.chartId ||
+    getChartIdsInFilterBoxScope({
+      filterScope: focusedFilterScope?.scope,
+    }).includes(chartId)
+  ) {
     return focusedChartStyles;
   }
 

@@ -25,11 +25,13 @@ import {
   AnnotationLayer,
   AnnotationOpacity,
   AnnotationType,
-  AxisType,
   DataRecord,
   evalExpression,
   FormulaAnnotationLayer,
+  isRecordAnnotationResult,
   isTableAnnotationLayer,
+  isTimeseriesAnnotationResult,
+  AxisType,
 } from '@superset-ui/core';
 import { EchartsTimeseriesChartProps } from '../types';
 import { EchartsMixedTimeseriesProps } from '../MixedTimeseries/types';
@@ -44,7 +46,7 @@ export function evalFormula(
 
   return data.map(row => {
     let value = row[xAxis];
-    if (xAxisType === AxisType.Time) {
+    if (xAxisType === 'time') {
       value = new Date(value as string).getTime();
     }
     return [value, evalExpression(expression, (value || 0) as number)];
@@ -77,24 +79,27 @@ export function extractRecordAnnotations(
 ): Annotation[] {
   const { name } = annotationLayer;
   const result = annotationData[name];
-  const records = result?.records || [];
-  const {
-    descriptionColumns = [],
-    intervalEndColumn = '',
-    timeColumn = '',
-    titleColumn = '',
-  } = isTableAnnotationLayer(annotationLayer)
-    ? annotationLayer
-    : NATIVE_COLUMN_NAMES;
+  if (isRecordAnnotationResult(result)) {
+    const { records } = result;
+    const {
+      descriptionColumns = [],
+      intervalEndColumn = '',
+      timeColumn = '',
+      titleColumn = '',
+    } = isTableAnnotationLayer(annotationLayer)
+      ? annotationLayer
+      : NATIVE_COLUMN_NAMES;
 
-  return records.map(record => ({
-    descriptions: descriptionColumns.map(
-      column => (record[column] || '') as string,
-    ) as string[],
-    intervalEnd: (record[intervalEndColumn] || '') as string,
-    time: (record[timeColumn] || '') as string,
-    title: (record[titleColumn] || '') as string,
-  }));
+    return records.map(record => ({
+      descriptions: descriptionColumns.map(
+        column => (record[column] || '') as string,
+      ) as string[],
+      intervalEnd: (record[intervalEndColumn] || '') as string,
+      time: (record[timeColumn] || '') as string,
+      title: (record[titleColumn] || '') as string,
+    }));
+  }
+  throw new Error('Please rerun the query.');
 }
 
 export function formatAnnotationLabel(
@@ -115,16 +120,23 @@ export function formatAnnotationLabel(
   return labels.join('\n\n');
 }
 
-export function extractAnnotationLabels(layers: AnnotationLayer[]): string[] {
+export function extractAnnotationLabels(
+  layers: AnnotationLayer[],
+  data: AnnotationData,
+): string[] {
   const formulaAnnotationLabels = layers
     .filter(anno => anno.annotationType === AnnotationType.Formula && anno.show)
     .map(anno => anno.name);
-
   const timeseriesAnnotationLabels = layers
     .filter(
       anno => anno.annotationType === AnnotationType.Timeseries && anno.show,
     )
-    .map(anno => anno.name);
+    .flatMap(anno => {
+      const result = data[anno.name];
+      return isTimeseriesAnnotationResult(result)
+        ? result.map(annoSeries => annoSeries.key)
+        : [];
+    });
 
   return formulaAnnotationLabels.concat(timeseriesAnnotationLabels);
 }

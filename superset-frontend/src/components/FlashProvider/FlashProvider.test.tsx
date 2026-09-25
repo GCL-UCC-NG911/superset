@@ -18,6 +18,7 @@
  */
 
 import { render, screen } from 'spec/helpers/testing-library';
+import React from 'react';
 import { Provider } from 'react-redux';
 import { store } from 'src/views/store';
 import FlashProvider, { FlashMessage } from './index';

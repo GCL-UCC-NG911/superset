@@ -14,6 +14,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+from typing import Dict
 
 from flask_babel import gettext as _
 from pandas import DataFrame
@@ -30,7 +31,7 @@ from superset.utils.pandas_postprocessing.utils import (
 def cum(
     df: DataFrame,
     operator: str,
-    columns: dict[str, str],
+    columns: Dict[str, str],
 ) -> DataFrame:
     """
     Calculate cumulative sum/product/min/max for select columns.
@@ -46,7 +47,6 @@ def cum(
     """
     columns = columns or {}
     df_cum = df.loc[:, columns.keys()]
-    df_cum = df_cum.fillna(0)
     operation = "cum" + operator
     if operation not in ALLOWLIST_CUMULATIVE_FUNCTIONS or not hasattr(
         df_cum, operation

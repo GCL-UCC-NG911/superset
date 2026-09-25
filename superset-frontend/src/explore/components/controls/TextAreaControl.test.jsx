@@ -16,48 +16,50 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from 'spec/helpers/testing-library';
+/* eslint-disable no-unused-expressions */
+import React from 'react';
+import sinon from 'sinon';
+import { styledMount as mount } from 'spec/helpers/theming';
+import { TextAreaEditor } from 'src/components/AsyncAceEditor';
+import { TextArea } from 'src/components/Input';
 
 import TextAreaControl from 'src/explore/components/controls/TextAreaControl';
 
 const defaultProps = {
   name: 'x_axis_label',
   label: 'X Axis Label',
-  onChange: jest.fn(),
+  onChange: sinon.spy(),
 };
 
 describe('TextArea', () => {
+  let wrapper;
+  beforeEach(() => {
+    wrapper = mount(<TextAreaControl {...defaultProps} />);
+  });
+
   it('renders a FormControl', () => {
-    render(<TextAreaControl {...defaultProps} />);
-    expect(screen.getByRole('textbox')).toBeVisible();
+    expect(wrapper.find(TextArea)).toExist();
   });
 
   it('calls onChange when toggled', () => {
-    render(<TextAreaControl {...defaultProps} />);
-    const textArea = screen.getByRole('textbox');
-    fireEvent.change(textArea, { target: { value: 'x' } });
-    expect(defaultProps.onChange).toHaveBeenCalledWith('x');
+    const select = wrapper.find(TextArea);
+    select.simulate('change', { target: { value: 'x' } });
+    expect(defaultProps.onChange.calledWith('x')).toBe(true);
   });
 
-  it('renders a AceEditor when language is specified', async () => {
-    const props = { ...defaultProps, language: 'markdown' };
-    const { container } = render(<TextAreaControl {...props} />);
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
-    await waitFor(() => {
-      expect(container.querySelector('.ace_text-input')).toBeInTheDocument();
-    });
+  it('renders a AceEditor when language is specified', () => {
+    const props = { ...defaultProps };
+    props.language = 'markdown';
+    wrapper = mount(<TextAreaControl {...props} />);
+    expect(wrapper.find(TextArea)).not.toExist();
+    expect(wrapper.find(TextAreaEditor)).toExist();
   });
 
   it('calls onAreaEditorChange when entering in the AceEditor', () => {
-    const props = { ...defaultProps, language: 'markdown' };
-    render(<TextAreaControl {...props} />);
-    const textArea = screen.getByRole('textbox');
-    fireEvent.change(textArea, { target: { value: 'x' } });
-    expect(defaultProps.onChange).toHaveBeenCalledWith('x');
+    const props = { ...defaultProps };
+    props.language = 'markdown';
+    wrapper = mount(<TextAreaControl {...props} />);
+    wrapper.simulate('change', { target: { value: 'x' } });
+    expect(defaultProps.onChange.calledWith('x')).toBe(true);
   });
 });

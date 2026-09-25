@@ -17,7 +17,7 @@
  * under the License.
  */
 import { useToasts } from 'src/components/MessageToasts/withToasts';
-import { useComponentDidMount } from '@superset-ui/core';
+import { useComponentDidMount } from 'src/hooks/useComponentDidMount';
 
 type FlashMessageType = 'info' | 'alert' | 'danger' | 'warning' | 'success';
 export type FlashMessage = [FlashMessageType, string];
@@ -41,7 +41,7 @@ export default function FlashProvider({ children, messages }: Props) {
     messages.forEach(message => {
       const [type, text] = message;
       const flash = flashObj[type];
-      const toast = toasts[flash as keyof typeof toasts];
+      const toast = toasts[flash];
       if (toast) {
         toast(text);
       }

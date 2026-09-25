@@ -16,8 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import Button from 'src/components/Button';
-import { Tooltip, TooltipPlacement, TooltipProps } from './index';
+import { TooltipProps, TooltipPlacement } from 'antd/lib/tooltip';
+import { Tooltip } from './index';
 
 export default {
   title: 'Tooltip',
@@ -47,6 +49,14 @@ export const InteractiveTooltip = (args: TooltipProps) => (
   </Tooltip>
 );
 
+InteractiveTooltip.story = {
+  parameters: {
+    knobs: {
+      disable: true,
+    },
+  },
+};
+
 InteractiveTooltip.args = {
   title: 'Simple tooltip text',
   mouseEnterDelay: 0.1,
@@ -56,13 +66,11 @@ InteractiveTooltip.args = {
 InteractiveTooltip.argTypes = {
   placement: {
     defaultValue: 'top',
-    control: { type: 'select' },
-    options: PLACEMENTS,
+    control: { type: 'select', options: PLACEMENTS },
   },
   trigger: {
     defaultValue: 'hover',
-    control: { type: 'select' },
-    options: TRIGGERS,
+    control: { type: 'select', options: TRIGGERS },
   },
   color: { control: { type: 'color' } },
   onVisibleChange: { action: 'onVisibleChange' },

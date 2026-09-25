@@ -33,7 +33,7 @@ export default function useStoredSidebarWidth(
   useEffect(() => {
     widthsMapRef.current =
       widthsMapRef.current ??
-      getItem(LocalStorageKeys.CommonResizableSidebarWidths, {});
+      getItem(LocalStorageKeys.common__resizable_sidebar_widths, {});
     if (widthsMapRef.current[id]) {
       setSidebarWidth(widthsMapRef.current[id]);
     }
@@ -41,7 +41,7 @@ export default function useStoredSidebarWidth(
 
   function setStoredSidebarWidth(updatedWidth: number) {
     setSidebarWidth(updatedWidth);
-    setItem(LocalStorageKeys.CommonResizableSidebarWidths, {
+    setItem(LocalStorageKeys.common__resizable_sidebar_widths, {
       ...widthsMapRef.current,
       [id]: updatedWidth,
     });

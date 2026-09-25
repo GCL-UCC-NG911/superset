@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { PropsWithoutRef, RefAttributes } from 'react';
+import React from 'react';
 import { Link, LinkProps } from 'react-router-dom';
 import { isUrlExternal, parseUrl } from 'src/utils/urlUtils';
 
@@ -28,7 +28,8 @@ export const GenericLink = <S,>({
   innerRef,
   children,
   ...rest
-}: PropsWithoutRef<LinkProps<S>> & RefAttributes<HTMLAnchorElement>) => {
+}: React.PropsWithoutRef<LinkProps<S>> &
+  React.RefAttributes<HTMLAnchorElement>) => {
   if (typeof to === 'string' && isUrlExternal(to)) {
     return (
       <a data-test="external-link" href={parseUrl(to)} {...rest}>

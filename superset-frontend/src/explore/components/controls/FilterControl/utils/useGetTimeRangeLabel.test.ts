@@ -17,26 +17,19 @@
  * under the License.
  */
 import { renderHook } from '@testing-library/react-hooks';
-import { NO_TIME_RANGE, fetchTimeRange } from '@superset-ui/core';
+import { NO_TIME_RANGE } from '@superset-ui/core';
 import { Operators } from 'src/explore/constants';
+import * as FetchTimeRangeModule from 'src/explore/components/controls/DateFilterControl';
 import { useGetTimeRangeLabel } from './useGetTimeRangeLabel';
-import AdhocFilter from '../AdhocFilter';
-import { Clauses, ExpressionTypes } from '../types';
-
-jest.mock('@superset-ui/core', () => ({
-  ...jest.requireActual('@superset-ui/core'),
-  fetchTimeRange: jest.fn(),
-}));
-
-const mockedFetchTimeRange = fetchTimeRange as jest.Mock;
+import AdhocFilter, { CLAUSES, EXPRESSION_TYPES } from '../AdhocFilter';
 
 test('should return empty object if operator is not TEMPORAL_RANGE', () => {
   const adhocFilter = new AdhocFilter({
-    expressionType: ExpressionTypes.Simple,
+    expressionType: EXPRESSION_TYPES.SIMPLE,
     subject: 'value',
     operator: '>',
     comparator: '10',
-    clause: Clauses.Where,
+    clause: CLAUSES.WHERE,
   });
   const { result } = renderHook(() => useGetTimeRangeLabel(adhocFilter));
   expect(result.current).toEqual({});
@@ -44,11 +37,11 @@ test('should return empty object if operator is not TEMPORAL_RANGE', () => {
 
 test('should return empty object if expressionType is SQL', () => {
   const adhocFilter = new AdhocFilter({
-    expressionType: ExpressionTypes.Sql,
+    expressionType: EXPRESSION_TYPES.SQL,
     subject: 'temporal column',
-    operator: Operators.TemporalRange,
+    operator: Operators.TEMPORAL_RANGE,
     comparator: 'Last week',
-    clause: Clauses.Where,
+    clause: CLAUSES.WHERE,
   });
   const { result } = renderHook(() => useGetTimeRangeLabel(adhocFilter));
   expect(result.current).toEqual({});
@@ -56,11 +49,11 @@ test('should return empty object if expressionType is SQL', () => {
 
 test('should get "No filter" label', () => {
   const adhocFilter = new AdhocFilter({
-    expressionType: ExpressionTypes.Simple,
+    expressionType: EXPRESSION_TYPES.SIMPLE,
     subject: 'temporal column',
-    operator: Operators.TemporalRange,
+    operator: Operators.TEMPORAL_RANGE,
     comparator: NO_TIME_RANGE,
-    clause: Clauses.Where,
+    clause: CLAUSES.WHERE,
   });
   const { result } = renderHook(() => useGetTimeRangeLabel(adhocFilter));
   expect(result.current).toEqual({
@@ -70,14 +63,16 @@ test('should get "No filter" label', () => {
 });
 
 test('should get actualTimeRange and title', async () => {
-  mockedFetchTimeRange.mockResolvedValue({ value: 'MOCK TIME' });
+  jest
+    .spyOn(FetchTimeRangeModule, 'fetchTimeRange')
+    .mockResolvedValue({ value: 'MOCK TIME' });
 
   const adhocFilter = new AdhocFilter({
-    expressionType: ExpressionTypes.Simple,
+    expressionType: EXPRESSION_TYPES.SIMPLE,
     subject: 'temporal column',
-    operator: Operators.TemporalRange,
+    operator: Operators.TEMPORAL_RANGE,
     comparator: 'Last week',
-    clause: Clauses.Where,
+    clause: CLAUSES.WHERE,
   });
 
   const { result } = await renderHook(() => useGetTimeRangeLabel(adhocFilter));
@@ -88,14 +83,16 @@ test('should get actualTimeRange and title', async () => {
 });
 
 test('should get actualTimeRange and title when gets an error', async () => {
-  mockedFetchTimeRange.mockResolvedValue({ error: 'MOCK ERROR' });
+  jest
+    .spyOn(FetchTimeRangeModule, 'fetchTimeRange')
+    .mockResolvedValue({ error: 'MOCK ERROR' });
 
   const adhocFilter = new AdhocFilter({
-    expressionType: ExpressionTypes.Simple,
+    expressionType: EXPRESSION_TYPES.SIMPLE,
     subject: 'temporal column',
-    operator: Operators.TemporalRange,
+    operator: Operators.TEMPORAL_RANGE,
     comparator: 'Last week',
-    clause: Clauses.Where,
+    clause: CLAUSES.WHERE,
   });
 
   const { result } = await renderHook(() => useGetTimeRangeLabel(adhocFilter));

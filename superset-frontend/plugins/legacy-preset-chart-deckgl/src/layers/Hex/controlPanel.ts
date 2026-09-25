@@ -19,6 +19,7 @@
 import {
   ControlPanelConfig,
   getStandardizedControls,
+  sections,
 } from '@superset-ui/chart-controls';
 import { t } from '@superset-ui/core';
 import {
@@ -37,6 +38,7 @@ import {
 
 const config: ControlPanelConfig = {
   controlPanelSections: [
+    sections.legacyRegularTime,
     {
       label: t('Query'),
       expanded: true,
@@ -51,8 +53,8 @@ const config: ControlPanelConfig = {
     {
       label: t('Map'),
       controlSetRows: [
-        [mapboxStyle],
-        ['color_scheme', viewport],
+        [mapboxStyle, viewport],
+        ['color_scheme'],
         [autozoom],
         [gridSize],
         [extruded],

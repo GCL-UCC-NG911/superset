@@ -14,9 +14,8 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+import json
 from os import path
-
-from superset.utils import json
 
 FIXTURES_DIR = "tests/integration_tests/fixtures"
 

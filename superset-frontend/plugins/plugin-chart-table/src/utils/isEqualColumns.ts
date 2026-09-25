@@ -27,7 +27,6 @@ export default function isEqualColumns(
   const b = propsB[0];
   return (
     a.datasource.columnFormats === b.datasource.columnFormats &&
-    a.datasource.currencyFormats === b.datasource.currencyFormats &&
     a.datasource.verboseMap === b.datasource.verboseMap &&
     a.formData.tableTimestampFormat === b.formData.tableTimestampFormat &&
     a.formData.timeGrainSqla === b.formData.timeGrainSqla &&
@@ -39,8 +38,6 @@ export default function isEqualColumns(
     JSON.stringify(a.formData.extraFilters || null) ===
       JSON.stringify(b.formData.extraFilters || null) &&
     JSON.stringify(a.formData.extraFormData || null) ===
-      JSON.stringify(b.formData.extraFormData || null) &&
-    JSON.stringify(a.rawFormData.column_config || null) ===
-      JSON.stringify(b.rawFormData.column_config || null)
+      JSON.stringify(b.formData.extraFormData || null)
   );
 }

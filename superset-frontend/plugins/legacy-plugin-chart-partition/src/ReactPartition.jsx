@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { reactify, styled } from '@superset-ui/core';
 import Component from './Partition';
 

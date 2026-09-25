@@ -19,7 +19,7 @@
 /* eslint-disable no-continue, no-bitwise */
 /* eslint-disable react/jsx-sort-default-props */
 /* eslint-disable react/sort-prop-types */
-import { PureComponent } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { extent as d3Extent } from 'd3-array';
 import { scaleLinear } from 'd3-scale';
@@ -66,7 +66,7 @@ const defaultProps = {
   yDomain: undefined,
 };
 
-class HorizonRow extends PureComponent {
+class HorizonRow extends React.PureComponent {
   componentDidMount() {
     this.drawChart();
   }

@@ -29,7 +29,6 @@ echo "Superset config module: $SUPERSET_CONFIG"
 
 superset db upgrade
 superset init
-superset load-test-users
 
 echo "Running tests"
 

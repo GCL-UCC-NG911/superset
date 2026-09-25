@@ -24,15 +24,14 @@ import {
   getNumberFormatter,
   getSequentialSchemeRegistry,
   getTimeFormatter,
-  getValueFormatter,
   NumberFormats,
+  NumberFormatter,
+  SupersetTheme,
   t,
-  tooltipHtml,
-  ValueFormatter,
 } from '@superset-ui/core';
-import type { EChartsCoreOption } from 'echarts/core';
-import type { CallbackDataParams } from 'echarts/types/src/util/types';
-import { NULL_STRING, OpacityEnum } from '../constants';
+import { EChartsCoreOption } from 'echarts';
+import { CallbackDataParams } from 'echarts/types/src/util/types';
+import { OpacityEnum } from '../constants';
 import { defaultGrid } from '../defaults';
 import { Refs } from '../types';
 import { formatSeriesName, getColtypesMapping } from '../utils/series';
@@ -75,7 +74,7 @@ export function formatLabel({
 }: {
   params: CallbackDataParams;
   labelType: EchartsSunburstLabelType;
-  numberFormatter: ValueFormatter;
+  numberFormatter: NumberFormatter;
 }): string {
   const { name = '', value } = params;
   const formattedValue = numberFormatter(value as number);
@@ -94,12 +93,12 @@ export function formatLabel({
 
 export function formatTooltip({
   params,
-  primaryValueFormatter,
-  secondaryValueFormatter,
+  numberFormatter,
   colorByCategory,
   totalValue,
   metricLabel,
   secondaryMetricLabel,
+  theme,
 }: {
   params: CallbackDataParams & {
     treePathInfo: {
@@ -108,19 +107,17 @@ export function formatTooltip({
       value: number;
     }[];
   };
-  primaryValueFormatter: ValueFormatter;
-  secondaryValueFormatter: ValueFormatter | undefined;
+  numberFormatter: NumberFormatter;
   colorByCategory: boolean;
   totalValue: number;
   metricLabel: string;
   secondaryMetricLabel?: string;
+  theme: SupersetTheme;
 }): string {
   const { data, treePathInfo = [] } = params;
   const node = data as TreeNode;
-  const formattedValue = primaryValueFormatter(node.value);
-  const formattedSecondaryValue = secondaryValueFormatter?.(
-    node.secondaryValue,
-  );
+  const formattedValue = numberFormatter(node.value);
+  const formattedSecondaryValue = numberFormatter(node.secondaryValue);
 
   const percentFormatter = getNumberFormatter(NumberFormats.PERCENT_2_POINT);
   const compareValuePercentage = percentFormatter(
@@ -130,29 +127,41 @@ export function formatTooltip({
   const parentNode =
     treePathInfo.length > 2 ? treePathInfo[treePathInfo.length - 2] : undefined;
 
-  const title = (node.name || NULL_STRING)
-    .toString()
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
-  const rows = [[t('% of total'), absolutePercentage]];
+  const result = [
+    `<div style="
+      font-size: ${theme.typography.sizes.m}px;
+      color: ${theme.colors.grayscale.base}"
+     >`,
+    `<div style="font-weight: ${theme.typography.weights.bold}">
+      ${node.name}
+     </div>`,
+    `<div">
+      ${absolutePercentage} of total
+     </div>`,
+  ];
   if (parentNode) {
     const conditionalPercentage = percentFormatter(
       node.value / parentNode.value,
     );
-    rows.push([t('% of parent'), conditionalPercentage]);
+    result.push(`
+    <div>
+      ${conditionalPercentage} of ${parentNode.name}
+    </div>`);
   }
-  rows.push([metricLabel, formattedValue]);
-  if (!colorByCategory) {
-    rows.push([
-      secondaryMetricLabel || NULL_STRING,
-      formattedSecondaryValue || NULL_STRING,
-    ]);
-    rows.push([
-      `${metricLabel}/${secondaryMetricLabel}`,
-      compareValuePercentage,
-    ]);
-  }
-  return tooltipHtml(rows, title);
+  result.push(
+    `<div>
+    ${metricLabel}: ${formattedValue}${
+      colorByCategory
+        ? ''
+        : `, ${secondaryMetricLabel}: ${formattedSecondaryValue}`
+    }
+     </div>`,
+    colorByCategory
+      ? ''
+      : `<div>${metricLabel}/${secondaryMetricLabel}: ${compareValuePercentage}</div>`,
+  );
+  result.push('</div>');
+  return result.join('\n');
 }
 
 export default function transformProps(
@@ -168,7 +177,6 @@ export default function transformProps(
     theme,
     inContextMenu,
     emitCrossFilters,
-    datasource,
   } = chartProps;
   const { data = [] } = queriesData[0];
   const coltypeMapping = getColtypesMapping(queriesData[0]);
@@ -181,41 +189,18 @@ export default function transformProps(
     linearColorScheme,
     labelType,
     numberFormat,
-    currencyFormat,
     dateFormat,
     showLabels,
     showLabelsThreshold,
     showTotal,
     sliceId,
   } = formData;
-  const {
-    currencyFormats = {},
-    columnFormats = {},
-    verboseMap = {},
-  } = datasource;
   const refs: Refs = {};
-  const primaryValueFormatter = getValueFormatter(
-    metric,
-    currencyFormats,
-    columnFormats,
-    numberFormat,
-    currencyFormat,
-  );
-  const secondaryValueFormatter = secondaryMetric
-    ? getValueFormatter(
-        secondaryMetric,
-        currencyFormats,
-        columnFormats,
-        numberFormat,
-        currencyFormat,
-      )
-    : undefined;
-
   const numberFormatter = getNumberFormatter(numberFormat);
   const formatter = (params: CallbackDataParams) =>
     formatLabel({
       params,
-      numberFormatter: primaryValueFormatter,
+      numberFormatter,
       labelType,
     });
   const minShowLabelAngle = (showLabelsThreshold || 0) * 3.6;
@@ -334,14 +319,12 @@ export default function transformProps(
       formatter: (params: any) =>
         formatTooltip({
           params,
-          primaryValueFormatter,
-          secondaryValueFormatter,
+          numberFormatter,
           colorByCategory,
           totalValue,
-          metricLabel: verboseMap[metricLabel] || metricLabel,
-          secondaryMetricLabel: secondaryMetricLabel
-            ? verboseMap[secondaryMetricLabel] || secondaryMetricLabel
-            : undefined,
+          metricLabel,
+          secondaryMetricLabel,
+          theme,
         }),
     },
     series: [
@@ -373,7 +356,7 @@ export default function transformProps(
           top: 'center',
           left: 'center',
           style: {
-            text: t('Total: %s', primaryValueFormatter(totalValue)),
+            text: t('Total: %s', numberFormatter(totalValue)),
             fontSize: 16,
             fontWeight: 'bold',
           },
@@ -394,6 +377,5 @@ export default function transformProps(
     selectedValues: filterState.selectedValues || [],
     onContextMenu,
     refs,
-    coltypeMapping,
   };
 }

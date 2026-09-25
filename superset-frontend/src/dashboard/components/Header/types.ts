@@ -30,9 +30,9 @@ interface DashboardInfo {
 }
 
 export interface HeaderDropdownProps {
-  addSuccessToast: (msg: string) => void;
+  addSuccessToast: () => void;
   addDangerToast: () => void;
-  addInfoToast: (msg: string) => void;
+  addInfoToast: () => void;
   customCss: string;
   colorNamespace?: string;
   colorScheme?: string;
@@ -48,24 +48,14 @@ export interface HeaderDropdownProps {
   onChange: () => void;
   onSave: () => void;
   refreshFrequency: number;
-  setRefreshFrequency: (refreshInterval: number, isPersistent: boolean) => void;
+  setRefreshFrequency: () => void;
   shouldPersistRefreshFrequency: boolean;
   showPropertiesModal: () => void;
-  startPeriodicRender: (interval: number) => void;
-  updateCss: (css: string) => void;
+  startPeriodicRender: () => void;
+  updateCss: () => void;
   userCanEdit: boolean;
   userCanSave: boolean;
-  userCanShare: boolean;
-  userCanCurate: boolean;
-  manageEmbedded: () => void;
-  dataMask: any;
   lastModifiedTime: number;
-  logEvent: () => void;
-  setIsDropdownVisible: (visible: boolean) => void;
-  isDropdownVisible: boolean;
-  refreshLimit: number;
-  refreshWarning: string;
-  directPathToChild: string[];
 }
 
 export interface HeaderProps {
@@ -88,7 +78,7 @@ export interface HeaderProps {
   onSave: () => void;
   fetchFaveStar: () => void;
   saveFaveStar: () => void;
-  savePublished: (dashboardId: number, isPublished: boolean) => void;
+  savePublished: () => void;
   updateDashboardTitle: () => void;
   editMode: boolean;
   setEditMode: () => void;

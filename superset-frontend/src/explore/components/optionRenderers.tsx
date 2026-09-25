@@ -17,6 +17,7 @@
  * under the License.
  */
 
+import React from 'react';
 import { styled } from '@superset-ui/core';
 import {
   MetricOption,

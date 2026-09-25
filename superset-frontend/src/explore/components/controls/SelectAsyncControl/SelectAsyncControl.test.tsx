@@ -18,6 +18,7 @@
  */
 import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
+import React from 'react';
 import { render, screen } from 'spec/helpers/testing-library';
 import SelectAsyncControl from '.';
 
@@ -91,9 +92,9 @@ test('Should send correct props to Select component - value props', async () => 
 test('Should send correct props to Select component - function onChange multi:true', async () => {
   const props = createProps();
   render(<SelectAsyncControl {...props} />, { useRedux: true });
-  expect(props.onChange).toHaveBeenCalledTimes(0);
+  expect(props.onChange).toBeCalledTimes(0);
   userEvent.click(await screen.findByText('onChange'));
-  expect(props.onChange).toHaveBeenCalledTimes(1);
+  expect(props.onChange).toBeCalledTimes(1);
 });
 
 test('Should send correct props to Select component - function onChange multi:false', async () => {
@@ -101,7 +102,7 @@ test('Should send correct props to Select component - function onChange multi:fa
   render(<SelectAsyncControl {...{ ...props, multi: false }} />, {
     useRedux: true,
   });
-  expect(props.onChange).toHaveBeenCalledTimes(0);
+  expect(props.onChange).toBeCalledTimes(0);
   userEvent.click(await screen.findByText('onChange'));
-  expect(props.onChange).toHaveBeenCalledTimes(1);
+  expect(props.onChange).toBeCalledTimes(1);
 });

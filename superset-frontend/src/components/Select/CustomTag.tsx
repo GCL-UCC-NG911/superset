@@ -16,11 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { MouseEvent } from 'react';
+import React from 'react';
 import { Tag as AntdTag } from 'antd';
-import { styled, useCSSTextTruncation } from '@superset-ui/core';
+import { styled } from '@superset-ui/core';
+import { useCSSTextTruncation } from 'src/hooks/useTruncation';
 import { Tooltip } from '../Tooltip';
-import { CustomCloseIcon } from '../Tags/Tag';
 import { CustomTagProps } from './types';
 import { SELECT_ALL_VALUE } from './utils';
 import { NoElement } from './styles';
@@ -43,11 +43,7 @@ const Tag = (props: any) => {
   const [tagRef, tagIsTruncated] = useCSSTextTruncation<HTMLSpanElement>();
   return (
     <Tooltip title={tagIsTruncated ? props.children : null}>
-      <StyledTag
-        closeIcon={props?.closable ? CustomCloseIcon : undefined}
-        {...props}
-        className="ant-select-selection-item"
-      >
+      <StyledTag {...props} className="ant-select-selection-item">
         <span className="tag-content" ref={tagRef}>
           {props.children}
         </span>
@@ -62,7 +58,7 @@ const Tag = (props: any) => {
 export const customTagRender = (props: CustomTagProps) => {
   const { label, value } = props;
 
-  const onPreventMouseDown = (event: MouseEvent<HTMLElement>) => {
+  const onPreventMouseDown = (event: React.MouseEvent<HTMLElement>) => {
     // if close icon is clicked, stop propagation to avoid opening the dropdown
     const target = event.target as HTMLElement;
     if (

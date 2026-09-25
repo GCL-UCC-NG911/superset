@@ -18,7 +18,7 @@
  */
 /* eslint-disable react/require-default-props */
 import PropTypes from 'prop-types';
-import { PureComponent } from 'react';
+import React from 'react';
 import { CanvasOverlay } from 'react-map-gl';
 import { kmToPixels, MILES_PER_KM } from './utils/geo';
 import roundDecimal from './utils/roundDecimal';
@@ -73,7 +73,7 @@ const computeClusterLabel = (properties, aggregation) => {
   return count;
 };
 
-class ScatterPlotGlowOverlay extends PureComponent {
+class ScatterPlotGlowOverlay extends React.PureComponent {
   constructor(props) {
     super(props);
     this.redraw = this.redraw.bind(this);

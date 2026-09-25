@@ -14,10 +14,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import pytest  # noqa: F401
+import pytest
 
 from superset.extensions import cache_manager
-from superset.utils.core import backend, DatasourceType  # noqa: F401
+from superset.utils.core import backend, DatasourceType
 from tests.integration_tests.base_tests import SupersetTestCase
 
 
@@ -46,4 +46,4 @@ class UtilsCacheManagerTests(SupersetTestCase):
         }
 
     def test_get_explore_form_data_cache_invalid_key(self):
-        assert cache_manager.explore_form_data_cache.get("foo") is None  # noqa: E711
+        assert cache_manager.explore_form_data_cache.get("foo") == None

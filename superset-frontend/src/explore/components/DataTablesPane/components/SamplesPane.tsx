@@ -16,10 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ensureIsArray, GenericDataType, styled, t } from '@superset-ui/core';
 import Loading from 'src/components/Loading';
-import { EmptyState } from 'src/components/EmptyState';
+import { EmptyStateMedium } from 'src/components/EmptyState';
 import TableView, { EmptyWrapperType } from 'src/components/TableView';
 import {
   useFilteredTableData,
@@ -42,14 +42,12 @@ export const SamplesPane = ({
   actions,
   dataSize = 50,
   isVisible,
-  canDownload,
 }: SamplesPaneProps) => {
   const [filterText, setFilterText] = useState('');
   const [data, setData] = useState<Record<string, any>[][]>([]);
   const [colnames, setColnames] = useState<string[]>([]);
   const [coltypes, setColtypes] = useState<GenericDataType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [rowcount, setRowCount] = useState<number>(0);
   const [responseError, setResponseError] = useState<string>('');
   const datasourceId = useMemo(
     () => `${datasource.id}__${datasource.type}`,
@@ -68,7 +66,6 @@ export const SamplesPane = ({
           setData(ensureIsArray(response.data));
           setColnames(ensureIsArray(response.colnames));
           setColtypes(ensureIsArray(response.coltypes));
-          setRowCount(response.rowcount);
           setResponseError('');
           cache.add(datasource);
           if (queryForce && actions) {
@@ -95,8 +92,6 @@ export const SamplesPane = ({
     data,
     datasourceId,
     isVisible,
-    {}, // moreConfig
-    true, // allowHTML
   );
   const filteredData = useFilteredTableData(filterText, data);
 
@@ -111,11 +106,9 @@ export const SamplesPane = ({
           data={filteredData}
           columnNames={colnames}
           columnTypes={coltypes}
-          rowcount={rowcount}
           datasourceId={datasourceId}
           onInputChange={input => setFilterText(input)}
           isLoading={isLoading}
-          canDownload={canDownload}
         />
         <Error>{responseError}</Error>
       </>
@@ -124,7 +117,7 @@ export const SamplesPane = ({
 
   if (data.length === 0) {
     const title = t('No samples were returned for this dataset');
-    return <EmptyState image="document.svg" title={title} />;
+    return <EmptyStateMedium image="document.svg" title={title} />;
   }
 
   return (
@@ -133,11 +126,9 @@ export const SamplesPane = ({
         data={filteredData}
         columnNames={colnames}
         columnTypes={coltypes}
-        rowcount={rowcount}
         datasourceId={datasourceId}
         onInputChange={input => setFilterText(input)}
         isLoading={isLoading}
-        canDownload={canDownload}
       />
       <TableView
         columns={columns}

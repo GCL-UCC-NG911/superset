@@ -16,7 +16,7 @@
 #  under the License.
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 from pandas import DataFrame
 
@@ -30,10 +30,10 @@ if TYPE_CHECKING:
 @log
 class TableToDfConvertorImpl(TableToDfConvertor):
     convert_datetime_to_str: bool
-    _time_format: str | None
+    _time_format: Optional[str]
 
     def __init__(
-        self, convert_ds_to_datetime: bool, time_format: str | None = None
+        self, convert_ds_to_datetime: bool, time_format: Optional[str] = None
     ) -> None:
         self.convert_datetime_to_str = convert_ds_to_datetime
         self._time_format = time_format

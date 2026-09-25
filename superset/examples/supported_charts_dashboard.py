@@ -14,9 +14,12 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+
 # pylint: disable=too-many-lines
-import logging
+
+import json
 import textwrap
+from typing import List
 
 from sqlalchemy import inspect
 
@@ -24,8 +27,6 @@ from superset import db
 from superset.connectors.sqla.models import SqlaTable
 from superset.models.dashboard import Dashboard
 from superset.models.slice import Slice
-from superset.sql_parse import Table
-from superset.utils import json
 from superset.utils.core import DatasourceType
 
 from ..utils.database import get_example_database
@@ -37,10 +38,9 @@ from .helpers import (
 )
 
 DASH_SLUG = "supported_charts_dash"
-logger = logging.getLogger(__name__)
 
 
-def create_slices(tbl: SqlaTable) -> list[Slice]:
+def create_slices(tbl: SqlaTable) -> List[Slice]:
     slice_kwargs = {
         "datasource_id": tbl.id,
         "datasource_type": DatasourceType.TABLE,
@@ -104,7 +104,7 @@ def create_slices(tbl: SqlaTable) -> list[Slice]:
         ),
         Slice(
             **slice_kwargs,
-            slice_name="Line Chart",
+            slice_name="Time-Series Line Chart",
             viz_type="echarts_timeseries_line",
             params=get_slice_json(
                 defaults,
@@ -115,7 +115,7 @@ def create_slices(tbl: SqlaTable) -> list[Slice]:
         ),
         Slice(
             **slice_kwargs,
-            slice_name="Area Chart",
+            slice_name="Time-Series Area Chart",
             viz_type="echarts_area",
             params=get_slice_json(
                 defaults,
@@ -126,7 +126,7 @@ def create_slices(tbl: SqlaTable) -> list[Slice]:
         ),
         Slice(
             **slice_kwargs,
-            slice_name="Bar Chart",
+            slice_name="Time-Series Bar Chart V2",
             viz_type="echarts_timeseries_bar",
             params=get_slice_json(
                 defaults,
@@ -137,7 +137,7 @@ def create_slices(tbl: SqlaTable) -> list[Slice]:
         ),
         Slice(
             **slice_kwargs,
-            slice_name="Scatter Chart",
+            slice_name="Time-Series Scatter Chart",
             viz_type="echarts_timeseries_scatter",
             params=get_slice_json(
                 defaults,
@@ -156,6 +156,17 @@ def create_slices(tbl: SqlaTable) -> list[Slice]:
                 metric="sum__num",
                 groupby=["gender"],
                 adhoc_filters=[],
+            ),
+        ),
+        Slice(
+            **slice_kwargs,
+            slice_name="Bar Chart",
+            viz_type="dist_bar",
+            params=get_slice_json(
+                defaults,
+                viz_type="dist_bar",
+                metrics=["sum__num"],
+                groupby=["gender"],
             ),
         ),
         # ---------------------
@@ -228,7 +239,7 @@ def create_slices(tbl: SqlaTable) -> list[Slice]:
         ),
         Slice(
             **slice_kwargs,
-            slice_name="Percent Change Chart",
+            slice_name="Time-Series Percent Change Chart",
             viz_type="compare",
             params=get_slice_json(
                 defaults,
@@ -239,7 +250,7 @@ def create_slices(tbl: SqlaTable) -> list[Slice]:
         ),
         Slice(
             **slice_kwargs,
-            slice_name="Generic Chart",
+            slice_name="Time-Series Generic Chart",
             viz_type="echarts_timeseries",
             params=get_slice_json(
                 defaults,
@@ -250,7 +261,7 @@ def create_slices(tbl: SqlaTable) -> list[Slice]:
         ),
         Slice(
             **slice_kwargs,
-            slice_name="Smooth Line Chart",
+            slice_name="Time-Series Smooth Line Chart",
             viz_type="echarts_timeseries_smooth",
             params=get_slice_json(
                 defaults,
@@ -261,7 +272,7 @@ def create_slices(tbl: SqlaTable) -> list[Slice]:
         ),
         Slice(
             **slice_kwargs,
-            slice_name="Step Line Chart",
+            slice_name="Time-Series Step Line Chart",
             viz_type="echarts_timeseries_step",
             params=get_slice_json(
                 defaults,
@@ -295,24 +306,22 @@ def create_slices(tbl: SqlaTable) -> list[Slice]:
         Slice(
             **slice_kwargs,
             slice_name="Heatmap Chart",
-            viz_type="heatmap_v2",
+            viz_type="heatmap",
             params=get_slice_json(
                 defaults,
-                viz_type="heatmap_v2",
+                viz_type="funnel",
                 metric="sum__num",
-                x_axis="gender",
-                groupby="state",
-                sort_x_axis="value_asc",
-                sort_y_axis="value_asc",
+                all_columns_x="gender",
+                all_columns_y="state",
             ),
         ),
         Slice(
             **slice_kwargs,
             slice_name="Line Chart",
-            viz_type="echarts_timeseries_line",
+            viz_type="line",
             params=get_slice_json(
                 defaults,
-                viz_type="echarts_timeseries_line",
+                viz_type="line",
                 metrics=["sum__num"],
                 groupby=["gender"],
             ),
@@ -326,7 +335,7 @@ def create_slices(tbl: SqlaTable) -> list[Slice]:
                 viz_type="mixed_timeseries",
                 metrics=["sum__num"],
                 groupby=["gender"],
-                metrics_b=["sum__num"],
+                metrics_b=["count"],
                 groupby_b=["state"],
             ),
         ),
@@ -378,24 +387,34 @@ def create_slices(tbl: SqlaTable) -> list[Slice]:
         Slice(
             **slice_kwargs,
             slice_name="Sankey Chart",
-            viz_type="sankey_v2",
+            viz_type="sankey",
             params=get_slice_json(
                 defaults,
-                viz_type="sankey_v2",
+                viz_type="sankey",
                 metric="sum__num",
-                source="gender",
-                target="state",
+                groupby=["gender", "state"],
             ),
         ),
         Slice(
             **slice_kwargs,
             slice_name="Sunburst Chart",
-            viz_type="sunburst_v2",
+            viz_type="sunburst",
             params=get_slice_json(
                 defaults,
-                viz_type="sunburst_v2",
+                viz_type="sunburst",
                 metric="sum__num",
-                columns=["gender", "state"],
+                groupby=["gender", "state"],
+            ),
+        ),
+        Slice(
+            **slice_kwargs,
+            slice_name="Treemap Chart",
+            viz_type="treemap",
+            params=get_slice_json(
+                defaults,
+                viz_type="treemap",
+                metrics=["sum__num"],
+                groupby=["gender"],
             ),
         ),
         Slice(
@@ -432,11 +451,11 @@ def load_supported_charts_dashboard() -> None:
     """Loading a dashboard featuring supported charts"""
 
     database = get_example_database()
-    with database.get_sqla_engine() as engine:
+    with database.get_sqla_engine_with_context() as engine:
         schema = inspect(engine).default_schema_name
 
         tbl_name = "birth_names"
-        table_exists = database.has_table(Table(tbl_name, schema))
+        table_exists = database.has_table_by_name(tbl_name, schema=schema)
 
     if table_exists:
         table = get_table_connector_registry()
@@ -447,7 +466,7 @@ def load_supported_charts_dashboard() -> None:
         )
         create_slices(obj)
 
-    logger.debug("Creating the dashboard")
+    print("Creating the dashboard")
 
     db.session.expunge_all()
     dash = db.session.query(Dashboard).filter_by(slug=DASH_SLUG).first()
@@ -538,7 +557,7 @@ def load_supported_charts_dashboard() -> None:
     "meta": {
       "chartId": 5,
       "height": 50,
-      "sliceName": "Line Chart",
+      "sliceName": "Time-Series Line Chart",
       "width": 4
     },
     "type": "CHART"
@@ -555,7 +574,7 @@ def load_supported_charts_dashboard() -> None:
     "meta": {
       "chartId": 6,
       "height": 50,
-      "sliceName": "Bar Chart",
+      "sliceName": "Time-Series Bar Chart V2",
       "width": 4
     },
     "type": "CHART"
@@ -572,7 +591,7 @@ def load_supported_charts_dashboard() -> None:
     "meta": {
       "chartId": 7,
       "height": 50,
-      "sliceName": "Area Chart",
+      "sliceName": "Time-Series Area Chart",
       "width": 4
     },
     "type": "CHART"
@@ -589,7 +608,7 @@ def load_supported_charts_dashboard() -> None:
     "meta": {
       "chartId": 8,
       "height": 50,
-      "sliceName": "Scatter Chart",
+      "sliceName": "Time-Series Scatter Chart",
       "width": 4
     },
     "type": "CHART"
@@ -607,6 +626,23 @@ def load_supported_charts_dashboard() -> None:
       "chartId": 9,
       "height": 50,
       "sliceName": "Pie Chart",
+      "width": 4
+    },
+    "type": "CHART"
+  },
+  "CHART-10": {
+    "children": [],
+    "parents": [
+      "ROOT_ID",
+      "TABS-TOP",
+      "TAB-TOP-1",
+      "ROW-4"
+    ],
+    "id": "CHART-10",
+    "meta": {
+      "chartId": 10,
+      "height": 50,
+      "sliceName": "Bar Chart",
       "width": 4
     },
     "type": "CHART"
@@ -708,7 +744,7 @@ def load_supported_charts_dashboard() -> None:
     "meta": {
       "chartId": 16,
       "height": 50,
-      "sliceName": "Percent Change Chart",
+      "sliceName": "Time-Series Percent Change Chart",
       "width": 4
     },
     "type": "CHART"
@@ -725,7 +761,7 @@ def load_supported_charts_dashboard() -> None:
     "meta": {
       "chartId": 17,
       "height": 50,
-      "sliceName": "Generic Chart",
+      "sliceName": "Time-Series Generic Chart",
       "width": 4
     },
     "type": "CHART"
@@ -742,7 +778,7 @@ def load_supported_charts_dashboard() -> None:
     "meta": {
       "chartId": 18,
       "height": 50,
-      "sliceName": "Smooth Line Chart",
+      "sliceName": "Time-Series Smooth Line Chart",
       "width": 4
     },
     "type": "CHART"
@@ -759,7 +795,7 @@ def load_supported_charts_dashboard() -> None:
     "meta": {
       "chartId": 19,
       "height": 50,
-      "sliceName": "Step Line Chart",
+      "sliceName": "Time-Series Step Line Chart",
       "width": 4
     },
     "type": "CHART"
@@ -1249,3 +1285,4 @@ def load_supported_charts_dashboard() -> None:
     dash.dashboard_title = "Supported Charts Dashboard"
     dash.position_json = json.dumps(pos, indent=2)
     dash.slug = DASH_SLUG
+    db.session.commit()

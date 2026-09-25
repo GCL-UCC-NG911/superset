@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactElement } from 'react';
 import {
   Datasource,
   GenericDataType,
@@ -40,7 +39,6 @@ export interface DataTablesPaneProps {
   onCollapseChange: (isOpen: boolean) => void;
   errorMessage?: JSX.Element;
   actions: ExploreActions;
-  canDownload: boolean;
 }
 
 export interface ResultsPaneProps {
@@ -48,12 +46,11 @@ export interface ResultsPaneProps {
   queryFormData: QueryFormData;
   queryForce: boolean;
   ownState?: JsonObject;
-  errorMessage?: ReactElement;
+  errorMessage?: React.ReactElement;
   actions?: ExploreActions;
   dataSize?: number;
   // reload OriginalFormattedTimeColumns from localStorage when isVisible is true
   isVisible: boolean;
-  canDownload: boolean;
 }
 
 export interface SamplesPaneProps {
@@ -64,7 +61,6 @@ export interface SamplesPaneProps {
   dataSize?: number;
   // reload OriginalFormattedTimeColumns from localStorage when isVisible is true
   isVisible: boolean;
-  canDownload: boolean;
 }
 
 export interface TableControlsProps {
@@ -75,14 +71,11 @@ export interface TableControlsProps {
   columnNames: string[];
   columnTypes: GenericDataType[];
   isLoading: boolean;
-  rowcount: number;
-  canDownload: boolean;
 }
 
 export interface QueryResultInterface {
   colnames: string[];
   coltypes: GenericDataType[];
-  rowcount: number;
   data: Record<string, any>[][];
 }
 
@@ -92,5 +85,4 @@ export interface SingleQueryResultPaneProp extends QueryResultInterface {
   dataSize?: number;
   // reload OriginalFormattedTimeColumns from localStorage when isVisible is true
   isVisible: boolean;
-  canDownload: boolean;
 }

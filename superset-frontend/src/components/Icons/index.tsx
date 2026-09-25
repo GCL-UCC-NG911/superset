@@ -17,8 +17,8 @@
  * under the License.
  */
 
-import { FC } from 'react';
-import { startCase } from 'lodash';
+import React from 'react';
+import _ from 'lodash';
 import AntdEnhancedIcons from './AntdEnhanced';
 import Icon from './Icon';
 import IconType from './IconType';
@@ -166,9 +166,9 @@ const IconFileNames = [
   'redo',
 ];
 
-const iconOverrides: Record<string, FC<IconType>> = {};
+const iconOverrides: Record<string, React.FC<IconType>> = {};
 IconFileNames.forEach(fileName => {
-  const keyName = startCase(fileName).replace(/ /g, '');
+  const keyName = _.startCase(fileName).replace(/ /g, '');
   iconOverrides[keyName] = (props: IconType) => (
     <Icon fileName={fileName} {...props} />
   );

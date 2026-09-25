@@ -42,7 +42,6 @@ import {
   HeaderProps,
   TableFooterProps,
 } from 'react-table';
-import { DragEvent } from 'react';
 
 import {
   UseStickyState,
@@ -82,14 +81,14 @@ declare module 'react-table' {
 
   // Typing from @types/react-table is incomplete
   interface TableSortByToggleProps {
-    style?: CSSProperties;
+    style?: React.CSSProperties;
     title?: string;
-    onClick?: MouseEventHandler;
+    onClick?: React.MouseEventHandler;
   }
 
   interface TableRearrangeColumnsProps {
-    onDragStart: (e: DragEvent) => void;
-    onDrop: (e: DragEvent) => void;
+    onDragStart: (e: React.DragEvent) => void;
+    onDrop: (e: React.DragEvent) => void;
   }
 
   export interface ColumnInterface<D extends object>

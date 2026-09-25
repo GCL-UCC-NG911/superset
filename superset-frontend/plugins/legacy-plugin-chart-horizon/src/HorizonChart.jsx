@@ -17,7 +17,7 @@
  * under the License.
  */
 /* eslint-disable react/jsx-sort-default-props, react/sort-prop-types */
-import { PureComponent } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { extent as d3Extent } from 'd3-array';
 import { ensureIsArray, styled } from '@superset-ui/core';
@@ -80,7 +80,7 @@ const StyledDiv = styled.div`
   `}
 `;
 
-class HorizonChart extends PureComponent {
+class HorizonChart extends React.PureComponent {
   render() {
     const {
       className,

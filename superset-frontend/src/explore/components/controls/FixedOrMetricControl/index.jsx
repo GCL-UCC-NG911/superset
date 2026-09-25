@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { css } from '@emotion/react';
 import { t } from '@superset-ui/core';
@@ -48,7 +48,7 @@ const defaultProps = {
   default: { type: controlTypes.fixed, value: 5 },
 };
 
-export default class FixedOrMetricControl extends Component {
+export default class FixedOrMetricControl extends React.Component {
   constructor(props) {
     super(props);
     this.onChange = this.onChange.bind(this);
@@ -127,7 +127,7 @@ export default class FixedOrMetricControl extends Component {
           <Collapse.Panel
             showArrow={false}
             header={
-              <Label>
+              <Label onClick={() => undefined}>
                 {this.state.type === controlTypes.fixed && (
                   <span>{this.state.fixedValue}</span>
                 )}

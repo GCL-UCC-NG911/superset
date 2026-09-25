@@ -14,6 +14,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+import sys
 import unittest.mock as mock
 
 import pytest
@@ -27,8 +28,8 @@ from superset.errors import ErrorLevel, SupersetError, SupersetErrorType
 from superset.sql_parse import Table
 from tests.integration_tests.db_engine_specs.base_tests import TestDbEngineSpec
 from tests.integration_tests.fixtures.birth_names_dashboard import (
-    load_birth_names_dashboard_with_slices,  # noqa: F401
-    load_birth_names_data,  # noqa: F401
+    load_birth_names_dashboard_with_slices,
+    load_birth_names_data,
 )
 
 
@@ -45,7 +46,7 @@ class TestBigQueryDbEngineSpec(TestDbEngineSpec):
         }
         for original, expected in test_cases.items():
             actual = BigQueryEngineSpec.make_label_compatible(column(original).name)
-            assert actual == expected
+            self.assertEqual(actual, expected)
 
     def test_timegrain_expressions(self):
         """
@@ -63,7 +64,7 @@ class TestBigQueryDbEngineSpec(TestDbEngineSpec):
             actual = BigQueryEngineSpec.get_timestamp_expr(
                 col=col, pdf=None, time_grain="PT1H"
             )
-            assert str(actual) == expected
+            self.assertEqual(str(actual), expected)
 
     def test_custom_minute_timegrain_expressions(self):
         """
@@ -92,9 +93,8 @@ class TestBigQueryDbEngineSpec(TestDbEngineSpec):
         """
         DB Eng Specs (bigquery): Test fetch data
         """
-
         # Mock a google.cloud.bigquery.table.Row
-        class Row:
+        class Row(object):
             def __init__(self, value):
                 self._value = value
 
@@ -104,25 +104,24 @@ class TestBigQueryDbEngineSpec(TestDbEngineSpec):
         data1 = [(1, "foo")]
         with mock.patch.object(BaseEngineSpec, "fetch_data", return_value=data1):
             result = BigQueryEngineSpec.fetch_data(None, 0)
-        assert result == data1
+        self.assertEqual(result, data1)
 
         data2 = [Row(1), Row(2)]
         with mock.patch.object(BaseEngineSpec, "fetch_data", return_value=data2):
             result = BigQueryEngineSpec.fetch_data(None, 0)
-        assert result == [1, 2]
+        self.assertEqual(result, [1, 2])
 
-    def test_get_extra_table_metadata(self):
+    def test_extra_table_metadata(self):
         """
         DB Eng Specs (bigquery): Test extra table metadata
         """
         database = mock.Mock()
         # Test no indexes
         database.get_indexes = mock.MagicMock(return_value=None)
-        result = BigQueryEngineSpec.get_extra_table_metadata(
-            database,
-            Table("some_table", "some_schema"),
+        result = BigQueryEngineSpec.extra_table_metadata(
+            database, "some_table", "some_schema"
         )
-        assert result == {}
+        self.assertEqual(result, {})
 
         index_metadata = [
             {
@@ -139,89 +138,75 @@ class TestBigQueryDbEngineSpec(TestDbEngineSpec):
             "clustering": {"cols": [["c_col1", "c_col2", "c_col3"]]},
         }
         database.get_indexes = mock.MagicMock(return_value=index_metadata)
-        result = BigQueryEngineSpec.get_extra_table_metadata(
-            database,
-            Table("some_table", "some_schema"),
+        result = BigQueryEngineSpec.extra_table_metadata(
+            database, "some_table", "some_schema"
         )
-        assert result == expected_result
+        self.assertEqual(result, expected_result)
 
-    def test_get_indexes(self):
-        database = mock.Mock()
-        inspector = mock.Mock()
-        schema = "foo"
-        table_name = "bar"
+    def test_normalize_indexes(self):
+        """
+        DB Eng Specs (bigquery): Test extra table metadata
+        """
+        indexes = [{"name": "partition", "column_names": [None], "unique": False}]
+        normalized_idx = BigQueryEngineSpec.normalize_indexes(indexes)
+        self.assertEqual(normalized_idx, [])
 
-        inspector.get_indexes = mock.Mock(
-            return_value=[
-                {
-                    "name": "partition",
-                    "column_names": [None],
-                    "unique": False,
-                }
-            ]
-        )
+        indexes = [{"name": "partition", "column_names": ["dttm"], "unique": False}]
+        normalized_idx = BigQueryEngineSpec.normalize_indexes(indexes)
+        self.assertEqual(normalized_idx, indexes)
 
-        assert (
-            BigQueryEngineSpec.get_indexes(
-                database,
-                inspector,
-                Table(table_name, schema),
-            )
-            == []
-        )
-
-        inspector.get_indexes = mock.Mock(
-            return_value=[
-                {
-                    "name": "partition",
-                    "column_names": ["dttm"],
-                    "unique": False,
-                }
-            ]
-        )
-
-        assert BigQueryEngineSpec.get_indexes(
-            database,
-            inspector,
-            Table(table_name, schema),
-        ) == [
-            {
-                "name": "partition",
-                "column_names": ["dttm"],
-                "unique": False,
-            }
+        indexes = [
+            {"name": "partition", "column_names": ["dttm", None], "unique": False}
         ]
-
-        inspector.get_indexes = mock.Mock(
-            return_value=[
-                {
-                    "name": "partition",
-                    "column_names": ["dttm", None],
-                    "unique": False,
-                }
-            ]
+        normalized_idx = BigQueryEngineSpec.normalize_indexes(indexes)
+        self.assertEqual(
+            normalized_idx,
+            [{"name": "partition", "column_names": ["dttm"], "unique": False}],
         )
-
-        assert BigQueryEngineSpec.get_indexes(
-            database,
-            inspector,
-            Table(table_name, schema),
-        ) == [
-            {
-                "name": "partition",
-                "column_names": ["dttm"],
-                "unique": False,
-            }
-        ]
 
     @mock.patch("superset.db_engine_specs.bigquery.BigQueryEngineSpec.get_engine")
-    @mock.patch("superset.db_engine_specs.bigquery.pandas_gbq")
-    @mock.patch("superset.db_engine_specs.bigquery.service_account")
-    def test_df_to_sql(self, mock_service_account, mock_pandas_gbq, mock_get_engine):
+    def test_df_to_sql(self, mock_get_engine):
         """
         DB Eng Specs (bigquery): Test DataFrame to SQL contract
         """
-        mock_service_account.Credentials.from_service_account_info = mock.MagicMock(
+        # test missing google.oauth2 dependency
+        sys.modules["pandas_gbq"] = mock.MagicMock()
+        df = DataFrame()
+        database = mock.MagicMock()
+        with self.assertRaises(Exception):
+            BigQueryEngineSpec.df_to_sql(
+                database=database,
+                table=Table(table="name", schema="schema"),
+                df=df,
+                to_sql_kwargs={},
+            )
+
+        invalid_kwargs = [
+            {"name": "some_name"},
+            {"schema": "some_schema"},
+            {"con": "some_con"},
+            {"name": "some_name", "con": "some_con"},
+            {"name": "some_name", "schema": "some_schema"},
+            {"con": "some_con", "schema": "some_schema"},
+        ]
+        # Test check for missing schema.
+        sys.modules["google.oauth2"] = mock.MagicMock()
+        for invalid_kwarg in invalid_kwargs:
+            self.assertRaisesRegex(
+                Exception,
+                "The table schema must be defined",
+                BigQueryEngineSpec.df_to_sql,
+                database=database,
+                table=Table(table="name"),
+                df=df,
+                to_sql_kwargs=invalid_kwarg,
+            )
+
+        import pandas_gbq
+        from google.oauth2 import service_account
+
+        pandas_gbq.to_gbq = mock.Mock()
+        service_account.Credentials.from_service_account_info = mock.MagicMock(
             return_value="account_info"
         )
 
@@ -230,8 +215,6 @@ class TestBigQueryDbEngineSpec(TestDbEngineSpec):
             "secrets"
         )
 
-        df = DataFrame()
-        database = mock.MagicMock()
         BigQueryEngineSpec.df_to_sql(
             database=database,
             table=Table(table="name", schema="schema"),
@@ -239,7 +222,7 @@ class TestBigQueryDbEngineSpec(TestDbEngineSpec):
             to_sql_kwargs={"if_exists": "extra_key"},
         )
 
-        mock_pandas_gbq.to_gbq.assert_called_with(
+        pandas_gbq.to_gbq.assert_called_with(
             df,
             project_id="google-host",
             destination_table="schema.name",
@@ -248,11 +231,11 @@ class TestBigQueryDbEngineSpec(TestDbEngineSpec):
         )
 
     def test_extract_errors(self):
-        msg = "403 POST https://bigquery.googleapis.com/bigquery/v2/projects/test-keel-310804/jobs?prettyPrint=false: Access Denied: Project profound-keel-310804: User does not have bigquery.jobs.create permission in project profound-keel-310804"  # noqa: E501
+        msg = "403 POST https://bigquery.googleapis.com/bigquery/v2/projects/test-keel-310804/jobs?prettyPrint=false: Access Denied: Project profound-keel-310804: User does not have bigquery.jobs.create permission in project profound-keel-310804"
         result = BigQueryEngineSpec.extract_errors(Exception(msg))
         assert result == [
             SupersetError(
-                message='Unable to connect. Verify that the following roles are set on the service account: "BigQuery Data Viewer", "BigQuery Metadata Viewer", "BigQuery Job User" and the following permissions are set "bigquery.readsessions.create", "bigquery.readsessions.getData"',  # noqa: E501
+                message='Unable to connect. Verify that the following roles are set on the service account: "BigQuery Data Viewer", "BigQuery Metadata Viewer", "BigQuery Job User" and the following permissions are set "bigquery.readsessions.create", "bigquery.readsessions.getData"',
                 error_type=SupersetErrorType.CONNECTION_DATABASE_PERMISSIONS_ERROR,
                 level=ErrorLevel.ERROR,
                 extra={
@@ -267,11 +250,11 @@ class TestBigQueryDbEngineSpec(TestDbEngineSpec):
             )
         ]
 
-        msg = "bigquery error: 404 Not found: Dataset fakeDataset:bogusSchema was not found in location"  # noqa: E501
+        msg = "bigquery error: 404 Not found: Dataset fakeDataset:bogusSchema was not found in location"
         result = BigQueryEngineSpec.extract_errors(Exception(msg))
         assert result == [
             SupersetError(
-                message='The schema "bogusSchema" does not exist. A valid schema must be used to run this query.',  # noqa: E501
+                message='The schema "bogusSchema" does not exist. A valid schema must be used to run this query.',
                 error_type=SupersetErrorType.SCHEMA_DOES_NOT_EXIST_ERROR,
                 level=ErrorLevel.ERROR,
                 extra={
@@ -279,22 +262,22 @@ class TestBigQueryDbEngineSpec(TestDbEngineSpec):
                     "issue_codes": [
                         {
                             "code": 1003,
-                            "message": "Issue 1003 - There is a syntax error in the SQL query. Perhaps there was a misspelling or a typo.",  # noqa: E501
+                            "message": "Issue 1003 - There is a syntax error in the SQL query. Perhaps there was a misspelling or a typo.",
                         },
                         {
                             "code": 1004,
-                            "message": "Issue 1004 - The column was deleted or renamed in the database.",  # noqa: E501
+                            "message": "Issue 1004 - The column was deleted or renamed in the database.",
                         },
                     ],
                 },
             )
         ]
 
-        msg = 'Table name "badtable" missing dataset while no default dataset is set in the request'  # noqa: E501
+        msg = 'Table name "badtable" missing dataset while no default dataset is set in the request'
         result = BigQueryEngineSpec.extract_errors(Exception(msg))
         assert result == [
             SupersetError(
-                message='The table "badtable" does not exist. A valid table must be used to run this query.',  # noqa: E501
+                message='The table "badtable" does not exist. A valid table must be used to run this query.',
                 error_type=SupersetErrorType.TABLE_DOES_NOT_EXIST_ERROR,
                 level=ErrorLevel.ERROR,
                 extra={
@@ -302,11 +285,11 @@ class TestBigQueryDbEngineSpec(TestDbEngineSpec):
                     "issue_codes": [
                         {
                             "code": 1003,
-                            "message": "Issue 1003 - There is a syntax error in the SQL query. Perhaps there was a misspelling or a typo.",  # noqa: E501
+                            "message": "Issue 1003 - There is a syntax error in the SQL query. Perhaps there was a misspelling or a typo.",
                         },
                         {
                             "code": 1005,
-                            "message": "Issue 1005 - The table was deleted or renamed in the database.",  # noqa: E501
+                            "message": "Issue 1005 - The table was deleted or renamed in the database.",
                         },
                     ],
                 },
@@ -325,22 +308,22 @@ class TestBigQueryDbEngineSpec(TestDbEngineSpec):
                     "issue_codes": [
                         {
                             "code": 1003,
-                            "message": "Issue 1003 - There is a syntax error in the SQL query. Perhaps there was a misspelling or a typo.",  # noqa: E501
+                            "message": "Issue 1003 - There is a syntax error in the SQL query. Perhaps there was a misspelling or a typo.",
                         },
                         {
                             "code": 1004,
-                            "message": "Issue 1004 - The column was deleted or renamed in the database.",  # noqa: E501
+                            "message": "Issue 1004 - The column was deleted or renamed in the database.",
                         },
                     ],
                 },
             )
         ]
 
-        msg = 'Syntax error: Expected end of input but got identifier "from_"'
+        msg = 'Syntax error: Expected end of input but got identifier "fromm"'
         result = BigQueryEngineSpec.extract_errors(Exception(msg))
         assert result == [
             SupersetError(
-                message='Please check your query for syntax errors at or near "from_". Then, try running your query again.',  # noqa: E501
+                message='Please check your query for syntax errors at or near "fromm". Then, try running your query again.',
                 error_type=SupersetErrorType.SYNTAX_ERROR,
                 level=ErrorLevel.ERROR,
                 extra={
@@ -380,4 +363,4 @@ class TestBigQueryDbEngineSpec(TestDbEngineSpec):
             "orderby": [["gender_cc", True]],
         }
         sql = table.get_query_str(query_obj)
-        assert "ORDER BY `gender_cc` ASC" in sql
+        assert "ORDER BY gender_cc ASC" in sql

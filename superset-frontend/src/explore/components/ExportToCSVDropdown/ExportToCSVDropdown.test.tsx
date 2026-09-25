@@ -16,25 +16,29 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from 'spec/helpers/testing-library';
+import { render, screen, waitFor } from 'spec/helpers/testing-library';
 import { ExportToCSVDropdown } from './index';
 
 const exportCSVOriginal = jest.fn();
 const exportCSVPivoted = jest.fn();
 
-const setup = () =>
-  render(
-    <ExportToCSVDropdown
-      exportCSVOriginal={exportCSVOriginal}
-      exportCSVPivoted={exportCSVPivoted}
-    >
-      <div>.CSV</div>
-    </ExportToCSVDropdown>,
+const waitForRender = () => {
+  waitFor(() =>
+    render(
+      <ExportToCSVDropdown
+        exportCSVOriginal={exportCSVOriginal}
+        exportCSVPivoted={exportCSVPivoted}
+      >
+        <div>.CSV</div>
+      </ExportToCSVDropdown>,
+    ),
   );
+};
 
 test('Dropdown button with menu renders', () => {
-  setup();
+  waitForRender();
 
   expect(screen.getByText('.CSV')).toBeVisible();
 
@@ -45,7 +49,7 @@ test('Dropdown button with menu renders', () => {
 });
 
 test('Call export csv original on click', () => {
-  setup();
+  waitForRender();
 
   userEvent.click(screen.getByText('.CSV'));
   userEvent.click(screen.getByText('Original'));
@@ -54,7 +58,7 @@ test('Call export csv original on click', () => {
 });
 
 test('Call export csv pivoted on click', () => {
-  setup();
+  waitForRender();
 
   userEvent.click(screen.getByText('.CSV'));
   userEvent.click(screen.getByText('Pivoted'));

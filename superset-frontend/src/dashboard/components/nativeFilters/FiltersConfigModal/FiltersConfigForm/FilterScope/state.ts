@@ -30,10 +30,9 @@ import { buildTree } from './utils';
 
 // eslint-disable-next-line import/prefer-default-export
 export function useFilterScopeTree(
-  currentChartId: number | undefined,
+  currentChartId?: number,
   initiallyExcludedCharts: number[] = [],
   buildTreeLeafTitle: BuildTreeLeafTitle = label => label,
-  title = t('All panels'),
 ): {
   treeData: [TreeItem];
   layout: Layout;
@@ -47,7 +46,7 @@ export function useFilterScopeTree(
     children: [],
     key: DASHBOARD_ROOT_ID,
     type: DASHBOARD_ROOT_TYPE,
-    title,
+    title: t('All panels'),
   };
 
   // We need to get only nodes that have charts as children or grandchildren

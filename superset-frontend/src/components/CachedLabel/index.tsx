@@ -16,21 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useState, MouseEventHandler, FC } from 'react';
-
-import { css, t } from '@superset-ui/core';
+import React, { useState } from 'react';
+import { t } from '@superset-ui/core';
 import Label from 'src/components/Label';
 import { Tooltip } from 'src/components/Tooltip';
 import { TooltipContent } from './TooltipContent';
-import Icons from '../Icons';
 
 export interface CacheLabelProps {
-  onClick?: MouseEventHandler<HTMLElement>;
+  onClick?: React.MouseEventHandler<HTMLElement>;
   cachedTimestamp?: string;
   className?: string;
 }
 
-const CacheLabel: FC<CacheLabelProps> = ({
+const CacheLabel: React.FC<CacheLabelProps> = ({
   className,
   onClick,
   cachedTimestamp,
@@ -45,16 +43,12 @@ const CacheLabel: FC<CacheLabelProps> = ({
     >
       <Label
         className={`${className}`}
-        css={theme => css`
-          gap: ${theme.gridUnit * 0.5}px;
-        `}
         type={labelType}
         onClick={onClick}
         onMouseOver={() => setHovered(true)}
         onMouseOut={() => setHovered(false)}
       >
-        {t('Cached')}
-        <Icons.SyncOutlined iconSize="m" />
+        {t('Cached')} <i className="fa fa-refresh" />
       </Label>
     </Tooltip>
   );

@@ -16,6 +16,7 @@
 # under the License.
 # pylint: disable=unused-argument, import-outside-toplevel, protected-access
 
+import json
 from datetime import datetime
 from typing import Optional
 
@@ -24,9 +25,8 @@ from pytest_mock import MockerFixture
 
 from superset.db_engine_specs.databricks import DatabricksNativeEngineSpec
 from superset.errors import ErrorLevel, SupersetError, SupersetErrorType
-from superset.utils import json
 from tests.unit_tests.db_engine_specs.utils import assert_convert_dttm
-from tests.unit_tests.fixtures.common import dttm  # noqa: F401
+from tests.unit_tests.fixtures.common import dttm
 
 
 def test_get_parameters_from_uri() -> None:
@@ -35,13 +35,13 @@ def test_get_parameters_from_uri() -> None:
     """
     from superset.db_engine_specs.databricks import (
         DatabricksNativeEngineSpec,
-        DatabricksNativeParametersType,
+        DatabricksParametersType,
     )
 
     parameters = DatabricksNativeEngineSpec.get_parameters_from_uri(
         "databricks+connector://token:abc12345@my_hostname:1234/test"
     )
-    assert parameters == DatabricksNativeParametersType(
+    assert parameters == DatabricksParametersType(
         {
             "access_token": "abc12345",
             "host": "my_hostname",
@@ -60,10 +60,10 @@ def test_build_sqlalchemy_uri() -> None:
     """
     from superset.db_engine_specs.databricks import (
         DatabricksNativeEngineSpec,
-        DatabricksNativeParametersType,
+        DatabricksParametersType,
     )
 
-    parameters = DatabricksNativeParametersType(
+    parameters = DatabricksParametersType(
         {
             "access_token": "abc12345",
             "host": "my_hostname",
@@ -102,6 +102,7 @@ def test_parameters_json_schema() -> None:
             "http_path": {"type": "string"},
             "port": {
                 "description": "Database port",
+                "format": "int32",
                 "maximum": 65536,
                 "minimum": 0,
                 "type": "integer",
@@ -178,12 +179,12 @@ def test_extract_errors() -> None:
     Test that custom error messages are extracted correctly.
     """
 
-    msg = ": mismatched input 'from_'. Expecting: "
+    msg = ": mismatched input 'fromm'. Expecting: "
     result = DatabricksNativeEngineSpec.extract_errors(Exception(msg))
 
     assert result == [
         SupersetError(
-            message=": mismatched input 'from_'. Expecting: ",
+            message=": mismatched input 'fromm'. Expecting: ",
             error_type=SupersetErrorType.GENERIC_DB_ENGINE_ERROR,
             level=ErrorLevel.ERROR,
             extra={
@@ -191,7 +192,7 @@ def test_extract_errors() -> None:
                 "issue_codes": [
                     {
                         "code": 1002,
-                        "message": "Issue 1002 - The database returned an unexpected error.",  # noqa: E501
+                        "message": "Issue 1002 - The database returned an unexpected error.",
                     }
                 ],
             },
@@ -204,13 +205,13 @@ def test_extract_errors_with_context() -> None:
     Test that custom error messages are extracted correctly with context.
     """
 
-    msg = ": mismatched input 'from_'. Expecting: "
+    msg = ": mismatched input 'fromm'. Expecting: "
     context = {"hostname": "foo"}
     result = DatabricksNativeEngineSpec.extract_errors(Exception(msg), context)
 
     assert result == [
         SupersetError(
-            message=": mismatched input 'from_'. Expecting: ",
+            message=": mismatched input 'fromm'. Expecting: ",
             error_type=SupersetErrorType.GENERIC_DB_ENGINE_ERROR,
             level=ErrorLevel.ERROR,
             extra={
@@ -218,7 +219,7 @@ def test_extract_errors_with_context() -> None:
                 "issue_codes": [
                     {
                         "code": 1002,
-                        "message": "Issue 1002 - The database returned an unexpected error.",  # noqa: E501
+                        "message": "Issue 1002 - The database returned an unexpected error.",
                     }
                 ],
             },
@@ -238,49 +239,8 @@ def test_extract_errors_with_context() -> None:
     ],
 )
 def test_convert_dttm(
-    target_type: str,
-    expected_result: Optional[str],
-    dttm: datetime,  # noqa: F811
+    target_type: str, expected_result: Optional[str], dttm: datetime
 ) -> None:
-    from superset.db_engine_specs.databricks import (
-        DatabricksNativeEngineSpec as spec,  # noqa: N813
-    )
+    from superset.db_engine_specs.databricks import DatabricksNativeEngineSpec as spec
 
     assert_convert_dttm(spec, target_type, expected_result, dttm)
-
-
-def test_get_prequeries(mocker: MockerFixture) -> None:
-    """
-    Test the ``get_prequeries`` method.
-    """
-    from superset.db_engine_specs.databricks import DatabricksNativeEngineSpec
-
-    database = mocker.MagicMock()
-
-    assert DatabricksNativeEngineSpec.get_prequeries(database) == []
-    assert DatabricksNativeEngineSpec.get_prequeries(database, schema="test") == [
-        "USE SCHEMA `test`",
-    ]
-    assert DatabricksNativeEngineSpec.get_prequeries(database, catalog="test") == [
-        "USE CATALOG `test`",
-    ]
-    assert DatabricksNativeEngineSpec.get_prequeries(
-        database, catalog="foo", schema="bar"
-    ) == [
-        "USE CATALOG `foo`",
-        "USE SCHEMA `bar`",
-    ]
-
-    assert DatabricksNativeEngineSpec.get_prequeries(
-        database, catalog="with-hyphen", schema="hyphen-again"
-    ) == [
-        "USE CATALOG `with-hyphen`",
-        "USE SCHEMA `hyphen-again`",
-    ]
-
-    assert DatabricksNativeEngineSpec.get_prequeries(
-        database, catalog="`escaped-hyphen`", schema="`hyphen-escaped`"
-    ) == [
-        "USE CATALOG `escaped-hyphen`",
-        "USE SCHEMA `hyphen-escaped`",
-    ]

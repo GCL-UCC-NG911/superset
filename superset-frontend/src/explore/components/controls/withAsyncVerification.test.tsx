@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { ReactWrapper } from 'enzyme';
 import { styledMount as mount } from 'spec/helpers/theming';
 import { act } from 'react-dom/test-utils';
@@ -94,8 +95,8 @@ describe('VerifiedMetricsControl', () => {
 
     expect(wrapper.find(MetricsControl).length).toBe(1);
 
-    expect(verifier).toHaveBeenCalledTimes(1);
-    expect(verifier).toHaveBeenCalledWith(
+    expect(verifier).toBeCalledTimes(1);
+    expect(verifier).toBeCalledWith(
       expect.objectContaining({ savedMetrics: props.savedMetrics }),
     );
 
@@ -104,8 +105,8 @@ describe('VerifiedMetricsControl', () => {
       wrapper.setProps({ validMetric: ['abc'] });
     });
 
-    expect(verifier).toHaveBeenCalledTimes(2);
-    expect(verifier).toHaveBeenCalledWith(
+    expect(verifier).toBeCalledTimes(2);
+    expect(verifier).toBeCalledWith(
       expect.objectContaining({ validMetric: ['abc'] }),
     );
   });
@@ -123,8 +124,8 @@ describe('VerifiedMetricsControl', () => {
     child.props().onChange?.(['abc']);
 
     expect(child.length).toBe(1);
-    expect(mockOnChange).toHaveBeenCalledTimes(1);
-    expect(mockOnChange).toHaveBeenCalledWith(['abc'], {
+    expect(mockOnChange).toBeCalledTimes(1);
+    expect(mockOnChange).toBeCalledWith(['abc'], {
       actions: defaultProps.actions,
       columns: defaultProps.columns,
       datasourceType: defaultProps.datasourceType,

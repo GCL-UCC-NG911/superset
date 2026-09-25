@@ -18,15 +18,10 @@
  */
 import fetchMock from 'fetch-mock';
 import WS from 'jest-websocket-mock';
-import { parseErrorJson, isFeatureEnabled } from '@superset-ui/core';
+import sinon from 'sinon';
+import * as featureFlags from 'src/featureFlags';
+import { parseErrorJson } from 'src/utils/getClientErrorObject';
 import * as asyncEvent from 'src/middleware/asyncEvent';
-
-jest.mock('@superset-ui/core', () => ({
-  ...jest.requireActual('@superset-ui/core'),
-  isFeatureEnabled: jest.fn(),
-}));
-
-const mockedIsFeatureEnabled = isFeatureEnabled as jest.Mock;
 
 describe('asyncEvent middleware', () => {
   const asyncPendingEvent = {
@@ -86,16 +81,16 @@ describe('asyncEvent middleware', () => {
 
   const EVENTS_ENDPOINT = 'glob:*/api/v1/async_event/*';
   const CACHED_DATA_ENDPOINT = 'glob:*/api/v1/chart/data/*';
+  let featureEnabledStub: any;
 
   beforeEach(async () => {
-    mockedIsFeatureEnabled.mockImplementation(
-      featureFlag => featureFlag === 'GLOBAL_ASYNC_QUERIES',
-    );
+    featureEnabledStub = sinon.stub(featureFlags, 'isFeatureEnabled');
+    featureEnabledStub.withArgs('GLOBAL_ASYNC_QUERIES').returns(true);
   });
 
   afterEach(() => {
     fetchMock.reset();
-    mockedIsFeatureEnabled.mockRestore();
+    featureEnabledStub.restore();
   });
 
   afterAll(fetchMock.reset);

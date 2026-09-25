@@ -16,11 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import {
-  DataRecordValue,
-  normalizeTimestamp,
-  TimeFormatFunction,
-} from '@superset-ui/core';
+import { DataRecordValue, TimeFormatFunction } from '@superset-ui/core';
+
+const REGEXP_TIMESTAMP_NO_TIMEZONE = /T(\d{2}:){2}\d{2}$/;
 
 /**
  * Extended Date object with a custom formatter, and retains the original input
@@ -33,12 +31,19 @@ export default class DateWithFormatter extends Date {
 
   constructor(
     input: DataRecordValue,
-    { formatter = String }: { formatter?: TimeFormatFunction } = {},
+    {
+      formatter = String,
+      forceUTC = true,
+    }: { formatter?: TimeFormatFunction; forceUTC?: boolean } = {},
   ) {
     let value = input;
     // assuming timestamps without a timezone is in UTC time
-    if (typeof value === 'string') {
-      value = normalizeTimestamp(value);
+    if (
+      forceUTC &&
+      typeof value === 'string' &&
+      REGEXP_TIMESTAMP_NO_TIMEZONE.test(value)
+    ) {
+      value = `${value}Z`;
     }
 
     super(value as string);

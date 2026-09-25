@@ -16,11 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { t } from '@superset-ui/core';
 import {
   ControlPanelConfig,
   ControlPanelsContainerProps,
-  ControlSubSectionHeader,
   D3_TIME_FORMAT_DOCS,
   getStandardizedControls,
   sections,
@@ -33,13 +33,8 @@ import {
 } from '../../constants';
 import {
   legendSection,
-  minorTicks,
   richTooltipSection,
-  seriesOrderSection,
   showValueSectionWithoutStack,
-  truncateXAxis,
-  xAxisBounds,
-  xAxisLabelRotation,
 } from '../../../controls';
 
 const {
@@ -51,10 +46,12 @@ const {
   truncateYAxis,
   yAxisBounds,
   zoomable,
+  xAxisLabelRotation,
 } = DEFAULT_FORM_DATA;
 const config: ControlPanelConfig = {
   controlPanelSections: [
-    sections.echartsTimeSeriesQueryWithXAxisSort,
+    sections.genericTime,
+    sections.echartsTimeSeriesQuery,
     sections.advancedAnalyticsControls,
     sections.annotationsAndLayersControls,
     sections.forecastIntervalControls,
@@ -63,9 +60,7 @@ const config: ControlPanelConfig = {
       label: t('Chart Options'),
       expanded: true,
       controlSetRows: [
-        ...seriesOrderSection,
         ['color_scheme'],
-        ['time_shift_color'],
         ...showValueSectionWithoutStack,
         [
           {
@@ -111,9 +106,8 @@ const config: ControlPanelConfig = {
             },
           },
         ],
-        [minorTicks],
         ...legendSection,
-        [<ControlSubSectionHeader>{t('X Axis')}</ControlSubSectionHeader>],
+        [<div className="section-header">{t('X Axis')}</div>],
         [
           {
             name: 'x_axis_time_format',
@@ -124,14 +118,32 @@ const config: ControlPanelConfig = {
             },
           },
         ],
-        [xAxisLabelRotation],
+        [
+          {
+            name: 'xAxisLabelRotation',
+            config: {
+              type: 'SelectControl',
+              freeForm: true,
+              clearable: false,
+              label: t('Rotate x axis label'),
+              choices: [
+                [0, '0°'],
+                [45, '45°'],
+              ],
+              default: xAxisLabelRotation,
+              renderTrigger: true,
+              description: t(
+                'Input field supports custom rotation. e.g. 30 for 30°',
+              ),
+            },
+          },
+        ],
         // eslint-disable-next-line react/jsx-key
         ...richTooltipSection,
         // eslint-disable-next-line react/jsx-key
-        [<ControlSubSectionHeader>{t('Y Axis')}</ControlSubSectionHeader>],
+        [<div className="section-header">{t('Y Axis')}</div>],
 
         ['y_axis_format'],
-        ['currency_format'],
         [
           {
             name: 'logAxis',
@@ -156,8 +168,6 @@ const config: ControlPanelConfig = {
             },
           },
         ],
-        [truncateXAxis],
-        [xAxisBounds],
         [
           {
             name: 'truncateYAxis',

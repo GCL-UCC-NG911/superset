@@ -14,9 +14,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-from typing import Optional
+from typing import List, Optional
 
-from flask import Response
+import pytest
+from flask import escape, Response
 
 from superset.models.dashboard import Dashboard
 from tests.integration_tests.dashboards.base_case import DashboardTestCase
@@ -25,7 +26,6 @@ from tests.integration_tests.dashboards.base_case import DashboardTestCase
 class BaseTestDashboardSecurity(DashboardTestCase):
     def tearDown(self) -> None:
         self.clean_created_objects()
-        super().tearDown()
 
     def assert_dashboard_api_response(
         self, response: Response, dashboard_to_access: Dashboard
@@ -37,13 +37,13 @@ class BaseTestDashboardSecurity(DashboardTestCase):
         self,
         response: Response,
         expected_counts: int,
-        expected_dashboards: Optional[list[Dashboard]] = None,
-        not_expected_dashboards: Optional[list[Dashboard]] = None,
+        expected_dashboards: Optional[List[Dashboard]] = None,
+        not_expected_dashboards: Optional[List[Dashboard]] = None,
     ) -> None:
         self.assert200(response)
         response_data = response.json
         assert response_data["count"] == expected_counts
-        response_dashboards_url = set(  # noqa: C417
+        response_dashboards_url = set(
             map(lambda dash: dash["url"], response_data["result"])
         )
         expected_dashboards = expected_dashboards or []

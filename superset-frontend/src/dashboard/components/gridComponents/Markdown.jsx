@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { PureComponent } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import cx from 'classnames';
@@ -26,7 +26,7 @@ import { Logger, LOG_ACTIONS_RENDER_CHART } from 'src/logger/LogUtils';
 import { MarkdownEditor } from 'src/components/AsyncAceEditor';
 
 import DeleteComponentButton from 'src/dashboard/components/DeleteComponentButton';
-import { Draggable } from 'src/dashboard/components/dnd/DragDroppable';
+import DragDroppable from 'src/dashboard/components/dnd/DragDroppable';
 import HoverMenu from 'src/dashboard/components/menu/HoverMenu';
 import ResizableContainer from 'src/dashboard/components/resizable/ResizableContainer';
 import MarkdownModeDropdown from 'src/dashboard/components/menu/MarkdownModeDropdown';
@@ -115,7 +115,7 @@ const MarkdownStyles = styled.div`
   `}
 `;
 
-class Markdown extends PureComponent {
+class Markdown extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
@@ -332,7 +332,7 @@ class Markdown extends PureComponent {
     const isEditing = editorMode === 'edit';
 
     return (
-      <Draggable
+      <DragDroppable
         component={component}
         parentComponent={parentComponent}
         orientation={parentComponent.type === ROW_TYPE ? 'column' : 'row'}
@@ -342,7 +342,7 @@ class Markdown extends PureComponent {
         disableDragDrop={isFocused}
         editMode={editMode}
       >
-        {({ dragSourceRef }) => (
+        {({ dropIndicatorProps, dragSourceRef }) => (
           <WithPopoverMenu
             onChangeFocus={this.handleChangeFocus}
             menuItems={[
@@ -396,9 +396,10 @@ class Markdown extends PureComponent {
                 </div>
               </ResizableContainer>
             </MarkdownStyles>
+            {dropIndicatorProps && <div {...dropIndicatorProps} />}
           </WithPopoverMenu>
         )}
-      </Draggable>
+      </DragDroppable>
     );
   }
 }

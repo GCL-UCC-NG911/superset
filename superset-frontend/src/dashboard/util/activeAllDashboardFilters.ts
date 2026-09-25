@@ -20,21 +20,18 @@ import {
   DataMaskStateWithId,
   PartialFilters,
   JsonObject,
-  DataMaskWithId,
 } from '@superset-ui/core';
-import { ActiveFilters, ChartConfiguration } from '../types';
+import { ActiveFilters } from '../types';
+import { ChartConfiguration } from '../reducers/types';
 
 export const getRelevantDataMask = (
   dataMask: DataMaskStateWithId,
   prop: string,
 ): JsonObject | DataMaskStateWithId =>
   Object.values(dataMask)
-    .filter(item => item[prop as keyof DataMaskWithId])
+    .filter(item => item[prop])
     .reduce(
-      (prev, next) => ({
-        ...prev,
-        [next.id]: prop ? next[prop as keyof DataMaskWithId] : next,
-      }),
+      (prev, next) => ({ ...prev, [next.id]: prop ? next[prop] : next }),
       {},
     );
 
@@ -49,23 +46,18 @@ export const getAllActiveFilters = ({
   nativeFilters: PartialFilters;
   allSliceIds: number[];
 }): ActiveFilters => {
-  const activeFilters: ActiveFilters = {};
+  const activeFilters = {};
 
   // Combine native filters with cross filters, because they have similar logic
-  Object.values(dataMask).forEach(({ id: filterId, extraFormData = {} }) => {
+  Object.values(dataMask).forEach(({ id: filterId, extraFormData }) => {
     const scope =
       nativeFilters?.[filterId]?.chartsInScope ??
-      chartConfiguration?.[parseInt(filterId, 10)]?.crossFilters
-        ?.chartsInScope ??
+      chartConfiguration?.[filterId]?.crossFilters?.chartsInScope ??
       allSliceIds ??
       [];
-    const filterType = nativeFilters?.[filterId]?.filterType;
-    const targets = nativeFilters?.[filterId]?.targets ?? scope;
     // Iterate over all roots to find all affected charts
     activeFilters[filterId] = {
       scope,
-      filterType,
-      targets,
       values: extraFormData,
     };
   });

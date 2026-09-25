@@ -17,15 +17,15 @@
  * under the License.
  */
 
-import { forwardRef, RefObject, MouseEvent } from 'react';
+import React, { forwardRef, RefObject } from 'react';
 import { css, styled } from '@superset-ui/core';
-import Button, { ButtonStyle } from 'src/components/Button';
+import Button from 'src/components/Button';
 
 interface ControlPanelAlertProps {
   title: string;
   bodyText: string;
-  primaryButtonAction?: (e: MouseEvent) => void;
-  secondaryButtonAction?: (e: MouseEvent) => void;
+  primaryButtonAction?: (e: React.MouseEvent) => void;
+  secondaryButtonAction?: (e: React.MouseEvent) => void;
   primaryButtonText?: string;
   secondaryButtonText?: string;
   type: 'info' | 'warning' | 'error';
@@ -58,16 +58,16 @@ const AlertContainer = styled.div`
     }
 
     &.alert-type-warning {
-      border-color: ${theme.colors.warning.base};
-      background-color: ${theme.colors.warning.light2};
+      border-color: ${theme.colors.alert.base};
+      background-color: ${theme.colors.alert.light2};
 
       p {
-        color: ${theme.colors.warning.dark2};
+        color: ${theme.colors.alert.dark2};
       }
 
       & a:hover,
       & span[role='button']:hover {
-        color: ${theme.colors.warning.dark1};
+        color: ${theme.colors.alert.dark1};
       }
     }
   `}
@@ -88,8 +88,6 @@ const Title = styled.p`
 const typeChart = {
   warning: 'warning',
   danger: 'danger',
-  error: 'primary',
-  info: 'primary',
 };
 
 export const ExploreAlert = forwardRef(
@@ -121,7 +119,7 @@ export const ExploreAlert = forwardRef(
             </Button>
           )}
           <Button
-            buttonStyle={typeChart[type] as ButtonStyle}
+            buttonStyle={type in typeChart ? typeChart[type] : 'primary'}
             buttonSize="small"
             onClick={primaryButtonAction}
           >

@@ -21,10 +21,12 @@ import {
   getNumberFormatter,
   supersetTheme,
 } from '@superset-ui/core';
-import transformProps, { parseParams } from '../../src/Funnel/transformProps';
+import transformProps, {
+  formatFunnelLabel,
+} from '../../src/Funnel/transformProps';
 import {
   EchartsFunnelChartProps,
-  PercentCalcType,
+  EchartsFunnelLabelTypeType,
 } from '../../src/Funnel/types';
 
 describe('Funnel transformProps', () => {
@@ -79,47 +81,63 @@ describe('Funnel transformProps', () => {
 describe('formatFunnelLabel', () => {
   it('should generate a valid funnel chart label', () => {
     const numberFormatter = getNumberFormatter();
-    const params = {
-      name: 'My Label',
-      value: 1234,
-      percent: 12.34,
-      data: { firstStepPercent: 0.5, prevStepPercent: 0.85 },
-    };
+    const params = { name: 'My Label', value: 1234, percent: 12.34 };
     expect(
-      parseParams({
+      formatFunnelLabel({
         params,
         numberFormatter,
-        percentCalculationType: PercentCalcType.Total,
+        labelType: EchartsFunnelLabelTypeType.Key,
       }),
-    ).toEqual(['My Label', '1.23k', '12.34%']);
+    ).toEqual('My Label');
     expect(
-      parseParams({
+      formatFunnelLabel({
         params,
         numberFormatter,
-        percentCalculationType: PercentCalcType.FirstStep,
+        labelType: EchartsFunnelLabelTypeType.Value,
       }),
-    ).toEqual(['My Label', '1.23k', '50.00%']);
+    ).toEqual('1.23k');
     expect(
-      parseParams({
+      formatFunnelLabel({
         params,
         numberFormatter,
-        percentCalculationType: PercentCalcType.PreviousStep,
+        labelType: EchartsFunnelLabelTypeType.Percent,
       }),
-    ).toEqual(['My Label', '1.23k', '85.00%']);
+    ).toEqual('12.34%');
     expect(
-      parseParams({
+      formatFunnelLabel({
+        params,
+        numberFormatter,
+        labelType: EchartsFunnelLabelTypeType.KeyValue,
+      }),
+    ).toEqual('My Label: 1.23k');
+    expect(
+      formatFunnelLabel({
+        params,
+        numberFormatter,
+        labelType: EchartsFunnelLabelTypeType.KeyPercent,
+      }),
+    ).toEqual('My Label: 12.34%');
+    expect(
+      formatFunnelLabel({
+        params,
+        numberFormatter,
+        labelType: EchartsFunnelLabelTypeType.KeyValuePercent,
+      }),
+    ).toEqual('My Label: 1.23k (12.34%)');
+    expect(
+      formatFunnelLabel({
         params: { ...params, name: '<NULL>' },
         numberFormatter,
-        percentCalculationType: PercentCalcType.Total,
+        labelType: EchartsFunnelLabelTypeType.Key,
       }),
-    ).toEqual(['<NULL>', '1.23k', '12.34%']);
+    ).toEqual('<NULL>');
     expect(
-      parseParams({
+      formatFunnelLabel({
         params: { ...params, name: '<NULL>' },
         numberFormatter,
-        percentCalculationType: PercentCalcType.Total,
+        labelType: EchartsFunnelLabelTypeType.Key,
         sanitizeName: true,
       }),
-    ).toEqual(['&lt;NULL&gt;', '1.23k', '12.34%']);
+    ).toEqual('&lt;NULL&gt;');
   });
 });

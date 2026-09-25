@@ -22,13 +22,13 @@ import {
   NumberFormats,
   GenericDataType,
   getMetricLabel,
-  getXAxisLabel,
-  Metric,
-  getValueFormatter,
   t,
-  tooltipHtml,
+  smartDateVerboseFormatter,
+  NumberFormatter,
+  TimeFormatter,
+  getXAxisLabel,
 } from '@superset-ui/core';
-import { EChartsCoreOption, graphic } from 'echarts/core';
+import { EChartsCoreOption, graphic } from 'echarts';
 import {
   BigNumberVizProps,
   BigNumberDatum,
@@ -38,6 +38,24 @@ import {
 import { getDateFormatter, parseMetricValue } from '../utils';
 import { getDefaultTooltip } from '../../utils/tooltip';
 import { Refs } from '../../types';
+
+const defaultNumberFormatter = getNumberFormatter();
+export function renderTooltipFactory(
+  formatDate: TimeFormatter = smartDateVerboseFormatter,
+  formatValue: NumberFormatter | TimeFormatter = defaultNumberFormatter,
+) {
+  return function renderTooltip(params: { data: TimeSeriesDatum }[]) {
+    return `
+      ${formatDate(params[0].data[0])}
+      <br />
+      <strong>
+        ${
+          params[0].data[1] === null ? t('N/A') : formatValue(params[0].data[1])
+        }
+      </strong>
+    `;
+  };
+}
 
 const formatPercentChange = getNumberFormatter(
   NumberFormats.PERCENT_SIGNED_1_POINT,
@@ -55,7 +73,6 @@ export default function transformProps(
     theme,
     hooks,
     inContextMenu,
-    datasource: { currencyFormats = {}, columnFormats = {} },
   } = chartProps;
   const {
     colorPicker,
@@ -71,7 +88,6 @@ export default function transformProps(
     subheaderFontSize,
     forceTimestampFormatting,
     yAxisFormat,
-    currencyFormat,
     timeRangeFixed,
   } = formData;
   const granularity = extractTimegrain(rawFormData);
@@ -143,7 +159,7 @@ export default function transformProps(
     className = 'negative';
   }
 
-  let metricEntry: Metric | undefined;
+  let metricEntry;
   if (chartProps.datasource?.metrics) {
     metricEntry = chartProps.datasource.metrics.find(
       metricEntry => metricEntry.metric_name === metric,
@@ -156,20 +172,12 @@ export default function transformProps(
     metricEntry?.d3format,
   );
 
-  const numberFormatter = getValueFormatter(
-    metric,
-    currencyFormats,
-    columnFormats,
-    metricEntry?.d3format || yAxisFormat,
-    currencyFormat,
-  );
-
   const headerFormatter =
-    metricColtype === GenericDataType.Temporal ||
-    metricColtype === GenericDataType.String ||
+    metricColtype === GenericDataType.TEMPORAL ||
+    metricColtype === GenericDataType.STRING ||
     forceTimestampFormatting
       ? formatTime
-      : numberFormatter;
+      : getNumberFormatter(yAxisFormat ?? metricEntry?.d3format ?? undefined);
 
   if (trendLineData && timeRangeFixed && fromDatetime) {
     const toDatetimeOrToday = toDatetime ?? Date.now();
@@ -229,18 +237,7 @@ export default function transformProps(
           ...getDefaultTooltip(refs),
           show: !inContextMenu,
           trigger: 'axis',
-          formatter: (params: { data: TimeSeriesDatum }[]) =>
-            tooltipHtml(
-              [
-                [
-                  metricName,
-                  params[0].data[1] === null
-                    ? t('N/A')
-                    : headerFormatter.format(params[0].data[1]),
-                ],
-              ],
-              formatTime(params[0].data[0]),
-            ),
+          formatter: renderTooltipFactory(formatTime, headerFormatter),
         },
         aria: {
           enabled: true,

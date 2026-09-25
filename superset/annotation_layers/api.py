@@ -23,16 +23,14 @@ from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_babel import ngettext
 from marshmallow import ValidationError
 
-from superset.annotation_layers.filters import AnnotationLayerAllTextFilter
-from superset.annotation_layers.schemas import (
-    AnnotationLayerPostSchema,
-    AnnotationLayerPutSchema,
-    get_delete_ids_schema,
-    openapi_spec_methods_override,
+from superset.annotation_layers.commands.bulk_delete import (
+    BulkDeleteAnnotationLayerCommand,
 )
-from superset.commands.annotation_layer.create import CreateAnnotationLayerCommand
-from superset.commands.annotation_layer.delete import DeleteAnnotationLayerCommand
-from superset.commands.annotation_layer.exceptions import (
+from superset.annotation_layers.commands.create import CreateAnnotationLayerCommand
+from superset.annotation_layers.commands.delete import DeleteAnnotationLayerCommand
+from superset.annotation_layers.commands.exceptions import (
+    AnnotationLayerBulkDeleteFailedError,
+    AnnotationLayerBulkDeleteIntegrityError,
     AnnotationLayerCreateFailedError,
     AnnotationLayerDeleteFailedError,
     AnnotationLayerDeleteIntegrityError,
@@ -40,7 +38,14 @@ from superset.commands.annotation_layer.exceptions import (
     AnnotationLayerNotFoundError,
     AnnotationLayerUpdateFailedError,
 )
-from superset.commands.annotation_layer.update import UpdateAnnotationLayerCommand
+from superset.annotation_layers.commands.update import UpdateAnnotationLayerCommand
+from superset.annotation_layers.filters import AnnotationLayerAllTextFilter
+from superset.annotation_layers.schemas import (
+    AnnotationLayerPostSchema,
+    AnnotationLayerPutSchema,
+    get_delete_ids_schema,
+    openapi_spec_methods_override,
+)
 from superset.constants import MODEL_API_RW_METHOD_PERMISSION_MAP, RouteMethod
 from superset.extensions import event_logger
 from superset.models.annotations import AnnotationLayer
@@ -99,7 +104,7 @@ class AnnotationLayerRestApi(BaseSupersetModelRestApi):
     ]
 
     search_filters = {"name": [AnnotationLayerAllTextFilter]}
-    allowed_rel_fields = {"created_by", "changed_by"}
+    allowed_rel_fields = {"created_by"}
 
     apispec_parameter_schemas = {
         "get_delete_ids_schema": get_delete_ids_schema,
@@ -107,7 +112,7 @@ class AnnotationLayerRestApi(BaseSupersetModelRestApi):
     openapi_spec_tag = "Annotation Layers"
     openapi_spec_methods = openapi_spec_methods_override
 
-    @expose("/<int:pk>", methods=("DELETE",))
+    @expose("/<int:pk>", methods=["DELETE"])
     @protect()
     @safe
     @statsd_metrics
@@ -117,10 +122,11 @@ class AnnotationLayerRestApi(BaseSupersetModelRestApi):
     )
     @permission_name("delete")
     def delete(self, pk: int) -> Response:
-        """Delete an annotation layer.
+        """Delete an annotation layer
         ---
         delete:
-          summary: Delete an annotation layer
+          description: >-
+            Delete an annotation layer
           parameters:
           - in: path
             schema:
@@ -145,7 +151,7 @@ class AnnotationLayerRestApi(BaseSupersetModelRestApi):
               $ref: '#/components/responses/500'
         """
         try:
-            DeleteAnnotationLayerCommand([pk]).run()
+            DeleteAnnotationLayerCommand(pk).run()
             return self.response(200, message="OK")
         except AnnotationLayerNotFoundError:
             return self.response_404()
@@ -160,7 +166,7 @@ class AnnotationLayerRestApi(BaseSupersetModelRestApi):
             )
             return self.response_422(message=str(ex))
 
-    @expose("/", methods=("POST",))
+    @expose("/", methods=["POST"])
     @protect()
     @safe
     @statsd_metrics
@@ -171,10 +177,11 @@ class AnnotationLayerRestApi(BaseSupersetModelRestApi):
     )
     @requires_json
     def post(self) -> Response:
-        """Create a new annotation layer.
+        """Creates a new Annotation Layer
         ---
         post:
-          summary: Create a new annotation layer
+          description: >-
+            Create a new Annotation
           requestBody:
             description: Annotation Layer schema
             required: true
@@ -224,7 +231,7 @@ class AnnotationLayerRestApi(BaseSupersetModelRestApi):
             )
             return self.response_422(message=str(ex))
 
-    @expose("/<int:pk>", methods=("PUT",))
+    @expose("/<int:pk>", methods=["PUT"])
     @protect()
     @safe
     @statsd_metrics
@@ -235,10 +242,11 @@ class AnnotationLayerRestApi(BaseSupersetModelRestApi):
     )
     @requires_json
     def put(self, pk: int) -> Response:
-        """Update an annotation layer.
+        """Updates an Annotation Layer
         ---
         put:
-          summary: Update an annotation layer
+          description: >-
+            Update an annotation layer
           parameters:
           - in: path
             schema:
@@ -295,7 +303,7 @@ class AnnotationLayerRestApi(BaseSupersetModelRestApi):
             )
             return self.response_422(message=str(ex))
 
-    @expose("/", methods=("DELETE",))
+    @expose("/", methods=["DELETE"])
     @protect()
     @safe
     @statsd_metrics
@@ -305,10 +313,11 @@ class AnnotationLayerRestApi(BaseSupersetModelRestApi):
         log_to_statsd=False,
     )
     def bulk_delete(self, **kwargs: Any) -> Response:
-        """Bulk delete annotation layers.
+        """Delete bulk Annotation layers
         ---
         delete:
-          summary: Delete multiple annotation layers in a bulk operation
+          description: >-
+            Deletes multiple annotation layers in a bulk operation.
           parameters:
           - in: query
             name: q
@@ -337,7 +346,7 @@ class AnnotationLayerRestApi(BaseSupersetModelRestApi):
         """
         item_ids = kwargs["rison"]
         try:
-            DeleteAnnotationLayerCommand(item_ids).run()
+            BulkDeleteAnnotationLayerCommand(item_ids).run()
             return self.response(
                 200,
                 message=ngettext(
@@ -348,7 +357,7 @@ class AnnotationLayerRestApi(BaseSupersetModelRestApi):
             )
         except AnnotationLayerNotFoundError:
             return self.response_404()
-        except AnnotationLayerDeleteIntegrityError as ex:
+        except AnnotationLayerBulkDeleteIntegrityError as ex:
             return self.response_422(message=str(ex))
-        except AnnotationLayerDeleteFailedError as ex:
+        except AnnotationLayerBulkDeleteFailedError as ex:
             return self.response_422(message=str(ex))

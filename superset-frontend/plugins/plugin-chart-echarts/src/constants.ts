@@ -20,11 +20,11 @@
 import { JsonValue, t, TimeGranularity } from '@superset-ui/core';
 import { ReactNode } from 'react';
 import {
-  LabelPositionEnum,
   LegendFormData,
+  TitleFormData,
+  LabelPositionEnum,
   LegendOrientation,
   LegendType,
-  TitleFormData,
 } from './types';
 
 // eslint-disable-next-line import/prefer-default-export
@@ -53,8 +53,8 @@ export const LABEL_POSITION: [LabelPositionEnum, string][] = [
   [LabelPositionEnum.Right, 'Right'],
   [LabelPositionEnum.Bottom, 'Bottom'],
   [LabelPositionEnum.Inside, 'Inside'],
-  [LabelPositionEnum.InsideLeft, 'Inside left'],
-  [LabelPositionEnum.InsideRight, 'Inside right'],
+  [LabelPositionEnum.InsideBottomLeft, 'Inside left'],
+  [LabelPositionEnum.InsideBottomRight, 'Inside right'],
   [LabelPositionEnum.InsideTop, 'Inside top'],
   [LabelPositionEnum.InsideBottom, 'Inside bottom'],
   [LabelPositionEnum.InsideTopLeft, 'Inside top left'],
@@ -66,29 +66,22 @@ export const LABEL_POSITION: [LabelPositionEnum, string][] = [
 export enum OpacityEnum {
   Transparent = 0,
   SemiTransparent = 0.3,
-  DerivedSeries = 0.7,
   NonTransparent = 1,
 }
 
-export enum StackControlsValue {
+export enum AreaChartExtraControlsValue {
   Stack = 'Stack',
-  Stream = 'Stream',
   Expand = 'Expand',
 }
 
-export const StackControlOptions: [
+export const AreaChartExtraControlsOptions: [
   JsonValue,
   Exclude<ReactNode, null | undefined | boolean>,
 ][] = [
   [null, t('None')],
-  [StackControlsValue.Stack, t('Stack')],
-  [StackControlsValue.Stream, t('Stream')],
+  [AreaChartExtraControlsValue.Stack, t('Stack')],
+  [AreaChartExtraControlsValue.Expand, t('Expand')],
 ];
-
-export const AreaChartStackControlOptions: [
-  JsonValue,
-  Exclude<ReactNode, null | undefined | boolean>,
-][] = [...StackControlOptions, [StackControlsValue.Expand, t('Expand')]];
 
 export const TIMEGRAIN_TO_TIMESTAMP = {
   [TimeGranularity.HOUR]: 3600 * 1000,
@@ -121,5 +114,3 @@ export const TOOLTIP_POINTER_MARGIN = 10;
 // If no satisfactory position can be found, how far away
 // from the edge of the window should the tooltip be kept
 export const TOOLTIP_OVERFLOW_MARGIN = 5;
-
-export const DEFAULT_LOCALE = 'en';

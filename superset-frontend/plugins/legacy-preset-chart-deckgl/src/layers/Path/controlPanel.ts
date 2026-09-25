@@ -16,8 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ControlPanelConfig } from '@superset-ui/chart-controls';
-import { t } from '@superset-ui/core';
+import { ControlPanelConfig, sections } from '@superset-ui/chart-controls';
+import { FeatureFlag, isFeatureEnabled, t } from '@superset-ui/core';
 import {
   filterNulls,
   autozoom,
@@ -25,6 +25,7 @@ import {
   jsDataMutator,
   jsTooltip,
   jsOnclickHref,
+  lineColumn,
   viewport,
   lineWidth,
   lineType,
@@ -35,11 +36,16 @@ import { dndLineColumn } from '../../utilities/sharedDndControls';
 
 const config: ControlPanelConfig = {
   controlPanelSections: [
+    sections.legacyRegularTime,
     {
       label: t('Query'),
       expanded: true,
       controlSetRows: [
-        [dndLineColumn],
+        [
+          isFeatureEnabled(FeatureFlag.ENABLE_EXPLORE_DRAG_AND_DROP)
+            ? dndLineColumn
+            : lineColumn,
+        ],
         [
           {
             ...lineType,
@@ -61,27 +67,9 @@ const config: ControlPanelConfig = {
       label: t('Map'),
       expanded: true,
       controlSetRows: [
-        [mapboxStyle],
-        [viewport],
-        ['color_picker'],
-        [lineWidth],
-        [
-          {
-            name: 'line_width_unit',
-            config: {
-              type: 'SelectControl',
-              label: t('Line width unit'),
-              default: 'pixels',
-              choices: [
-                ['meters', t('meters')],
-                ['pixels', t('pixels')],
-              ],
-              renderTrigger: true,
-            },
-          },
-        ],
-        [reverseLongLat],
-        [autozoom],
+        [mapboxStyle, viewport],
+        ['color_picker', lineWidth],
+        [reverseLongLat, autozoom],
       ],
     },
     {

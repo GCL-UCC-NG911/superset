@@ -19,6 +19,7 @@ from superset.db_engine_specs.postgres import PostgresEngineSpec
 
 
 class AuroraMySQLDataAPI(MySQLEngineSpec):
+
     engine = "mysql"
     default_driver = "auroradataapi"
     engine_name = "Aurora MySQL (Data API)"
@@ -32,6 +33,7 @@ class AuroraMySQLDataAPI(MySQLEngineSpec):
 
 
 class AuroraPostgresDataAPI(PostgresEngineSpec):
+
     engine = "postgresql"
     default_driver = "auroradataapi"
     engine_name = "Aurora PostgreSQL (Data API)"

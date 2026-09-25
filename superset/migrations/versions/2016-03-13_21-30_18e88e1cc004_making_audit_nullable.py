@@ -21,7 +21,6 @@ Revises: 430039611635
 Create Date: 2016-03-13 21:30:24.833107
 
 """
-
 import sqlalchemy as sa
 from alembic import op
 
@@ -97,7 +96,7 @@ def upgrade():
         )
         op.alter_column("url", "changed_on", existing_type=sa.DATETIME(), nullable=True)
         op.alter_column("url", "created_on", existing_type=sa.DATETIME(), nullable=True)
-    except Exception:  # noqa: S110
+    except Exception:
         pass
 
 

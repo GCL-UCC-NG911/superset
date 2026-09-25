@@ -16,24 +16,33 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { Filter, t } from '@superset-ui/core';
-import { Layout, LayoutItem, RootState } from 'src/dashboard/types';
+import { useSelector } from 'react-redux';
+import {
+  ChartsState,
+  Layout,
+  LayoutItem,
+  RootState,
+} from 'src/dashboard/types';
 import { DASHBOARD_ROOT_ID } from 'src/dashboard/util/constants';
 import { CHART_TYPE } from 'src/dashboard/util/componentTypes';
-import { useChartIds } from 'src/dashboard/util/charts/useChartIds';
+import { useMemo } from 'react';
 
 const extractTabLabel = (tab?: LayoutItem) =>
   tab?.meta?.text || tab?.meta?.defaultText || '';
 const extractChartLabel = (chart?: LayoutItem) =>
   chart?.meta?.sliceNameOverride || chart?.meta?.sliceName || chart?.id || '';
 
+const useCharts = () => {
+  const charts = useSelector<RootState, ChartsState>(state => state.charts);
+  return useMemo(() => Object.values(charts), [charts]);
+};
+
 export const useFilterScope = (filter: Filter) => {
   const layout = useSelector<RootState, Layout>(
     state => state.dashboardLayout.present,
   );
-  const chartIds = useChartIds();
+  const charts = useCharts();
 
   return useMemo(() => {
     let topLevelTabs: string[] | undefined;
@@ -78,11 +87,11 @@ export const useFilterScope = (filter: Filter) => {
     // returns "CHART1, CHART2"
     if (filter.scope.rootPath[0] === DASHBOARD_ROOT_ID) {
       return {
-        charts: chartIds
-          .filter(chartId => !filter.scope.excluded.includes(chartId))
-          .map(chartId => {
+        charts: charts
+          .filter(chart => !filter.scope.excluded.includes(chart.id))
+          .map(chart => {
             const layoutElement = layoutCharts.find(
-              layoutChart => layoutChart.meta.chartId === chartId,
+              layoutChart => layoutChart.meta.chartId === chart.id,
             );
             return extractChartLabel(layoutElement);
           })
@@ -96,7 +105,7 @@ export const useFilterScope = (filter: Filter) => {
       // We start assuming that all charts are in scope for all tabs in the root path
       const topLevelTabsInFullScope = [...filter.scope.rootPath];
       const layoutChartElementsInTabsInScope = layoutCharts.filter(element =>
-        element.parents?.some(parent =>
+        element.parents.some(parent =>
           topLevelTabsInFullScope.includes(parent),
         ),
       );
@@ -105,21 +114,21 @@ export const useFilterScope = (filter: Filter) => {
         const excludedIndex = topLevelTabsInFullScope.findIndex(tabId =>
           layoutChartElementsInTabsInScope
             .find(chart => chart.meta.chartId === chartId)
-            ?.parents?.includes(tabId),
+            ?.parents.includes(tabId),
         );
         if (excludedIndex > -1) {
           topLevelTabsInFullScope.splice(excludedIndex, 1);
         }
       });
       // Handle charts that are in scope but belong to excluded tabs.
-      const chartsInExcludedTabs = chartIds
-        .filter(chartId => !filter.scope.excluded.includes(chartId))
-        .reduce((acc: LayoutItem[], chartId) => {
+      const chartsInExcludedTabs = charts
+        .filter(chart => !filter.scope.excluded.includes(chart.id))
+        .reduce((acc: LayoutItem[], chart) => {
           const layoutChartElementInExcludedTab =
             layoutChartElementsInTabsInScope.find(
               element =>
-                element.meta.chartId === chartId &&
-                element.parents?.every(
+                element.meta.chartId === chart.id &&
+                element.parents.every(
                   parent => !topLevelTabsInFullScope.includes(parent),
                 ),
             );
@@ -138,5 +147,5 @@ export const useFilterScope = (filter: Filter) => {
     }
 
     return undefined;
-  }, [chartIds, filter.scope.excluded, filter.scope.rootPath, layout]);
+  }, [charts, filter.scope.excluded, filter.scope.rootPath, layout]);
 };

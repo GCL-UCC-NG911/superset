@@ -30,9 +30,9 @@ from superset.views.base_api import BaseSupersetModelRestApi
 logger = logging.getLogger(__name__)
 
 
-def check_table_access(f: Callable[..., Any]) -> Callable[..., Any]:
+def check_datasource_access(f: Callable[..., Any]) -> Callable[..., Any]:
     """
-    A Decorator that checks if a user has access to a table in a database.
+    A Decorator that checks if a user has datasource access
     """
 
     def wraps(
@@ -55,7 +55,7 @@ def check_table_access(f: Callable[..., Any]) -> Callable[..., Any]:
             database, Table(table_name_parsed, schema_name_parsed)
         ):
             stats_logger_manager.instance.incr(
-                f"permission_denied_{self.__class__.__name__}.select_star"
+                f"permisssion_denied_{self.__class__.__name__}.select_star"
             )
             logger.warning(
                 "Permission denied for user %s on table: %s schema: %s",

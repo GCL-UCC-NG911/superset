@@ -16,18 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { StoryFn, Meta } from '@storybook/react';
+import React from 'react';
+import { ComponentStory, ComponentMeta } from '@storybook/react';
 import { action } from '@storybook/addon-actions';
 import { ButtonCell } from './index';
 
 export default {
   title: 'Design System/Components/Table/Cell Renderers/ButtonCell',
   component: ButtonCell,
-} as Meta<typeof ButtonCell>;
+} as ComponentMeta<typeof ButtonCell>;
 
 const clickHandler = action('button cell onClick');
 
-export const Basic: StoryFn<typeof ButtonCell> = args => (
+export const Basic: ComponentStory<typeof ButtonCell> = args => (
   <ButtonCell {...args} />
 );
 
@@ -43,7 +44,7 @@ Basic.args = {
   },
 };
 
-export const Secondary: StoryFn<typeof ButtonCell> = args => (
+export const Secondary: ComponentStory<typeof ButtonCell> = args => (
   <ButtonCell {...args} />
 );
 

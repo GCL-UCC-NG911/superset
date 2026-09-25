@@ -16,9 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import configureStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
-import { fireEvent, render } from 'spec/helpers/testing-library';
+import { render } from 'spec/helpers/testing-library';
 import { Store } from 'redux';
 import {
   initialState,
@@ -33,6 +34,9 @@ import EstimateQueryCostButton, {
 const middlewares = [thunk];
 const mockStore = configureStore(middlewares);
 
+jest.mock('src/components/DeprecatedSelect', () => () => (
+  <div data-test="mock-deprecated-select" />
+));
 jest.mock('src/components/Select/Select', () => () => (
   <div data-test="mock-deprecated-select-select" />
 ));
@@ -57,7 +61,7 @@ describe('EstimateQueryCostButton', () => {
   it('renders EstimateQueryCostButton', async () => {
     const { queryByText } = setup({}, mockStore(initialState));
 
-    expect(queryByText('Estimate cost')).toBeInTheDocument();
+    expect(queryByText('Estimate cost')).toBeTruthy();
   });
 
   it('renders label for selected query', async () => {
@@ -66,7 +70,7 @@ describe('EstimateQueryCostButton', () => {
       mockStore(initialState),
     );
 
-    expect(queryByText('Estimate selected query cost')).toBeInTheDocument();
+    expect(queryByText('Estimate selected query cost')).toBeTruthy();
   });
 
   it('renders label for selected query from unsaved', async () => {
@@ -84,51 +88,6 @@ describe('EstimateQueryCostButton', () => {
       }),
     );
 
-    expect(queryByText('Estimate selected query cost')).toBeInTheDocument();
-  });
-
-  it('renders estimation error result', async () => {
-    const { queryByText, getByText } = setup(
-      {},
-      mockStore({
-        ...initialState,
-        sqlLab: {
-          ...initialState.sqlLab,
-          queryCostEstimates: {
-            [defaultQueryEditor.id]: {
-              error: 'Estimate error',
-            },
-          },
-        },
-      }),
-    );
-
-    expect(queryByText('Estimate cost')).toBeInTheDocument();
-    fireEvent.click(getByText('Estimate cost'));
-
-    expect(queryByText('Estimate error')).toBeInTheDocument();
-  });
-
-  it('renders estimation success result', async () => {
-    const { queryByText, getByText } = setup(
-      {},
-      mockStore({
-        ...initialState,
-        sqlLab: {
-          ...initialState.sqlLab,
-          queryCostEstimates: {
-            [defaultQueryEditor.id]: {
-              completed: true,
-              cost: [{ 'Total cost': '1.2' }],
-            },
-          },
-        },
-      }),
-    );
-
-    expect(queryByText('Estimate cost')).toBeInTheDocument();
-    fireEvent.click(getByText('Estimate cost'));
-
-    expect(queryByText('Total cost')).toBeInTheDocument();
+    expect(queryByText('Estimate selected query cost')).toBeTruthy();
   });
 });

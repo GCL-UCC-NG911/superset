@@ -17,6 +17,8 @@
  * under the License.
  */
 
+import React from 'react';
+import { mount } from 'enzyme';
 import {
   styled,
   supersetTheme,
@@ -26,7 +28,6 @@ import {
   EmotionCacheProvider,
   emotionCache,
 } from '@superset-ui/core';
-import { render } from '@testing-library/react';
 
 describe('@superset-ui/style package', () => {
   it('exports a theme', () => {
@@ -50,8 +51,8 @@ describe('@superset-ui/style package', () => {
         expect(useTheme()).toStrictEqual(supersetTheme);
         return <div>test</div>;
       }
-      render(<ThemeUser />, {
-        wrapper: ({ children }) => (
+      mount(<ThemeUser />, {
+        wrappingComponent: ({ children }) => (
           <EmotionCacheProvider value={emotionCache}>
             <ThemeProvider theme={supersetTheme}>{children}</ThemeProvider>
           </EmotionCacheProvider>
@@ -64,8 +65,8 @@ describe('@superset-ui/style package', () => {
         expect(useTheme).toThrow(/could not find a ThemeContext/);
         return <div>test</div>;
       }
-      render(<ThemeUser />, {
-        wrapper: ({ children }) => <div>{children}</div>,
+      mount(<ThemeUser />, {
+        wrappingComponent: ({ children }) => <div>{children}</div>,
       });
     });
   });

@@ -16,12 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { render, screen, waitFor } from 'spec/helpers/testing-library';
 import userEvent from '@testing-library/user-event';
 import TooltipParagraph from '.';
 
 test('starts hidden with default props', () => {
-  render(<TooltipParagraph>This is tooltip description.</TooltipParagraph>);
+  render(<TooltipParagraph>This is tootlip description.</TooltipParagraph>);
   expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 });
 

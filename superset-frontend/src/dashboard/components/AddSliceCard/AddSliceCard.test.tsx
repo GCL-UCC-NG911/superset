@@ -17,10 +17,10 @@
  * under the License.
  */
 
-import { FeatureFlag, VizType } from '@superset-ui/core';
-import userEvent from '@testing-library/user-event';
-import { act, render, screen, within } from 'spec/helpers/testing-library';
-import AddSliceCard from './AddSliceCard';
+import React from 'react';
+import { FeatureFlag } from '@superset-ui/core';
+import { act, render, screen } from 'spec/helpers/testing-library';
+import AddSliceCard from '.';
 
 jest.mock('src/components/DynamicPlugins', () => ({
   usePluginContext: () => ({
@@ -29,17 +29,17 @@ jest.mock('src/components/DynamicPlugins', () => ({
 }));
 
 const mockedProps = {
-  visType: VizType.Table,
+  visType: 'table',
   sliceName: '-',
 };
 
-declare const globalThis: {
+declare const global: {
   featureFlags: Record<string, boolean>;
 };
 
 test('do not render thumbnail if feature flag is not set', async () => {
-  globalThis.featureFlags = {
-    [FeatureFlag.Thumbnails]: false,
+  global.featureFlags = {
+    [FeatureFlag.THUMBNAILS]: false,
   };
 
   await act(async () => {
@@ -50,8 +50,8 @@ test('do not render thumbnail if feature flag is not set', async () => {
 });
 
 test('render thumbnail if feature flag is set', async () => {
-  globalThis.featureFlags = {
-    [FeatureFlag.Thumbnails]: true,
+  global.featureFlags = {
+    [FeatureFlag.THUMBNAILS]: true,
   };
 
   await act(async () => {
@@ -59,22 +59,4 @@ test('render thumbnail if feature flag is set', async () => {
   });
 
   expect(screen.queryByTestId('thumbnail')).toBeInTheDocument();
-});
-
-test('does not render the tooltip with anchors', async () => {
-  const mock = jest
-    .spyOn(global.React, 'useState')
-    .mockImplementation(() => [true, jest.fn()]);
-  render(
-    <AddSliceCard
-      {...mockedProps}
-      datasourceUrl="http://test.com"
-      datasourceName="datasource-name"
-    />,
-  );
-  userEvent.hover(screen.getByRole('link', { name: 'datasource-name' }));
-  expect(await screen.findByRole('tooltip')).toBeInTheDocument();
-  const tooltip = await screen.findByRole('tooltip');
-  expect(within(tooltip).queryByRole('link')).not.toBeInTheDocument();
-  mock.mockRestore();
 });

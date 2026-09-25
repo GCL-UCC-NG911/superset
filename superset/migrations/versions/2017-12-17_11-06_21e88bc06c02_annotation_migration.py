@@ -21,13 +21,13 @@ Revises: 67a6ac9b727b
 Create Date: 2017-12-17 11:06:30.180267
 
 """
+import json
 
 from alembic import op
 from sqlalchemy import Column, Integer, or_, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 
 from superset import db
-from superset.utils import json
 
 # revision identifiers, used by Alembic.
 revision = "21e88bc06c02"
@@ -59,7 +59,7 @@ def upgrade():
                     {
                         "annotationType": "INTERVAL",
                         "style": "solid",
-                        "name": f"Layer {layer}",
+                        "name": "Layer {}".format(layer),
                         "show": True,
                         "overrides": {"since": None, "until": None},
                         "value": layer,
@@ -69,6 +69,7 @@ def upgrade():
                 )
             params["annotation_layers"] = new_layers
             slc.params = json.dumps(params)
+            session.merge(slc)
             session.commit()
     session.close()
 
@@ -85,5 +86,6 @@ def downgrade():
         if layers:
             params["annotation_layers"] = [layer["value"] for layer in layers]
             slc.params = json.dumps(params)
+            session.merge(slc)
             session.commit()
     session.close()

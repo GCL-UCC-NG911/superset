@@ -16,16 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { NotificationMethodOption } from 'src/features/alerts/types';
-
-/* NGLS - BEGIN */
-export enum NOTIFICATION_FORMATS {
-  TEXT = 'TEXT',
-  PNG = 'PNG',
-  CSV = 'CSV',
-  PDF = 'PDF',
-}
-/* NGLS - END */
+import { NotificationMethodOption } from './CRUD/alert/types';
 
 /* NGLS - BEGIN */
 export enum NOTIFICATION_FORMATS {
@@ -44,7 +35,6 @@ export interface ViewState {
       SQLALCHEMY_DISPLAY_TEXT: string;
       ALERT_REPORTS_NOTIFICATION_METHODS: NotificationMethodOption[];
     };
-    currencies: string[];
   };
   messageToast: Array<Object>;
 }

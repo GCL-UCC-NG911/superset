@@ -97,11 +97,11 @@ describe('Select buildQuery', () => {
     expect(query.orderby).toEqual([['my_col', false]]);
   });
 
-  it('should add text search parameter for string to query filter', () => {
+  it('should add text search parameter to query filter', () => {
     const queryContext = buildQuery(formData, {
       ownState: {
         search: 'abc',
-        coltypeMap: { my_col: GenericDataType.String },
+        coltypeMap: { my_col: GenericDataType.STRING },
       },
     });
     expect(queryContext.queries.length).toEqual(1);
@@ -111,17 +111,15 @@ describe('Select buildQuery', () => {
     ]);
   });
 
-  it('should add text search parameter for numeric to query filter', () => {
+  it('should add numeric search parameter to query filter', () => {
     const queryContext = buildQuery(formData, {
       ownState: {
         search: '123',
-        coltypeMap: { my_col: GenericDataType.Numeric },
+        coltypeMap: { my_col: GenericDataType.NUMERIC },
       },
     });
     expect(queryContext.queries.length).toEqual(1);
     const [query] = queryContext.queries;
-    expect(query.filters).toEqual([
-      { col: 'my_col', op: 'ILIKE', val: '%123%' },
-    ]);
+    expect(query.filters).toEqual([{ col: 'my_col', op: '>=', val: 123 }]);
   });
 });

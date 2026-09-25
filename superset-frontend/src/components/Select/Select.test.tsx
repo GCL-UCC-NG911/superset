@@ -16,14 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import {
-  createEvent,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from 'spec/helpers/testing-library';
+import React from 'react';
+import { render, screen, waitFor, within } from 'spec/helpers/testing-library';
 import userEvent from '@testing-library/user-event';
 import Select from 'src/components/Select/Select';
 import { SELECT_ALL_VALUE } from './utils';
@@ -74,6 +68,7 @@ const defaultProps = {
   ariaLabel: ARIA_LABEL,
   labelInValue: true,
   options: OPTIONS,
+  pageSize: 10,
   showSearch: true,
 };
 
@@ -97,9 +92,6 @@ const querySelectOption = (text: string) =>
   waitFor(() =>
     within(getElementByClassName('.rc-virtual-list')).queryByText(text),
   );
-
-const getAllSelectOptions = () =>
-  getElementsByClassName('.ant-select-item-option-content');
 
 const findAllSelectOptions = () =>
   waitFor(() => getElementsByClassName('.ant-select-item-option-content'));
@@ -135,17 +127,7 @@ const type = (text: string) => {
   return userEvent.type(select, text, { delay: 10 });
 };
 
-const clearTypedText = () => {
-  const select = getSelect();
-  userEvent.clear(select);
-};
-
 const open = () => waitFor(() => userEvent.click(getSelect()));
-
-const reopen = async () => {
-  await type('{esc}');
-  await open();
-};
 
 test('displays a header', async () => {
   const headerText = 'Header';
@@ -188,20 +170,6 @@ test('does not add a new option if the value is already in the options', async (
   expect(options).toHaveLength(1);
 });
 
-test('does not add new options when the value is in a nested/grouped option', async () => {
-  const options = [
-    {
-      label: 'Group',
-      options: [OPTIONS[0]],
-    },
-  ];
-  render(<Select {...defaultProps} options={options} value={OPTIONS[0]} />);
-  await open();
-  expect(await findSelectOption(OPTIONS[0].label)).toBeInTheDocument();
-  const selectOptions = await findAllSelectOptions();
-  expect(selectOptions).toHaveLength(1);
-});
-
 test('inverts the selection', async () => {
   render(<Select {...defaultProps} invertSelection />);
   await open();
@@ -228,7 +196,8 @@ test('should sort selected to top when in single mode', async () => {
   expect(await matchOrder(originalLabels)).toBe(true);
 
   // order selected to top when reopen
-  await reopen();
+  await type('{esc}');
+  await open();
   let labels = originalLabels.slice();
   labels = labels.splice(1, 1).concat(labels);
   expect(await matchOrder(labels)).toBe(true);
@@ -237,14 +206,16 @@ test('should sort selected to top when in single mode', async () => {
   // original order
   userEvent.click(await findSelectOption(originalLabels[5]));
   await matchOrder(labels);
-  await reopen();
+  await type('{esc}');
+  await open();
   labels = originalLabels.slice();
   labels = labels.splice(5, 1).concat(labels);
   expect(await matchOrder(labels)).toBe(true);
 
   // should revert to original order
   clearAll();
-  await reopen();
+  await type('{esc}');
+  await open();
   expect(await matchOrder(originalLabels)).toBe(true);
 });
 
@@ -259,7 +230,8 @@ test('should sort selected to the top when in multi mode', async () => {
     await matchOrder([selectAllOptionLabel(originalLabels.length), ...labels]),
   ).toBe(true);
 
-  await reopen();
+  await type('{esc}');
+  await open();
   labels = labels.splice(2, 1).concat(labels);
   expect(
     await matchOrder([selectAllOptionLabel(originalLabels.length), ...labels]),
@@ -267,7 +239,8 @@ test('should sort selected to the top when in multi mode', async () => {
 
   await open();
   userEvent.click(await findSelectOption(labels[5]));
-  await reopen();
+  await type('{esc}');
+  await open();
   labels = [labels.splice(0, 1)[0], labels.splice(4, 1)[0]].concat(labels);
   expect(
     await matchOrder([selectAllOptionLabel(originalLabels.length), ...labels]),
@@ -275,7 +248,8 @@ test('should sort selected to the top when in multi mode', async () => {
 
   // should revert to original order
   clearAll();
-  await reopen();
+  await type('{esc}');
+  await open();
   expect(
     await matchOrder([
       selectAllOptionLabel(originalLabels.length),
@@ -297,14 +271,12 @@ test('searches for label or value', async () => {
 test('search order exact and startWith match first', async () => {
   render(<Select {...defaultProps} />);
   await type('Her');
-  await waitFor(() => {
-    const options = getAllSelectOptions();
-    expect(options.length).toBe(4);
-    expect(options[0]?.textContent).toEqual('Her');
-    expect(options[1]?.textContent).toEqual('Herme');
-    expect(options[2]?.textContent).toEqual('Cher');
-    expect(options[3]?.textContent).toEqual('Guilherme');
-  });
+  const options = await findAllSelectOptions();
+  expect(options.length).toBe(4);
+  expect(options[0]?.textContent).toEqual('Her');
+  expect(options[1]?.textContent).toEqual('Herme');
+  expect(options[2]?.textContent).toEqual('Cher');
+  expect(options[3]?.textContent).toEqual('Guilherme');
 });
 
 test('ignores case when searching', async () => {
@@ -326,14 +298,12 @@ test('same case should be ranked to the top', async () => {
     />,
   );
   await type('Ac');
-  await waitFor(() => {
-    const options = getAllSelectOptions();
-    expect(options.length).toBe(4);
-    expect(options[0]?.textContent).toEqual('acbc');
-    expect(options[1]?.textContent).toEqual('CAc');
-    expect(options[2]?.textContent).toEqual('abac');
-    expect(options[3]?.textContent).toEqual('Cac');
-  });
+  const options = await findAllSelectOptions();
+  expect(options.length).toBe(4);
+  expect(options[0]?.textContent).toEqual('acbc');
+  expect(options[1]?.textContent).toEqual('CAc');
+  expect(options[2]?.textContent).toEqual('abac');
+  expect(options[3]?.textContent).toEqual('Cac');
 });
 
 test('ignores special keys when searching', async () => {
@@ -363,13 +333,7 @@ test('searches for custom fields', async () => {
 
 test('removes duplicated values', async () => {
   render(<Select {...defaultProps} mode="multiple" allowNewOptions />);
-  const input = getElementByClassName('.ant-select-selection-search-input');
-  const paste = createEvent.paste(input, {
-    clipboardData: {
-      getData: () => 'a,b,b,b,c,d,d',
-    },
-  });
-  fireEvent(input, paste);
+  await type('a,b,b,b,c,d,d');
   const values = await findAllSelectValues();
   expect(values.length).toBe(4);
   expect(values[0]).toHaveTextContent('a');
@@ -550,9 +514,7 @@ test('does not show "No data" when allowNewOptions is true and a new option is e
   render(<Select {...defaultProps} allowNewOptions />);
   await open();
   await type(NEW_OPTION);
-  await waitFor(() =>
-    expect(screen.queryByText(NO_DATA)).not.toBeInTheDocument(),
-  );
+  expect(screen.queryByText(NO_DATA)).not.toBeInTheDocument();
 });
 
 test('does not show "Loading..." when allowNewOptions is false and a new option is entered', async () => {
@@ -658,11 +620,9 @@ test('does not render "Select all" when searching', async () => {
   render(<Select {...defaultProps} options={OPTIONS} mode="multiple" />);
   await open();
   await type('Select');
-  await waitFor(() =>
-    expect(
-      screen.queryByText(selectAllOptionLabel(OPTIONS.length)),
-    ).not.toBeInTheDocument(),
-  );
+  expect(
+    screen.queryByText(selectAllOptionLabel(OPTIONS.length)),
+  ).not.toBeInTheDocument();
 });
 
 test('does not render "Select all" as one of the tags after selection', async () => {
@@ -740,24 +700,6 @@ test('deselecting a value also deselects "Select all"', async () => {
   userEvent.click(await findSelectOption(OPTIONS[0].label));
   values = await findAllCheckedValues();
   expect(values[0]).not.toHaveTextContent(selectAllOptionLabel(10));
-});
-
-test('deselecting a new value also removes it from the options', async () => {
-  render(
-    <Select
-      {...defaultProps}
-      options={OPTIONS.slice(0, 10)}
-      mode="multiple"
-      allowNewOptions
-    />,
-  );
-  await open();
-  await type(NEW_OPTION);
-  expect(await findSelectOption(NEW_OPTION)).toBeInTheDocument();
-  await type('{enter}');
-  clearTypedText();
-  userEvent.click(await findSelectOption(NEW_OPTION));
-  expect(await querySelectOption(NEW_OPTION)).not.toBeInTheDocument();
 });
 
 test('selecting all values also selects "Select all"', async () => {
@@ -858,10 +800,9 @@ test('"Select All" is checked when unchecking a newly added option and all the o
   userEvent.click(await findSelectOption(selectAllOptionLabel(10)));
   expect(await findSelectOption(selectAllOptionLabel(10))).toBeInTheDocument();
   // add a new option
-  await type(NEW_OPTION);
-  expect(await findSelectOption(NEW_OPTION)).toBeInTheDocument();
-  clearTypedText();
+  await type(`${NEW_OPTION}{enter}`);
   expect(await findSelectOption(selectAllOptionLabel(11))).toBeInTheDocument();
+  expect(await findSelectOption(NEW_OPTION)).toBeInTheDocument();
   // select all should be selected
   let values = await findAllCheckedValues();
   expect(values[0]).toHaveTextContent(selectAllOptionLabel(11));
@@ -887,18 +828,9 @@ test('does not render "Select All" when there are 0 or 1 options', async () => {
       allowNewOptions
     />,
   );
-  await open();
   expect(screen.queryByText(selectAllOptionLabel(1))).not.toBeInTheDocument();
-  rerender(
-    <Select
-      {...defaultProps}
-      options={OPTIONS.slice(0, 2)}
-      mode="multiple"
-      allowNewOptions
-    />,
-  );
-  await open();
-  expect(screen.getByText(selectAllOptionLabel(2))).toBeInTheDocument();
+  await type(`${NEW_OPTION}{enter}`);
+  expect(screen.queryByText(selectAllOptionLabel(2))).toBeInTheDocument();
 });
 
 test('do not count unselected disabled options in "Select All"', async () => {
@@ -949,147 +881,6 @@ test('"Select All" does not affect disabled options', async () => {
   userEvent.click(await findSelectOption(selectAll));
   expect(await findSelectValue()).toHaveTextContent(options[0].label);
   expect(await findSelectValue()).not.toHaveTextContent(options[1].label);
-});
-
-test('does not fire onChange when searching but no selection', async () => {
-  const onChange = jest.fn();
-  render(
-    <div role="main">
-      <Select
-        {...defaultProps}
-        onChange={onChange}
-        mode="multiple"
-        allowNewOptions
-      />
-    </div>,
-  );
-  await open();
-  await type('Joh');
-  userEvent.click(await findSelectOption('John'));
-  userEvent.click(screen.getByRole('main'));
-  expect(onChange).toHaveBeenCalledTimes(1);
-});
-
-test('fires onChange when clearing the selection in single mode', async () => {
-  const onChange = jest.fn();
-  render(
-    <Select
-      {...defaultProps}
-      onChange={onChange}
-      mode="single"
-      value={OPTIONS[0]}
-    />,
-  );
-  clearAll();
-  expect(onChange).toHaveBeenCalledTimes(1);
-});
-
-test('fires onChange when clearing the selection in multiple mode', async () => {
-  const onChange = jest.fn();
-  render(
-    <Select
-      {...defaultProps}
-      onChange={onChange}
-      mode="multiple"
-      value={OPTIONS[0]}
-    />,
-  );
-  clearAll();
-  expect(onChange).toHaveBeenCalledTimes(1);
-});
-
-test('fires onChange when pasting a selection', async () => {
-  const onChange = jest.fn();
-  render(<Select {...defaultProps} onChange={onChange} />);
-  await open();
-  const input = getElementByClassName('.ant-select-selection-search-input');
-  const paste = createEvent.paste(input, {
-    clipboardData: {
-      getData: () => OPTIONS[0].label,
-    },
-  });
-  fireEvent(input, paste);
-  expect(onChange).toHaveBeenCalledTimes(1);
-});
-
-test('does not duplicate options when using numeric values', async () => {
-  render(
-    <Select
-      {...defaultProps}
-      mode="multiple"
-      options={[
-        { label: '1', value: 1 },
-        { label: '2', value: 2 },
-      ]}
-    />,
-  );
-  await type('1');
-  await waitFor(() => expect(getAllSelectOptions().length).toBe(1));
-});
-
-test('pasting an existing option does not duplicate it', async () => {
-  render(<Select {...defaultProps} options={[OPTIONS[0]]} />);
-  await open();
-  const input = getElementByClassName('.ant-select-selection-search-input');
-  const paste = createEvent.paste(input, {
-    clipboardData: {
-      getData: () => OPTIONS[0].label,
-    },
-  });
-  fireEvent(input, paste);
-  expect(await findAllSelectOptions()).toHaveLength(1);
-});
-
-test('pasting an existing option does not duplicate it in multiple mode', async () => {
-  const options = [
-    { label: 'John', value: 1 },
-    { label: 'Liam', value: 2 },
-    { label: 'Olivia', value: 3 },
-  ];
-  render(
-    <Select
-      {...defaultProps}
-      options={options}
-      mode="multiple"
-      allowSelectAll={false}
-      allowNewOptions
-    />,
-  );
-  await open();
-  const input = getElementByClassName('.ant-select-selection-search-input');
-  const paste = createEvent.paste(input, {
-    clipboardData: {
-      getData: () => 'John,Liam,Peter',
-    },
-  });
-  fireEvent(input, paste);
-  // Only Peter should be added
-  expect(await findAllSelectOptions()).toHaveLength(4);
-});
-
-test('pasting an non-existent option should not add it if allowNewOptions is false', async () => {
-  render(<Select {...defaultProps} options={[]} allowNewOptions={false} />);
-  await open();
-  const input = getElementByClassName('.ant-select-selection-search-input');
-  const paste = createEvent.paste(input, {
-    clipboardData: {
-      getData: () => 'John',
-    },
-  });
-  fireEvent(input, paste);
-  expect(await findAllSelectOptions()).toHaveLength(0);
-});
-
-test('does not fire onChange if the same value is selected in single mode', async () => {
-  const onChange = jest.fn();
-  render(<Select {...defaultProps} onChange={onChange} />);
-  const optionText = 'Emma';
-  await open();
-  expect(onChange).toHaveBeenCalledTimes(0);
-  userEvent.click(await findSelectOption(optionText));
-  expect(onChange).toHaveBeenCalledTimes(1);
-  userEvent.click(await findSelectOption(optionText));
-  expect(onChange).toHaveBeenCalledTimes(1);
 });
 
 /*

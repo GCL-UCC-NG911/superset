@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { FC, ReactNode } from 'react';
+import React from 'react';
 import { Resizable } from 're-resizable';
 import { styled } from '@superset-ui/core';
 import useStoredSidebarWidth from './useStoredSidebarWidth';
@@ -49,10 +49,10 @@ type Props = {
   enable: boolean;
   minWidth?: number;
   maxWidth?: number;
-  children: (width: number) => ReactNode;
+  children: (width: number) => React.ReactNode;
 };
 
-const ResizableSidebar: FC<Props> = ({
+const ResizableSidebar: React.FC<Props> = ({
   id,
   initialWidth,
   minWidth,
@@ -67,12 +67,7 @@ const ResizableSidebar: FC<Props> = ({
       <ResizableWrapper>
         <Resizable
           enable={{ right: enable }}
-          handleClasses={{
-            right: 'sidebar-resizer',
-            bottom: 'hidden',
-            bottomRight: 'hidden',
-            bottomLeft: 'hidden',
-          }}
+          handleClasses={{ right: 'sidebar-resizer' }}
           size={{ width, height: '100%' }}
           minWidth={minWidth}
           maxWidth={maxWidth}

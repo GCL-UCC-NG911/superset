@@ -80,7 +80,7 @@ describe('TranslatorSingleton', () => {
     expect(t('second')).toEqual('second');
     resetTranslation();
     expect(t('second')).toEqual('second');
-    expect(console.warn).toHaveBeenCalledTimes(2);
+    expect(console.warn).toBeCalledTimes(2);
     restoreConsole();
   });
 });

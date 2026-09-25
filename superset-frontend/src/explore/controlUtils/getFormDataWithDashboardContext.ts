@@ -16,33 +16,43 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { isEqual } from 'lodash';
+import isEqual from 'lodash/isEqual';
 import {
-  AdhocFilter,
-  ensureIsArray,
-  EXTRA_FORM_DATA_OVERRIDE_EXTRA_KEYS,
   EXTRA_FORM_DATA_OVERRIDE_REGULAR_MAPPINGS,
+  EXTRA_FORM_DATA_OVERRIDE_EXTRA_KEYS,
   isDefined,
-  isFreeFormAdhocFilter,
-  isSimpleAdhocFilter,
   JsonObject,
-  NO_TIME_RANGE,
-  QueryFormData,
+  ensureIsArray,
   QueryObjectFilterClause,
   SimpleAdhocFilter,
+  QueryFormData,
+  AdhocFilter,
+  isFreeFormAdhocFilter,
+  isSimpleAdhocFilter,
+  NO_TIME_RANGE,
 } from '@superset-ui/core';
-import { simpleFilterToAdhoc } from 'src/utils/simpleFilterToAdhoc';
 
-const removeExtraFieldForNewCharts = (
-  filters: AdhocFilter[],
-  isNewChart: boolean,
-) =>
-  filters.map(filter => {
-    if (filter.isExtra) {
-      return { ...filter, isExtra: !isNewChart };
-    }
-    return filter;
-  });
+const simpleFilterToAdhoc = (
+  filterClause: QueryObjectFilterClause,
+  clause = 'where',
+) => {
+  const result = {
+    clause: clause.toUpperCase(),
+    expressionType: 'SIMPLE',
+    operator: filterClause.op,
+    subject: filterClause.col,
+    comparator: 'val' in filterClause ? filterClause.val : undefined,
+  } as SimpleAdhocFilter;
+  if (filterClause.isExtra) {
+    Object.assign(result, {
+      isExtra: true,
+      filterOptionName: `filter_${Math.random()
+        .toString(36)
+        .substring(2, 15)}_${Math.random().toString(36).substring(2, 15)}`,
+    });
+  }
+  return result;
+};
 
 const removeAdhocFilterDuplicates = (filters: AdhocFilter[]) => {
   const isDuplicate = (
@@ -84,14 +94,13 @@ const mergeFilterBoxToFormData = (
     __time_grain: 'time_grain_sqla',
     __granularity: 'granularity',
   };
-  const appliedTimeExtras: Record<string, any> = {};
+  const appliedTimeExtras = {};
 
   const filterBoxData: JsonObject = {};
   ensureIsArray(dashboardFormData.extra_filters).forEach(filter => {
-    if (dateColumns[filter.col as keyof typeof dateColumns]) {
+    if (dateColumns[filter.col]) {
       if (filter.val !== NO_TIME_RANGE) {
-        filterBoxData[dateColumns[filter.col as keyof typeof dateColumns]] =
-          filter.val;
+        filterBoxData[dateColumns[filter.col]] = filter.val;
         appliedTimeExtras[filter.col] = filter.val;
       }
     } else {
@@ -115,6 +124,7 @@ const mergeNativeFiltersToFormData = (
 ) => {
   const nativeFiltersData: JsonObject = {};
   const extraFormData = dashboardFormData.extra_form_data || {};
+
   Object.entries(EXTRA_FORM_DATA_OVERRIDE_REGULAR_MAPPINGS).forEach(
     ([srcKey, targetKey]) => {
       const val = extraFormData[srcKey];
@@ -204,24 +214,17 @@ export const getFormDataWithDashboardContext = (
     .reduce(
       (acc, key) => ({
         ...acc,
-        [key]: removeExtraFieldForNewCharts(
-          applyTimeRangeFilters(
-            dashboardContextFormData,
-            removeAdhocFilterDuplicates([
-              ...ensureIsArray(exploreFormData[key]),
-              ...ensureIsArray(filterBoxData[key]),
-              ...ensureIsArray(nativeFiltersData[key]),
-            ]),
-          ),
-          exploreFormData.slice_id === 0,
+        [key]: applyTimeRangeFilters(
+          dashboardContextFormData,
+          removeAdhocFilterDuplicates([
+            ...ensureIsArray(exploreFormData[key]),
+            ...ensureIsArray(filterBoxData[key]),
+            ...ensureIsArray(nativeFiltersData[key]),
+          ]),
         ),
       }),
       {},
     );
-
-  const ownColorScheme = exploreFormData.color_scheme;
-  const dashboardColorScheme = dashboardContextFormData.color_scheme;
-  const appliedColorScheme = dashboardColorScheme || ownColorScheme;
 
   return {
     ...exploreFormData,
@@ -229,8 +232,5 @@ export const getFormDataWithDashboardContext = (
     ...filterBoxData,
     ...nativeFiltersData,
     ...adhocFilters,
-    own_color_scheme: ownColorScheme,
-    color_scheme: appliedColorScheme,
-    dashboard_color_scheme: dashboardColorScheme,
   };
 };

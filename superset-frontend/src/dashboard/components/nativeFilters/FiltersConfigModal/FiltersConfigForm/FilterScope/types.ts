@@ -19,6 +19,11 @@
 
 import { ReactNode } from 'react';
 
+export enum ScopingType {
+  all,
+  specific,
+}
+
 /** UI Ant tree type */
 export type TreeItem = {
   children: TreeItem[];

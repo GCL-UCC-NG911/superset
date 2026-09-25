@@ -16,7 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { setupStore } from 'src/views/store';
+import { createStore, applyMiddleware, compose } from 'redux';
+import thunk from 'redux-thunk';
+
+import { rootReducer } from 'src/views/store';
 import { FilterBarOrientation } from 'src/dashboard/types';
 
 import mockState from './mockState';
@@ -29,38 +32,38 @@ import { dashboardFilters } from './mockDashboardFilters';
 import { nativeFilters, dataMaskWith2Filters } from './mockNativeFilters';
 
 export const storeWithState = state =>
-  setupStore({
-    disableDebugger: true,
-    initialState: state,
-  });
+  createStore(rootReducer, state, compose(applyMiddleware(thunk)));
 
 export const getMockStore = overrideState =>
-  setupStore({
-    disableDebugger: true,
-    initialState: { ...mockState, ...overrideState },
-  });
+  createStore(
+    rootReducer,
+    { ...mockState, ...overrideState },
+    compose(applyMiddleware(thunk)),
+  );
 
 export const mockStore = getMockStore();
 
 export const getMockStoreWithTabs = () =>
-  setupStore({
-    disableDebugger: true,
-    initialState: {
+  createStore(
+    rootReducer,
+    {
       ...mockState,
       dashboardLayout: dashboardLayoutWithTabs,
       dashboardFilters: {},
     },
-  });
+    compose(applyMiddleware(thunk)),
+  );
 
 export const getMockStoreWithChartsInTabsAndRoot = () =>
-  setupStore({
-    disableDebugger: true,
-    initialState: {
+  createStore(
+    rootReducer,
+    {
       ...mockState,
       dashboardLayout: dashboardLayoutWithChartsInTabsAndRoot,
       dashboardFilters: {},
     },
-  });
+    compose(applyMiddleware(thunk)),
+  );
 
 export const mockStoreWithTabs = getMockStoreWithTabs();
 export const mockStoreWithChartsInTabsAndRoot =
@@ -98,10 +101,7 @@ export const stateWithFilters = {
 // one chart with a filter that has been rejected,
 // and one chart with no filters set.
 export const getMockStoreWithFilters = () =>
-  setupStore({
-    disableDebugger: true,
-    initialState: stateWithFilters,
-  });
+  createStore(rootReducer, stateWithFilters);
 
 export const stateWithNativeFilters = {
   ...mockState,
@@ -127,15 +127,12 @@ export const stateWithNativeFilters = {
     },
   },
   dashboardInfo: {
-    filterBarOrientation: FilterBarOrientation.Vertical,
+    filterBarOrientation: FilterBarOrientation.VERTICAL,
   },
 };
 
 export const getMockStoreWithNativeFilters = () =>
-  setupStore({
-    disableDebugger: true,
-    initialState: stateWithNativeFilters,
-  });
+  createStore(rootReducer, stateWithNativeFilters);
 
 export const stateWithoutNativeFilters = {
   ...mockState,
@@ -160,11 +157,11 @@ export const stateWithoutNativeFilters = {
   },
   dashboardInfo: {
     dash_edit_perm: true,
-    filterBarOrientation: FilterBarOrientation.Vertical,
+    filterBarOrientation: FilterBarOrientation.VERTICAL,
     metadata: {
       native_filter_configuration: [],
     },
   },
   dataMask: {},
-  nativeFilters: { filters: {} },
+  nativeFilters: { filters: {}, filterSets: {} },
 };

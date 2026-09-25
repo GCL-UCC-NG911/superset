@@ -16,23 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { styled, t } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
 import { Select } from 'src/components';
 import { CollapsibleControl } from './CollapsibleControl';
-import { INPUT_WIDTH } from './constants';
 
 interface DependencyListProps {
-  availableFilters: {
-    label: string;
-    value: string;
-    type: string | undefined;
-  }[];
+  availableFilters: { label: string; value: string }[];
   dependencies: string[];
   onDependenciesChange: (dependencies: string[]) => void;
   getDependencySuggestion: () => string;
-  children?: JSX.Element;
 }
 
 const MainPanel = styled.div`
@@ -67,17 +61,15 @@ const DeleteFilter = styled(Icons.Trash)`
 const RowPanel = styled.div`
   ${({ theme }) => `
     display: flex;
+    width: 220px;
     flex-direction: row;
     align-items: center;
     margin-bottom: ${theme.gridUnit}px;
-
-    & > div {
-      width: ${INPUT_WIDTH}px;
-    }
   `}
 `;
 
 const Label = styled.div`
+  text-transform: uppercase;
   font-size: ${({ theme }) => theme.typography.sizes.s}px;
   color: ${({ theme }) => theme.colors.grayscale.base};
   margin-bottom: ${({ theme }) => theme.gridUnit}px;
@@ -170,7 +162,7 @@ const List = ({
         />
       ))}
       {availableFilters.length > rows.length && (
-        <AddFilter role="button" onClick={onAdd}>
+        <AddFilter onClick={onAdd}>
           <Icons.PlusSmall />
           {t('Add filter')}
         </AddFilter>
@@ -184,7 +176,6 @@ const DependencyList = ({
   dependencies = [],
   onDependenciesChange,
   getDependencySuggestion,
-  children,
 }: DependencyListProps) => {
   const hasAvailableFilters = availableFilters.length > 0;
   const hasDependencies = dependencies.length > 0;
@@ -214,7 +205,6 @@ const DependencyList = ({
           onDependenciesChange={onDependenciesChange}
           getDependencySuggestion={getDependencySuggestion}
         />
-        {children}
       </CollapsibleControl>
     </MainPanel>
   );

@@ -20,35 +20,31 @@ from typing import Optional
 
 import pytest
 
-from superset.sql.parse import SQLScript
-from superset.sql_parse import ParsedQuery
 from tests.unit_tests.db_engine_specs.utils import assert_convert_dttm
-from tests.unit_tests.fixtures.common import dttm  # noqa: F401
+from tests.unit_tests.fixtures.common import dttm
 
 
 @pytest.mark.parametrize(
     "sql,expected",
     [
-        ("SELECT foo FROM tbl", False),
+        ("SELECT foo FROM tbl", True),
         ("SHOW TABLES", False),
         ("EXPLAIN SELECT foo FROM tbl", False),
-        ("INSERT INTO tbl (foo) VALUES (1)", True),
+        ("INSERT INTO tbl (foo) VALUES (1)", False),
     ],
 )
-def test_sql_has_mutation(sql: str, expected: bool) -> None:
+def test_sql_is_readonly_query(sql: str, expected: bool) -> None:
     """
     Make sure that SQL dialect consider only SELECT statements as read-only
     """
 
     from superset.db_engine_specs.kusto import KustoSqlEngineSpec
+    from superset.sql_parse import ParsedQuery
 
-    assert (
-        SQLScript(
-            sql,
-            engine=KustoSqlEngineSpec.engine,
-        ).has_mutation()
-        == expected
-    )
+    parsed_query = ParsedQuery(sql)
+    is_readonly = KustoSqlEngineSpec.is_readonly_query(parsed_query)
+
+    assert expected == is_readonly
 
 
 @pytest.mark.parametrize(
@@ -66,37 +62,38 @@ def test_kql_is_select_query(kql: str, expected: bool) -> None:
     """
 
     from superset.db_engine_specs.kusto import KustoKqlEngineSpec
+    from superset.sql_parse import ParsedQuery
 
     parsed_query = ParsedQuery(kql)
-    assert KustoKqlEngineSpec.is_select_query(parsed_query) == expected
+    is_select = KustoKqlEngineSpec.is_select_query(parsed_query)
+
+    assert expected == is_select
 
 
 @pytest.mark.parametrize(
     "kql,expected",
     [
-        ("tbl | limit 100", False),
-        ("let foo = 1; tbl | where bar == foo", False),
-        (".show tables", False),
-        ("print 1", False),
-        ("set querytrace; Events | take 100", False),
-        (".drop table foo", True),
-        (".set-or-append table foo <| bar", True),
+        ("tbl | limit 100", True),
+        ("let foo = 1; tbl | where bar == foo", True),
+        (".show tables", True),
+        ("print 1", True),
+        ("set querytrace; Events | take 100", True),
+        (".drop table foo", False),
+        (".set-or-append table foo <| bar", False),
     ],
 )
-def test_kql_has_mutation(kql: str, expected: bool) -> None:
+def test_kql_is_readonly_query(kql: str, expected: bool) -> None:
     """
     Make sure that KQL dialect consider only SELECT statements as read-only
     """
 
     from superset.db_engine_specs.kusto import KustoKqlEngineSpec
+    from superset.sql_parse import ParsedQuery
 
-    assert (
-        SQLScript(
-            kql,
-            engine=KustoKqlEngineSpec.engine,
-        ).has_mutation()
-        == expected
-    )
+    parsed_query = ParsedQuery(kql)
+    is_readonly = KustoKqlEngineSpec.is_readonly_query(parsed_query)
+
+    assert expected == is_readonly
 
 
 def test_kql_parse_sql() -> None:
@@ -122,11 +119,9 @@ def test_kql_parse_sql() -> None:
     ],
 )
 def test_kql_convert_dttm(
-    target_type: str,
-    expected_result: Optional[str],
-    dttm: datetime,  # noqa: F811
+    target_type: str, expected_result: Optional[str], dttm: datetime
 ) -> None:
-    from superset.db_engine_specs.kusto import KustoKqlEngineSpec as spec  # noqa: N813
+    from superset.db_engine_specs.kusto import KustoKqlEngineSpec as spec
 
     assert_convert_dttm(spec, target_type, expected_result, dttm)
 
@@ -142,10 +137,8 @@ def test_kql_convert_dttm(
     ],
 )
 def test_sql_convert_dttm(
-    target_type: str,
-    expected_result: Optional[str],
-    dttm: datetime,  # noqa: F811
+    target_type: str, expected_result: Optional[str], dttm: datetime
 ) -> None:
-    from superset.db_engine_specs.kusto import KustoSqlEngineSpec as spec  # noqa: N813
+    from superset.db_engine_specs.kusto import KustoSqlEngineSpec as spec
 
     assert_convert_dttm(spec, target_type, expected_result, dttm)

@@ -18,7 +18,7 @@
  */
 import { configure } from '@superset-ui/core';
 import {
-  Comparator,
+  COMPARATOR,
   getOpacity,
   round,
   getColorFormatters,
@@ -60,7 +60,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction GREATER_THAN', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.GreaterThan,
+        operator: COMPARATOR.GREATER_THAN,
         targetValue: 50,
         colorScheme: '#FF0000',
         column: 'count',
@@ -74,7 +74,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction LESS_THAN', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.LessThan,
+        operator: COMPARATOR.LESS_THAN,
         targetValue: 100,
         colorScheme: '#FF0000',
         column: 'count',
@@ -88,7 +88,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction GREATER_OR_EQUAL', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.GreaterOrEqual,
+        operator: COMPARATOR.GREATER_OR_EQUAL,
         targetValue: 50,
         colorScheme: '#FF0000',
         column: 'count',
@@ -103,7 +103,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction LESS_OR_EQUAL', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.LessOrEqual,
+        operator: COMPARATOR.LESS_OR_EQUAL,
         targetValue: 100,
         colorScheme: '#FF0000',
         column: 'count',
@@ -118,7 +118,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction EQUAL', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.Equal,
+        operator: COMPARATOR.EQUAL,
         targetValue: 100,
         colorScheme: '#FF0000',
         column: 'count',
@@ -132,7 +132,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction NOT_EQUAL', () => {
     let colorFunction = getColorFunction(
       {
-        operator: Comparator.NotEqual,
+        operator: COMPARATOR.NOT_EQUAL,
         targetValue: 60,
         colorScheme: '#FF0000',
         column: 'count',
@@ -145,7 +145,7 @@ describe('getColorFunction()', () => {
 
     colorFunction = getColorFunction(
       {
-        operator: Comparator.NotEqual,
+        operator: COMPARATOR.NOT_EQUAL,
         targetValue: 90,
         colorScheme: '#FF0000',
         column: 'count',
@@ -160,7 +160,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction BETWEEN', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.Between,
+        operator: COMPARATOR.BETWEEN,
         targetValueLeft: 75,
         targetValueRight: 125,
         colorScheme: '#FF0000',
@@ -175,7 +175,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction BETWEEN_OR_EQUAL', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.BetweenOrEqual,
+        operator: COMPARATOR.BETWEEN_OR_EQUAL,
         targetValueLeft: 50,
         targetValueRight: 100,
         colorScheme: '#FF0000',
@@ -188,29 +188,10 @@ describe('getColorFunction()', () => {
     expect(colorFunction(150)).toBeUndefined();
   });
 
-  it('getColorFunction BETWEEN_OR_EQUAL without opacity', () => {
-    const colorFunction = getColorFunction(
-      {
-        operator: Comparator.BetweenOrEqual,
-        targetValueLeft: 50,
-        targetValueRight: 100,
-        colorScheme: '#FF0000',
-        column: 'count',
-      },
-      countValues,
-      false,
-    );
-    expect(colorFunction(25)).toBeUndefined();
-    expect(colorFunction(50)).toEqual('#FF0000');
-    expect(colorFunction(75)).toEqual('#FF0000');
-    expect(colorFunction(100)).toEqual('#FF0000');
-    expect(colorFunction(125)).toBeUndefined();
-  });
-
   it('getColorFunction BETWEEN_OR_LEFT_EQUAL', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.BetweenOrLeftEqual,
+        operator: COMPARATOR.BETWEEN_OR_LEFT_EQUAL,
         targetValueLeft: 50,
         targetValueRight: 100,
         colorScheme: '#FF0000',
@@ -225,7 +206,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction BETWEEN_OR_RIGHT_EQUAL', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.BetweenOrRightEqual,
+        operator: COMPARATOR.BETWEEN_OR_RIGHT_EQUAL,
         targetValueLeft: 50,
         targetValueRight: 100,
         colorScheme: '#FF0000',
@@ -240,7 +221,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction GREATER_THAN with target value undefined', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.GreaterThan,
+        operator: COMPARATOR.GREATER_THAN,
         targetValue: undefined,
         colorScheme: '#FF0000',
         column: 'count',
@@ -254,7 +235,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction BETWEEN with target value left undefined', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.Between,
+        operator: COMPARATOR.BETWEEN,
         targetValueLeft: undefined,
         targetValueRight: 100,
         colorScheme: '#FF0000',
@@ -269,7 +250,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction BETWEEN with target value right undefined', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.Between,
+        operator: COMPARATOR.BETWEEN,
         targetValueLeft: 50,
         targetValueRight: undefined,
         colorScheme: '#FF0000',
@@ -299,7 +280,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction with operator None', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.None,
+        operator: COMPARATOR.NONE,
         colorScheme: '#FF0000',
         column: 'count',
       },
@@ -329,7 +310,7 @@ describe('getColorFunction()', () => {
   it('getColorFunction with colorScheme undefined', () => {
     const colorFunction = getColorFunction(
       {
-        operator: Comparator.GreaterThan,
+        operator: COMPARATOR.GREATER_THAN,
         targetValue: 150,
         colorScheme: undefined,
         column: 'count',
@@ -345,26 +326,26 @@ describe('getColorFormatters()', () => {
   it('correct column config', () => {
     const columnConfig = [
       {
-        operator: Comparator.GreaterThan,
+        operator: COMPARATOR.GREATER_THAN,
         targetValue: 50,
         colorScheme: '#FF0000',
         column: 'count',
       },
       {
-        operator: Comparator.LessThan,
+        operator: COMPARATOR.LESS_THAN,
         targetValue: 300,
         colorScheme: '#FF0000',
         column: 'sum',
       },
       {
-        operator: Comparator.Between,
+        operator: COMPARATOR.BETWEEN,
         targetValueLeft: 75,
         targetValueRight: 125,
         colorScheme: '#FF0000',
         column: 'count',
       },
       {
-        operator: Comparator.GreaterThan,
+        operator: COMPARATOR.GREATER_THAN,
         targetValue: 150,
         colorScheme: '#FF0000',
         column: undefined,

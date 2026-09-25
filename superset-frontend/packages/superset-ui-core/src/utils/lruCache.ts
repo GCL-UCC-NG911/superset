@@ -67,10 +67,6 @@ class LRUCache<T> {
   public get size() {
     return this.cache.size;
   }
-
-  public values(): T[] {
-    return [...this.cache.values()];
-  }
 }
 
 export function lruCache<T>(capacity = 100) {

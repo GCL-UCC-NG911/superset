@@ -17,10 +17,12 @@
  * under the License.
  */
 
-import Generator from 'yeoman-generator';
-import { kebabCase, camelCase, startCase, upperFirst } from 'lodash-es';
+/* eslint-disable sort-keys */
 
-export default class extends Generator {
+const Generator = require('yeoman-generator');
+const _ = require('lodash');
+
+module.exports = class extends Generator {
   async prompting() {
     this.option('skipInstall');
 
@@ -30,15 +32,15 @@ export default class extends Generator {
         name: 'packageName',
         message: 'Package name:',
         // Default to current folder name, e.g. superset-plugin-chart-hello-world
-        default: kebabCase(this.appname),
+        default: _.kebabCase(this.appname),
       },
       {
         type: 'input',
         name: 'pluginName',
         message: 'Plugin name:',
         // Hello World
-        default: startCase(
-          camelCase(this.appname.replace('superset plugin chart', '').trim()),
+        default: _.startCase(
+          _.camelCase(this.appname.replace('superset plugin chart', '').trim()),
         ),
       },
       {
@@ -46,7 +48,7 @@ export default class extends Generator {
         name: 'description',
         message: 'Description:',
         // Superset Plugin Chart Hello World
-        default: upperFirst(startCase(this.appname)),
+        default: _.upperFirst(_.startCase(this.appname)),
       },
       {
         type: 'list',
@@ -68,7 +70,7 @@ export default class extends Generator {
 
   writing() {
     // SupersetPluginChartHelloWorld
-    const packageLabel = upperFirst(camelCase(this.answers.packageName));
+    const packageLabel = _.upperFirst(_.camelCase(this.answers.packageName));
 
     const params = {
       ...this.answers,
@@ -112,4 +114,4 @@ export default class extends Generator {
       this.fs.copy(this.templatePath(file), this.destinationPath(file));
     });
   }
-}
+};

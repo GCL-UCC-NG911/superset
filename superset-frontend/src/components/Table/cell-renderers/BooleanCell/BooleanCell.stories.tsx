@@ -16,15 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { StoryFn, Meta } from '@storybook/react';
+import React from 'react';
+import { ComponentStory, ComponentMeta } from '@storybook/react';
 import BooleanCell from '.';
 
 export default {
   title: 'Design System/Components/Table/Cell Renderers/BooleanCell',
   component: BooleanCell,
-} as Meta<typeof BooleanCell>;
+} as ComponentMeta<typeof BooleanCell>;
 
-export const Basic: StoryFn<typeof BooleanCell> = args => (
+export const Basic: ComponentStory<typeof BooleanCell> = args => (
   <BooleanCell {...args} />
 );
 

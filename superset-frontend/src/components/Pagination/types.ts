@@ -17,9 +17,7 @@
  * under the License.
  */
 
-import { EventHandler, SyntheticEvent } from 'react';
-
 export interface PaginationButtonProps {
   disabled?: boolean;
-  onClick: EventHandler<SyntheticEvent<HTMLElement>>;
+  onClick: React.EventHandler<React.SyntheticEvent<HTMLElement>>;
 }

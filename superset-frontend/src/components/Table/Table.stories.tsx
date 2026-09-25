@@ -16,19 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useState, DragEvent } from 'react';
-
-import type { Meta, StoryFn } from '@storybook/react';
+import React, { useState } from 'react';
+import { ComponentStory, ComponentMeta } from '@storybook/react';
 import { action } from '@storybook/addon-actions';
 import {
-  ColumnsType,
-  ETableAction,
-  OnChangeFunction,
-  SUPERSET_TABLE_COLUMN,
   Table,
   TableSize,
+  SUPERSET_TABLE_COLUMN,
+  ColumnsType,
+  OnChangeFunction,
+  ETableAction,
 } from './index';
-import { alphabeticalSort, numericalSort } from './sorters';
+import { numericalSort, alphabeticalSort } from './sorters';
 import ButtonCell from './cell-renderers/ButtonCell';
 import ActionCell from './cell-renderers/ActionCell';
 import { exampleMenuOptions } from './cell-renderers/ActionCell/fixtures';
@@ -44,9 +43,9 @@ export default {
   title: 'Design System/Components/Table/Examples',
   component: Table,
   argTypes: { onClick: { action: 'clicked' } },
-} as Meta<typeof Table>;
+} as ComponentMeta<typeof Table>;
 
-interface BasicData {
+export interface BasicData {
   name: string;
   category: string;
   price: number;
@@ -54,7 +53,7 @@ interface BasicData {
   key: number;
 }
 
-interface RendererData {
+export interface RendererData {
   key: number;
   buttonCell: string;
   textCell: string;
@@ -62,7 +61,7 @@ interface RendererData {
   dollarCell: number;
 }
 
-interface ExampleData {
+export interface ExampleData {
   title: string;
   name: string;
   age: number;
@@ -71,8 +70,8 @@ interface ExampleData {
   key: number;
 }
 
-function generateValues(amount: number, row = 0): Record<string, number> {
-  const cells: Record<string, number> = {};
+function generateValues(amount: number, row = 0): object {
+  const cells = {};
   for (let i = 0; i < amount; i += 1) {
     cells[`col-${i}`] = i * row * 0.75;
   }
@@ -89,17 +88,12 @@ function generateColumns(amount: number): ColumnsType<ExampleData>[] {
       width: 90,
       render: (value: number) => (
         <NumericCell
-          options={{ style: Style.Currency, currency: CurrencyCode.EUR }}
+          options={{ style: Style.CURRENCY, currency: CurrencyCode.EUR }}
           value={value}
           locale={LocaleCode.en_US}
         />
       ),
-      sorter: (a: BasicData, b: BasicData) =>
-        numericalSort(
-          `col-${i}`,
-          a as Record<PropertyKey, any>,
-          b as Record<PropertyKey, any>,
-        ),
+      sorter: (a: BasicData, b: BasicData) => numericalSort(`col-${i}`, a, b),
     });
   }
   return newCols as ColumnsType<ExampleData>[];
@@ -126,14 +120,14 @@ const basicData: BasicData[] = [
   {
     key: 3,
     name: '128 GB SSD',
-    category: 'Harddrive',
+    category: 'Hardrive',
     price: 49.99,
     description: 'Reliable and fast data storage',
   },
   {
     key: 4,
     name: '128 GB SSD',
-    category: 'Harddrive',
+    category: 'Hardrive',
     price: 49.99,
     description: 'Reliable and fast data storage',
   },
@@ -154,14 +148,14 @@ const basicData: BasicData[] = [
   {
     key: 7,
     name: '256 GB SSD',
-    category: 'Harddrive',
+    category: 'Hardrive',
     price: 175,
     description: 'Reliable and fast data storage',
   },
   {
     key: 8,
     name: '1 TB SSD',
-    category: 'Harddrive',
+    category: 'Hardrive',
     price: 349.99,
     description: 'Reliable and fast data storage',
   },
@@ -173,34 +167,19 @@ const basicColumns: ColumnsType<BasicData> = [
     dataIndex: 'name',
     key: 'name',
     width: 100,
-    sorter: (a: BasicData, b: BasicData) =>
-      alphabeticalSort(
-        'name',
-        a as Record<PropertyKey, any>,
-        b as Record<PropertyKey, any>,
-      ),
+    sorter: (a: BasicData, b: BasicData) => alphabeticalSort('name', a, b),
   },
   {
     title: 'Category',
     dataIndex: 'category',
     key: 'category',
-    sorter: (a: BasicData, b: BasicData) =>
-      alphabeticalSort(
-        'category',
-        a as Record<PropertyKey, any>,
-        b as Record<PropertyKey, any>,
-      ),
+    sorter: (a: BasicData, b: BasicData) => alphabeticalSort('category', a, b),
   },
   {
     title: 'Price',
     dataIndex: 'price',
     key: 'price',
-    sorter: (a: BasicData, b: BasicData) =>
-      numericalSort(
-        'price',
-        a as Record<PropertyKey, any>,
-        b as Record<PropertyKey, any>,
-      ),
+    sorter: (a: BasicData, b: BasicData) => numericalSort('price', a, b),
     width: 100,
   },
   {
@@ -221,12 +200,7 @@ const bigColumns: ColumnsType<ExampleData> = [
     title: 'Age',
     dataIndex: 'age',
     key: 'age',
-    sorter: (a: ExampleData, b: ExampleData) =>
-      numericalSort(
-        'age',
-        a as Record<PropertyKey, any>,
-        b as Record<PropertyKey, any>,
-      ),
+    sorter: (a: ExampleData, b: ExampleData) => numericalSort('age', a, b),
     width: 75,
   },
   {
@@ -264,7 +238,7 @@ const rendererColumns: ColumnsType<RendererData> = [
     key: 'euroCell',
     render: (value: number) => (
       <NumericCell
-        options={{ style: Style.Currency, currency: CurrencyCode.EUR }}
+        options={{ style: Style.CURRENCY, currency: CurrencyCode.EUR }}
         value={value}
         locale={LocaleCode.en_US}
       />
@@ -276,7 +250,7 @@ const rendererColumns: ColumnsType<RendererData> = [
     key: 'dollarCell',
     render: (value: number) => (
       <NumericCell
-        options={{ style: Style.Currency, currency: CurrencyCode.USD }}
+        options={{ style: Style.CURRENCY, currency: CurrencyCode.USD }}
         value={value}
         locale={LocaleCode.en_US}
       />
@@ -331,7 +305,7 @@ for (let i = 0; i < recordCount; i += 1) {
   });
 }
 
-export const Basic: StoryFn<typeof Table> = args => <Table {...args} />;
+export const Basic: ComponentStory<typeof Table> = args => <Table {...args} />;
 
 function handlers(record: object, rowIndex: number) {
   return {
@@ -352,17 +326,19 @@ function handlers(record: object, rowIndex: number) {
 Basic.args = {
   data: basicData,
   columns: basicColumns,
-  size: TableSize.Small,
+  size: TableSize.SMALL,
   onRow: handlers,
   usePagination: false,
 };
 
-export const Pagination: StoryFn<typeof Table> = args => <Table {...args} />;
+export const Pagination: ComponentStory<typeof Table> = args => (
+  <Table {...args} />
+);
 
 Pagination.args = {
   data: basicData,
   columns: basicColumns,
-  size: TableSize.Small,
+  size: TableSize.SMALL,
   pageSizeOptions: ['5', '10', '15', '20', '25'],
   defaultPageSize: 5,
 };
@@ -401,17 +377,12 @@ const paginationColumns: ColumnsType<BasicData> = [
     width: 100,
     render: (value: number) => (
       <NumericCell
-        options={{ style: Style.Currency, currency: CurrencyCode.EUR }}
+        options={{ style: Style.CURRENCY, currency: CurrencyCode.EUR }}
         value={value}
         locale={LocaleCode.en_US}
       />
     ),
-    sorter: (a: BasicData, b: BasicData) =>
-      numericalSort(
-        'price',
-        a as Record<PropertyKey, any>,
-        b as Record<PropertyKey, any>,
-      ),
+    sorter: (a: BasicData, b: BasicData) => numericalSort('price', a, b),
   },
   {
     title: 'Description',
@@ -429,11 +400,11 @@ const paginationColumns: ColumnsType<BasicData> = [
   },
 ];
 
-export const ServerPagination: StoryFn<typeof Table> = args => {
+export const ServerPagination: ComponentStory<typeof Table> = args => {
   const [data, setData] = useState(generateData(0, 5));
   const [loading, setLoading] = useState(false);
 
-  const handleChange: OnChangeFunction<BasicData> = (
+  const handleChange: OnChangeFunction = (
     pagination,
     filters,
     sorter,
@@ -442,7 +413,7 @@ export const ServerPagination: StoryFn<typeof Table> = args => {
     const pageSize = pagination?.pageSize ?? 5;
     const current = pagination?.current ?? 0;
     switch (extra?.action) {
-      case ETableAction.Paginate: {
+      case ETableAction.PAGINATE: {
         setLoading(true);
         // simulate a fetch
         setTimeout(() => {
@@ -451,11 +422,11 @@ export const ServerPagination: StoryFn<typeof Table> = args => {
         }, 1000);
         break;
       }
-      case ETableAction.Sort: {
+      case ETableAction.SORT: {
         action(`table-sort-change: ${JSON.stringify(sorter)}`);
         break;
       }
-      case ETableAction.Filter: {
+      case ETableAction.FILTER: {
         action(`table-sort-change: ${JSON.stringify(filters)}`);
         break;
       }
@@ -479,19 +450,19 @@ export const ServerPagination: StoryFn<typeof Table> = args => {
 
 ServerPagination.args = {
   columns: paginationColumns,
-  size: TableSize.Small,
+  size: TableSize.SMALL,
   pageSizeOptions: ['5', '20', '50'],
   defaultPageSize: 5,
 };
 
-export const VirtualizedPerformance: StoryFn<typeof Table> = args => (
+export const VirtualizedPerformance: ComponentStory<typeof Table> = args => (
   <Table {...args} />
 );
 
 VirtualizedPerformance.args = {
   data: bigdata,
   columns: bigColumns,
-  size: TableSize.Small,
+  size: TableSize.SMALL,
   resizable: true,
   reorderable: true,
   height: 350,
@@ -499,29 +470,31 @@ VirtualizedPerformance.args = {
   usePagination: false,
 };
 
-export const Loading: StoryFn<typeof Table> = args => <Table {...args} />;
+export const Loading: ComponentStory<typeof Table> = args => (
+  <Table {...args} />
+);
 
 Loading.args = {
   data: basicData,
   columns: basicColumns,
-  size: TableSize.Small,
+  size: TableSize.SMALL,
   loading: true,
 };
 
-export const ResizableColumns: StoryFn<typeof Table> = args => (
+export const ResizableColumns: ComponentStory<typeof Table> = args => (
   <Table {...args} />
 );
 
 ResizableColumns.args = {
   data: basicData,
   columns: basicColumns,
-  size: TableSize.Small,
+  size: TableSize.SMALL,
   resizable: true,
 };
 
-export const ReorderableColumns: StoryFn<typeof Table> = args => {
+export const ReorderableColumns: ComponentStory<typeof Table> = args => {
   const [droppedItem, setDroppedItem] = useState<string | undefined>();
-  const dragOver = (ev: DragEvent<HTMLDivElement>) => {
+  const dragOver = (ev: React.DragEvent<HTMLDivElement>) => {
     ev.preventDefault();
     const element: HTMLElement | null = ev?.currentTarget as HTMLElement;
     if (element?.style) {
@@ -529,7 +502,7 @@ export const ReorderableColumns: StoryFn<typeof Table> = args => {
     }
   };
 
-  const dragOut = (ev: DragEvent<HTMLDivElement>) => {
+  const dragOut = (ev: React.DragEvent<HTMLDivElement>) => {
     ev.preventDefault();
     const element: HTMLElement | null = ev?.currentTarget as HTMLElement;
     if (element?.style) {
@@ -537,7 +510,7 @@ export const ReorderableColumns: StoryFn<typeof Table> = args => {
     }
   };
 
-  const dragDrop = (ev: DragEvent<HTMLDivElement>) => {
+  const dragDrop = (ev: React.DragEvent<HTMLDivElement>) => {
     const data = ev.dataTransfer?.getData?.(SUPERSET_TABLE_COLUMN);
     const element: HTMLElement | null = ev?.currentTarget as HTMLElement;
     if (element?.style) {
@@ -548,9 +521,9 @@ export const ReorderableColumns: StoryFn<typeof Table> = args => {
   return (
     <div>
       <div
-        onDragOver={(ev: DragEvent<HTMLDivElement>) => dragOver(ev)}
-        onDragLeave={(ev: DragEvent<HTMLDivElement>) => dragOut(ev)}
-        onDrop={(ev: DragEvent<HTMLDivElement>) => dragDrop(ev)}
+        onDragOver={(ev: React.DragEvent<HTMLDivElement>) => dragOver(ev)}
+        onDragLeave={(ev: React.DragEvent<HTMLDivElement>) => dragOut(ev)}
+        onDrop={(ev: React.DragEvent<HTMLDivElement>) => dragDrop(ev)}
         style={{
           width: '100%',
           height: '40px',
@@ -570,7 +543,7 @@ export const ReorderableColumns: StoryFn<typeof Table> = args => {
 ReorderableColumns.args = {
   data: basicData,
   columns: basicColumns,
-  size: TableSize.Small,
+  size: TableSize.SMALL,
   reorderable: true,
 };
 
@@ -598,12 +571,14 @@ const rendererData: RendererData[] = [
   },
 ];
 
-export const CellRenderers: StoryFn<typeof Table> = args => <Table {...args} />;
+export const CellRenderers: ComponentStory<typeof Table> = args => (
+  <Table {...args} />
+);
 
 CellRenderers.args = {
   data: rendererData,
   columns: rendererColumns,
-  size: TableSize.Small,
+  size: TableSize.SMALL,
   reorderable: true,
 };
 
@@ -618,24 +593,24 @@ const shoppingData: ShoppingData[] = [
   {
     key: 1,
     item: 'Floppy Disk 10 pack',
-    orderDate: new Date('2015-07-02T16:16:00Z').getTime(),
+    orderDate: Date.now(),
     price: 9.99,
   },
   {
     key: 2,
     item: 'DVD 100 pack',
-    orderDate: new Date('2015-07-02T16:16:00Z').getTime(),
+    orderDate: Date.now(),
     price: 7.99,
   },
   {
     key: 3,
     item: '128 GB SSD',
-    orderDate: new Date('2015-07-02T16:16:00Z').getTime(),
+    orderDate: Date.now(),
     price: 3.99,
   },
 ];
 
-export const HeaderRenderers: StoryFn<typeof Table> = () => {
+export const HeaderRenderers: ComponentStory<typeof Table> = args => {
   const [orderDateFormatting, setOrderDateFormatting] = useState('formatted');
   const [priceLocale, setPriceLocale] = useState(LocaleCode.en_US);
   const shoppingColumns: ColumnsType<ShoppingData> = [
@@ -684,7 +659,7 @@ export const HeaderRenderers: StoryFn<typeof Table> = () => {
         <NumericCell
           value={value}
           options={{
-            style: Style.Currency,
+            style: Style.CURRENCY,
             currency:
               priceLocale === LocaleCode.en_US
                 ? CurrencyCode.USD
@@ -697,10 +672,10 @@ export const HeaderRenderers: StoryFn<typeof Table> = () => {
   ];
 
   return (
-    <Table<ShoppingData>
+    <Table
       data={shoppingData}
       columns={shoppingColumns}
-      size={TableSize.Small}
+      size={TableSize.SMALL}
       resizable
     />
   );

@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { isFeatureEnabled, FeatureFlag } from '@superset-ui/core';
 import {
   isUserWithPermissionsAndRoles,
   UndefinedUser,
@@ -28,6 +27,7 @@ import { findPermission } from 'src/utils/findPermission';
 // this should really be a config value,
 // but is hardcoded in backend logic already, so...
 const ADMIN_ROLE_NAME = 'admin';
+const SQL_LAB_ROLE = 'sql_lab';
 
 export const isUserAdmin = (
   user?: UserWithPermissionsAndRoles | UndefinedUser,
@@ -42,7 +42,7 @@ const isUserDashboardOwner = (
   user: UserWithPermissionsAndRoles | UndefinedUser,
 ) =>
   isUserWithPermissionsAndRoles(user) &&
-  dashboard.owners.some(owner => owner.id === user.userId);
+  dashboard.owners.some(owner => owner.username === user.username);
 
 export const canUserEditDashboard = (
   dashboard: Dashboard,
@@ -50,32 +50,16 @@ export const canUserEditDashboard = (
 ) =>
   isUserWithPermissionsAndRoles(user) &&
   (isUserAdmin(user) || isUserDashboardOwner(dashboard, user)) &&
-  findPermission('can_write', 'Dashboard', user?.roles);
+  findPermission('can_write', 'Dashboard', user.roles);
 
-export function userHasPermission(
-  user: UserWithPermissionsAndRoles | UndefinedUser,
-  viewName: string,
-  permissionName: string,
+export function canUserAccessSqlLab(
+  user?: UserWithPermissionsAndRoles | UndefinedUser,
 ) {
   return (
     isUserAdmin(user) ||
     (isUserWithPermissionsAndRoles(user) &&
-      Object.values(user.roles || {})
-        .flat()
-        .some(
-          permissionView =>
-            permissionView[0] === permissionName &&
-            permissionView[1] === viewName,
-        ))
+      Object.keys(user.roles || {}).some(
+        role => role.toLowerCase() === SQL_LAB_ROLE,
+      ))
   );
 }
-
-export const canUserSaveAsDashboard = (
-  dashboard: Dashboard,
-  user?: UserWithPermissionsAndRoles | UndefinedUser | null,
-) =>
-  isUserWithPermissionsAndRoles(user) &&
-  findPermission('can_write', 'Dashboard', user?.roles) &&
-  (!isFeatureEnabled(FeatureFlag.DashboardRbac) ||
-    isUserAdmin(user) ||
-    isUserDashboardOwner(dashboard, user));

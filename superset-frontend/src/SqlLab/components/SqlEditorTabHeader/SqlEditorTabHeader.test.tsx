@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import configureStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 import {
@@ -41,6 +42,9 @@ import {
 } from 'src/SqlLab/actions/sqlLab';
 import SqlEditorTabHeader from 'src/SqlLab/components/SqlEditorTabHeader';
 
+jest.mock('src/components/DeprecatedSelect', () => () => (
+  <div data-test="mock-deprecated-select" />
+));
 jest.mock('src/components/Select/Select', () => () => (
   <div data-test="mock-deprecated-select-select" />
 ));
@@ -59,9 +63,9 @@ const setup = (queryEditor: QueryEditor, store?: Store) =>
 describe('SqlEditorTabHeader', () => {
   it('renders name', () => {
     const { queryByText } = setup(defaultQueryEditor, mockStore(initialState));
-    expect(queryByText(defaultQueryEditor.name)).toBeInTheDocument();
-    expect(queryByText(extraQueryEditor1.name)).not.toBeInTheDocument();
-    expect(queryByText(extraQueryEditor2.name)).not.toBeInTheDocument();
+    expect(queryByText(defaultQueryEditor.name)).toBeTruthy();
+    expect(queryByText(extraQueryEditor1.name)).toBeFalsy();
+    expect(queryByText(extraQueryEditor2.name)).toBeFalsy();
   });
 
   it('renders name from unsaved changes', () => {
@@ -79,10 +83,10 @@ describe('SqlEditorTabHeader', () => {
         },
       }),
     );
-    expect(queryByText(expectedTitle)).toBeInTheDocument();
-    expect(queryByText(defaultQueryEditor.name)).not.toBeInTheDocument();
-    expect(queryByText(extraQueryEditor1.name)).not.toBeInTheDocument();
-    expect(queryByText(extraQueryEditor2.name)).not.toBeInTheDocument();
+    expect(queryByText(expectedTitle)).toBeTruthy();
+    expect(queryByText(defaultQueryEditor.name)).toBeFalsy();
+    expect(queryByText(extraQueryEditor1.name)).toBeFalsy();
+    expect(queryByText(extraQueryEditor2.name)).toBeFalsy();
   });
 
   it('renders current name for unrelated unsaved changes', () => {
@@ -100,10 +104,10 @@ describe('SqlEditorTabHeader', () => {
         },
       }),
     );
-    expect(queryByText(defaultQueryEditor.name)).toBeInTheDocument();
-    expect(queryByText(unrelatedTitle)).not.toBeInTheDocument();
-    expect(queryByText(extraQueryEditor1.name)).not.toBeInTheDocument();
-    expect(queryByText(extraQueryEditor2.name)).not.toBeInTheDocument();
+    expect(queryByText(defaultQueryEditor.name)).toBeTruthy();
+    expect(queryByText(unrelatedTitle)).toBeFalsy();
+    expect(queryByText(extraQueryEditor1.name)).toBeFalsy();
+    expect(queryByText(extraQueryEditor2.name)).toBeFalsy();
   });
 
   describe('with dropdown menus', () => {

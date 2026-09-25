@@ -18,16 +18,17 @@
  */
 import {
   ensureIsArray,
-  isFeatureEnabled,
-  FeatureFlag,
   makeApi,
   SupersetClient,
   logging,
+} from '@superset-ui/core';
+import { SupersetError } from 'src/components/ErrorMessage/types';
+import getBootstrapData from 'src/utils/getBootstrapData';
+import { FeatureFlag, isFeatureEnabled } from '../featureFlags';
+import {
   getClientErrorObject,
   parseErrorJson,
-  SupersetError,
-} from '@superset-ui/core';
-import getBootstrapData from 'src/utils/getBootstrapData';
+} from '../utils/getClientErrorObject';
 
 type AsyncEvent = {
   id?: string | null;
@@ -228,7 +229,7 @@ const wsConnect = (): void => {
 };
 
 export const init = (appConfig?: AppConfig) => {
-  if (!isFeatureEnabled(FeatureFlag.GlobalAsyncQueries)) return;
+  if (!isFeatureEnabled(FeatureFlag.GLOBAL_ASYNC_QUERIES)) return;
   if (pollingTimeoutId) clearTimeout(pollingTimeoutId);
 
   listenersByJobId = {};

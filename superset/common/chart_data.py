@@ -14,10 +14,11 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-from superset.utils.backports import StrEnum
+from enum import Enum
+from typing import Set
 
 
-class ChartDataResultFormat(StrEnum):
+class ChartDataResultFormat(str, Enum):
     """
     Chart data response format
     """
@@ -27,16 +28,17 @@ class ChartDataResultFormat(StrEnum):
     XLSX = "xlsx"
     # NGLS - BEGIN #
     PDF = "pdf"
+    CUSTOM_CSV = "custom"
     # NGLS - END #
 
     @classmethod
-    def table_like(cls) -> set["ChartDataResultFormat"]:
-    # NGLS - BEGIN #
-        return {cls.CSV} | {cls.XLSX} | {cls.PDF}
-    # NGLS - END #
+    def table_like(cls) -> Set["ChartDataResultFormat"]:
+        # NGLS - BEGIN #
+        return {cls.CSV} | {cls.XLSX} | {cls.PDF} | {cls.CUSTOM_CSV}
+        # NGLS - END #
 
 
-class ChartDataResultType(StrEnum):
+class ChartDataResultType(str, Enum):
     """
     Chart data response type
     """

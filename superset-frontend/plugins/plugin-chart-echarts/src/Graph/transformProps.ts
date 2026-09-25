@@ -21,12 +21,10 @@ import {
   getMetricLabel,
   DataRecord,
   DataRecordValue,
-  tooltipHtml,
 } from '@superset-ui/core';
-import type { EChartsCoreOption } from 'echarts/core';
-import type { GraphSeriesOption } from 'echarts/charts';
-import type { GraphEdgeItemOption } from 'echarts/types/src/chart/graph/GraphSeries';
+import { EChartsCoreOption, GraphSeriesOption } from 'echarts';
 import { extent as d3Extent } from 'd3-array';
+import { GraphEdgeItemOption } from 'echarts/types/src/chart/graph/GraphSeries';
 import {
   EchartsGraphFormData,
   EChartGraphNode,
@@ -36,12 +34,7 @@ import {
   EchartsGraphChartProps,
 } from './types';
 import { DEFAULT_GRAPH_SERIES_OPTION } from './constants';
-import {
-  getChartPadding,
-  getColtypesMapping,
-  getLegendProps,
-  sanitizeHtml,
-} from '../utils/series';
+import { getChartPadding, getLegendProps, sanitizeHtml } from '../utils/series';
 import { getDefaultTooltip } from '../utils/tooltip';
 import { Refs } from '../types';
 
@@ -140,6 +133,19 @@ function getKeyByValue(
   return Object.keys(object).find(key => object[key] === value) as string;
 }
 
+function edgeFormatter(
+  sourceIndex: string,
+  targetIndex: string,
+  value: number,
+  nodes: { [name: string]: number },
+): string {
+  const source = Number(sourceIndex);
+  const target = Number(targetIndex);
+  return `${sanitizeHtml(getKeyByValue(nodes, source))} > ${sanitizeHtml(
+    getKeyByValue(nodes, target),
+  )} : ${value}`;
+}
+
 function getCategoryName(columnName: string, name?: DataRecordValue) {
   if (name === false) {
     return `${columnName}: false`;
@@ -156,19 +162,10 @@ function getCategoryName(columnName: string, name?: DataRecordValue) {
 export default function transformProps(
   chartProps: EchartsGraphChartProps,
 ): GraphChartTransformedProps {
-  const {
-    width,
-    height,
-    formData,
-    queriesData,
-    hooks,
-    inContextMenu,
-    filterState,
-    emitCrossFilters,
-    theme,
-  } = chartProps;
+  const { width, height, formData, queriesData, hooks, inContextMenu } =
+    chartProps;
   const data: DataRecord[] = queriesData[0].data || [];
-  const coltypeMapping = getColtypesMapping(queriesData[0]);
+
   const {
     source,
     target,
@@ -198,7 +195,6 @@ export default function transformProps(
   const refs: Refs = {};
   const metricLabel = getMetricLabel(metric);
   const colorFn = CategoricalColorNamespace.getScale(colorScheme as string);
-  const firstColor = colorFn.range()[0];
   const nodes: { [name: string]: number } = {};
   const categories: Set<string> = new Set();
   const echartNodes: EChartGraphNode[] = [];
@@ -208,18 +204,12 @@ export default function transformProps(
    * Get the node id of an existing node,
    * or create a new node if it doesn't exist.
    */
-  function getOrCreateNode(
-    name: string,
-    col: string,
-    category?: string,
-    color?: string,
-  ) {
+  function getOrCreateNode(name: string, category?: string) {
     if (!(name in nodes)) {
       nodes[name] = echartNodes.length;
       echartNodes.push({
         id: String(nodes[name]),
         name,
-        col,
         value: 0,
         category,
         select: DEFAULT_GRAPH_SERIES_OPTION.select,
@@ -227,7 +217,6 @@ export default function transformProps(
           ...getDefaultTooltip(refs),
           ...DEFAULT_GRAPH_SERIES_OPTION.tooltip,
         },
-        itemStyle: { color },
       });
     }
     const node = echartNodes[nodes[name]];
@@ -255,25 +244,8 @@ export default function transformProps(
     const targetCategoryName = targetCategory
       ? getCategoryName(targetCategory, link[targetCategory])
       : undefined;
-    const sourceNodeColor = sourceCategoryName
-      ? colorFn(sourceCategoryName)
-      : firstColor;
-    const targetNodeColor = targetCategoryName
-      ? colorFn(targetCategoryName)
-      : firstColor;
-
-    const sourceNode = getOrCreateNode(
-      sourceName,
-      source,
-      sourceCategoryName,
-      sourceNodeColor,
-    );
-    const targetNode = getOrCreateNode(
-      targetName,
-      target,
-      targetCategoryName,
-      targetNodeColor,
-    );
+    const sourceNode = getOrCreateNode(sourceName, sourceCategoryName);
+    const targetNode = getOrCreateNode(targetName, targetCategoryName);
 
     sourceNode.value += value;
     targetNode.value += value;
@@ -282,9 +254,7 @@ export default function transformProps(
       source: sourceNode.id,
       target: targetNode.id,
       value,
-      lineStyle: {
-        color: sourceNodeColor,
-      },
+      lineStyle: {},
       emphasis: {},
       select: {},
     });
@@ -297,15 +267,14 @@ export default function transformProps(
   });
 
   const categoryList = [...categories];
+
   const series: GraphSeriesOption[] = [
     {
       zoom: DEFAULT_GRAPH_SERIES_OPTION.zoom,
       type: 'graph',
       categories: categoryList.map(c => ({
         name: c,
-        itemStyle: {
-          color: colorFn(c, sliceId),
-        },
+        itemStyle: { color: colorFn(c, sliceId) },
       })),
       layout,
       force: {
@@ -337,25 +306,22 @@ export default function transformProps(
     tooltip: {
       ...getDefaultTooltip(refs),
       show: !inContextMenu,
-      formatter: (params: any): string => {
-        const source = sanitizeHtml(
-          getKeyByValue(nodes, Number(params.data.source)),
-        );
-        const target = sanitizeHtml(
-          getKeyByValue(nodes, Number(params.data.target)),
-        );
-        const title = `${source} > ${target}`;
-        return tooltipHtml([[metricLabel, `${params.value}`]], title);
-      },
+      formatter: (params: any): string =>
+        edgeFormatter(
+          params.data.source,
+          params.data.target,
+          params.value,
+          nodes,
+        ),
     },
     legend: {
-      ...getLegendProps(legendType, legendOrientation, showLegend, theme),
+      ...getLegendProps(legendType, legendOrientation, showLegend),
       data: categoryList,
     },
     series,
   };
 
-  const { onContextMenu, setDataMask } = hooks;
+  const { onContextMenu } = hooks;
 
   return {
     width,
@@ -363,10 +329,6 @@ export default function transformProps(
     formData,
     echartOptions,
     onContextMenu,
-    setDataMask,
-    filterState,
     refs,
-    emitCrossFilters,
-    coltypeMapping,
   };
 }

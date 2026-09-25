@@ -29,7 +29,7 @@ const RAW_DATASOURCE = {
 
 const QUERY_DATA = { data: {} };
 const QUERIES_DATA = [QUERY_DATA];
-const BEHAVIORS = [Behavior.NativeFilter, Behavior.InteractiveChart];
+const BEHAVIORS = [Behavior.NATIVE_FILTER, Behavior.INTERACTIVE_CHART];
 
 describe('ChartProps', () => {
   it('exists', () => {

@@ -15,11 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from sqlalchemy import types
 
-from superset.constants import TimeGrain
 from superset.db_engine_specs.base import BaseEngineSpec, LimitMethod
 
 
@@ -34,7 +33,7 @@ class FirebirdEngineSpec(BaseEngineSpec):
 
     _time_grain_expressions = {
         None: "{col}",
-        TimeGrain.SECOND: (
+        "PT1S": (
             "CAST(CAST({col} AS DATE) "
             "|| ' ' "
             "|| EXTRACT(HOUR FROM {col}) "
@@ -43,7 +42,7 @@ class FirebirdEngineSpec(BaseEngineSpec):
             "|| ':' "
             "|| FLOOR(EXTRACT(SECOND FROM {col})) AS TIMESTAMP)"
         ),
-        TimeGrain.MINUTE: (
+        "PT1M": (
             "CAST(CAST({col} AS DATE) "
             "|| ' ' "
             "|| EXTRACT(HOUR FROM {col}) "
@@ -51,20 +50,20 @@ class FirebirdEngineSpec(BaseEngineSpec):
             "|| EXTRACT(MINUTE FROM {col}) "
             "|| ':00' AS TIMESTAMP)"
         ),
-        TimeGrain.HOUR: (
+        "PT1H": (
             "CAST(CAST({col} AS DATE) "
             "|| ' ' "
             "|| EXTRACT(HOUR FROM {col}) "
             "|| ':00:00' AS TIMESTAMP)"
         ),
-        TimeGrain.DAY: "CAST({col} AS DATE)",
-        TimeGrain.MONTH: (
+        "P1D": "CAST({col} AS DATE)",
+        "P1M": (
             "CAST(EXTRACT(YEAR FROM {col}) "
             "|| '-' "
             "|| EXTRACT(MONTH FROM {col}) "
             "|| '-01' AS DATE)"
         ),
-        TimeGrain.YEAR: "CAST(EXTRACT(YEAR FROM {col}) || '-01-01' AS DATE)",
+        "P1Y": "CAST(EXTRACT(YEAR FROM {col}) || '-01-01' AS DATE)",
     }
 
     @classmethod
@@ -73,7 +72,7 @@ class FirebirdEngineSpec(BaseEngineSpec):
 
     @classmethod
     def convert_dttm(
-        cls, target_type: str, dttm: datetime, db_extra: Optional[dict[str, Any]] = None
+        cls, target_type: str, dttm: datetime, db_extra: Optional[Dict[str, Any]] = None
     ) -> Optional[str]:
         sqla_type = cls.get_sqla_column_type(target_type)
 

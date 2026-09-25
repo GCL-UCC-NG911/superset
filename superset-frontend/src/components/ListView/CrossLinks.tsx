@@ -16,9 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { memo, useMemo } from 'react';
-import { styled, useTruncation } from '@superset-ui/core';
+import React, { useMemo, useRef } from 'react';
+import { styled } from '@superset-ui/core';
 import { Link } from 'react-router-dom';
+import { useTruncation } from 'src/hooks/useTruncation';
 import CrossLinksTooltip from './CrossLinksTooltip';
 
 export type CrossLinkProps = {
@@ -38,7 +39,7 @@ const StyledCrossLinks = styled.div`
       width: 100%;
       display: flex;
 
-      .antd5-tooltip-open {
+      .ant-tooltip-open {
         display: inline;
       }
 
@@ -60,13 +61,17 @@ const StyledCrossLinks = styled.div`
   `}
 `;
 
-function CrossLinks({
+export default function CrossLinks({
   crossLinks,
   maxLinks = 20,
   linkPrefix = '/superset/dashboard/',
 }: CrossLinksProps) {
-  const [crossLinksRef, plusRef, elementsTruncated, hasHiddenElements] =
-    useTruncation();
+  const crossLinksRef = useRef<HTMLDivElement>(null);
+  const plusRef = useRef<HTMLDivElement>(null);
+  const [elementsTruncated, hasHiddenElements] = useTruncation(
+    crossLinksRef,
+    plusRef,
+  );
   const hasMoreItems = useMemo(
     () =>
       crossLinks.length > maxLinks ? crossLinks.length - maxLinks : undefined,
@@ -76,13 +81,18 @@ function CrossLinks({
     () => (
       <span className="truncated" ref={crossLinksRef} data-test="crosslinks">
         {crossLinks.map((link, index) => (
-          <Link key={link.id} to={linkPrefix + link.id}>
+          <Link
+            key={link.id}
+            to={linkPrefix + link.id}
+            target="_blank"
+            rel="noreferer noopener"
+          >
             {index === 0 ? link.title : `, ${link.title}`}
           </Link>
         ))}
       </span>
     ),
-    [crossLinks, crossLinksRef, linkPrefix],
+    [crossLinks],
   );
   const tooltipLinks = useMemo(
     () =>
@@ -90,7 +100,7 @@ function CrossLinks({
         title: l.title,
         to: linkPrefix + l.id,
       })),
-    [crossLinks, linkPrefix, maxLinks],
+    [crossLinks, maxLinks],
   );
 
   return (
@@ -110,5 +120,3 @@ function CrossLinks({
     </StyledCrossLinks>
   );
 }
-
-export default memo(CrossLinks);

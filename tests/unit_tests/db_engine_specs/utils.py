@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, TYPE_CHECKING
+from typing import Any, Dict, Optional, Type, TYPE_CHECKING
 
 from sqlalchemy import types
 
@@ -28,11 +28,11 @@ if TYPE_CHECKING:
 
 
 def assert_convert_dttm(
-    db_engine_spec: type[BaseEngineSpec],
+    db_engine_spec: Type[BaseEngineSpec],
     target_type: str,
-    expected_result: str | None,
+    expected_result: Optional[str],
     dttm: datetime,
-    db_extra: dict[str, Any] | None = None,
+    db_extra: Optional[Dict[str, Any]] = None,
 ) -> None:
     for target in (
         target_type,
@@ -50,10 +50,10 @@ def assert_convert_dttm(
 
 
 def assert_column_spec(
-    db_engine_spec: type[BaseEngineSpec],
+    db_engine_spec: Type[BaseEngineSpec],
     native_type: str,
-    sqla_type: type[types.TypeEngine],
-    attrs: dict[str, Any] | None,
+    sqla_type: Type[types.TypeEngine],
+    attrs: Optional[Dict[str, Any]],
     generic_type: GenericDataType,
     is_dttm: bool,
 ) -> None:

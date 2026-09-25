@@ -26,8 +26,9 @@ import { DASHBOARD_ROOT_ID } from 'src/dashboard/util/constants';
 import { logging, NativeFilterScope, t } from '@superset-ui/core';
 import { BuildTreeLeafTitle, TreeItem } from './types';
 
-export const isShowTypeInTree = ({ type }: LayoutItem) =>
-  type === TAB_TYPE || type === CHART_TYPE || type === DASHBOARD_ROOT_TYPE;
+export const isShowTypeInTree = ({ type, meta }: LayoutItem, charts?: Charts) =>
+  (type === TAB_TYPE || type === CHART_TYPE || type === DASHBOARD_ROOT_TYPE) &&
+  (!charts || charts[meta?.chartId]?.form_data?.viz_type !== 'filter_box');
 
 export const getNodeTitle = (node: LayoutItem) =>
   node?.meta?.sliceNameOverride ??
@@ -50,7 +51,7 @@ export const buildTree = (
   if (
     node &&
     treeItem &&
-    isShowTypeInTree(node) &&
+    isShowTypeInTree(node, charts) &&
     node.type !== DASHBOARD_ROOT_TYPE &&
     validNodes?.includes?.(node.id)
   ) {
@@ -190,3 +191,8 @@ export const getDefaultScopeValue = (
     ? [chartId, ...initiallyExcludedCharts]
     : initiallyExcludedCharts,
 });
+
+export const isScopingAll = (scope: NativeFilterScope, chartId?: number) =>
+  !scope ||
+  (scope.rootPath[0] === DASHBOARD_ROOT_ID &&
+    !scope.excluded.filter(item => item !== chartId).length);

@@ -16,65 +16,63 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { render, screen, waitFor } from 'spec/helpers/testing-library';
 import userEvent from '@testing-library/user-event';
 import { Menu } from 'src/components/Menu';
 import DashboardItems from './DashboardsSubMenu';
 
-const asyncRender = (numberOfItems: number) => {
-  const dashboards = [];
-  for (let i = 1; i <= numberOfItems; i += 1) {
-    dashboards.push({ id: i, dashboard_title: `Dashboard ${i}` });
-  }
-  render(
-    <Menu openKeys={['menu']}>
-      <Menu.SubMenu title="On dashboards" key="menu">
-        <DashboardItems key="menu" dashboards={dashboards} />
-      </Menu.SubMenu>
-    </Menu>,
-    {
-      useRouter: true,
-    },
-  );
-};
+const asyncRender = (numberOfItems: number) =>
+  waitFor(() => {
+    const dashboards = [];
+    for (let i = 1; i <= numberOfItems; i += 1) {
+      dashboards.push({ id: i, dashboard_title: `Dashboard ${i}` });
+    }
+    render(
+      <Menu openKeys={['menu']}>
+        <Menu.SubMenu title="Dashboards added to" key="menu">
+          <DashboardItems key="menu" dashboards={dashboards} />
+        </Menu.SubMenu>
+      </Menu>,
+      {
+        useRouter: true,
+      },
+    );
+  });
 
 test('renders a submenu', async () => {
-  asyncRender(3);
-  await waitFor(() => {
-    expect(screen.getByText('Dashboard 1')).toBeInTheDocument();
-    expect(screen.getByText('Dashboard 2')).toBeInTheDocument();
-    expect(screen.getByText('Dashboard 3')).toBeInTheDocument();
-  });
+  await asyncRender(3);
+  expect(screen.getByText('Dashboard 1')).toBeInTheDocument();
+  expect(screen.getByText('Dashboard 2')).toBeInTheDocument();
+  expect(screen.getByText('Dashboard 3')).toBeInTheDocument();
 });
 
 test('renders a submenu with search', async () => {
-  asyncRender(20);
-  expect(await screen.findByPlaceholderText('Search')).toBeInTheDocument();
+  await asyncRender(20);
+  expect(screen.getByPlaceholderText('Search')).toBeInTheDocument();
 });
 
 test('displays a searched value', async () => {
-  asyncRender(20);
+  await asyncRender(20);
   userEvent.type(screen.getByPlaceholderText('Search'), '2');
-  expect(await screen.findByText('Dashboard 2')).toBeInTheDocument();
-  expect(await screen.findByText('Dashboard 20')).toBeInTheDocument();
+  expect(screen.getByText('Dashboard 2')).toBeInTheDocument();
+  expect(screen.getByText('Dashboard 20')).toBeInTheDocument();
 });
 
 test('renders a "No results found" message when searching', async () => {
-  asyncRender(20);
+  await asyncRender(20);
   userEvent.type(screen.getByPlaceholderText('Search'), 'unknown');
-  expect(await screen.findByText('No results found')).toBeInTheDocument();
+  expect(screen.getByText('No results found')).toBeInTheDocument();
 });
 
 test('renders a submenu with no dashboards', async () => {
-  asyncRender(0);
-  expect(await screen.findByText('None')).toBeInTheDocument();
+  await asyncRender(0);
+  expect(screen.getByText('None')).toBeInTheDocument();
 });
 
 test('shows link icon when hovering', async () => {
-  asyncRender(3);
+  await asyncRender(3);
   expect(screen.queryByRole('img', { name: 'full' })).not.toBeInTheDocument();
-  userEvent.hover(await screen.findByText('Dashboard 1'));
-  expect(
-    (await screen.findAllByRole('img', { name: 'full' }))[0],
-  ).toBeInTheDocument();
+  userEvent.hover(screen.getByText('Dashboard 1'));
+  expect(screen.getByRole('img', { name: 'full' })).toBeInTheDocument();
 });

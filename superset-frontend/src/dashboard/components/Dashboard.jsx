@@ -16,17 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { PureComponent } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { t } from '@superset-ui/core';
+import { isFeatureEnabled, t, FeatureFlag } from '@superset-ui/core';
 
 import { PluginContext } from 'src/components/DynamicPlugins';
 import Loading from 'src/components/Loading';
 import getBootstrapData from 'src/utils/getBootstrapData';
 import getChartIdsFromLayout from '../util/getChartIdsFromLayout';
 import getLayoutComponentFromChartId from '../util/getLayoutComponentFromChartId';
-
-import { slicePropShape } from '../util/propShapes';
+import DashboardBuilder from './DashboardBuilder/DashboardBuilder';
+import {
+  chartPropShape,
+  slicePropShape,
+  dashboardInfoPropShape,
+  dashboardStatePropShape,
+} from '../util/propShapes';
 import {
   LOG_ACTIONS_HIDE_BROWSER_TAB,
   LOG_ACTIONS_MOUNT_DASHBOARD,
@@ -37,7 +42,6 @@ import { areObjectsEqual } from '../../reduxUtils';
 import getLocationHash from '../util/getLocationHash';
 import isDashboardEmpty from '../util/isDashboardEmpty';
 import { getAffectedOwnDataCharts } from '../util/charts/getOwnDataCharts';
-import { getRelatedCharts } from '../util/getRelatedCharts';
 
 const propTypes = {
   actions: PropTypes.shape({
@@ -47,10 +51,9 @@ const propTypes = {
     logEvent: PropTypes.func.isRequired,
     clearDataMaskState: PropTypes.func.isRequired,
   }).isRequired,
-  dashboardId: PropTypes.number.isRequired,
-  editMode: PropTypes.bool,
-  isPublished: PropTypes.bool,
-  hasUnsavedChanges: PropTypes.bool,
+  dashboardInfo: dashboardInfoPropShape.isRequired,
+  dashboardState: dashboardStatePropShape.isRequired,
+  charts: PropTypes.objectOf(chartPropShape).isRequired,
   slices: PropTypes.objectOf(slicePropShape).isRequired,
   activeFilters: PropTypes.object.isRequired,
   chartConfiguration: PropTypes.object,
@@ -58,17 +61,18 @@ const propTypes = {
   ownDataCharts: PropTypes.object.isRequired,
   layout: PropTypes.object.isRequired,
   impressionId: PropTypes.string.isRequired,
+  initMessages: PropTypes.array,
   timeout: PropTypes.number,
   userId: PropTypes.string,
-  children: PropTypes.node,
 };
 
 const defaultProps = {
+  initMessages: [],
   timeout: 60,
   userId: '',
 };
 
-class Dashboard extends PureComponent {
+class Dashboard extends React.PureComponent {
   static contextType = PluginContext;
 
   static onBeforeUnload(hasChanged) {
@@ -94,13 +98,13 @@ class Dashboard extends PureComponent {
 
   componentDidMount() {
     const bootstrapData = getBootstrapData();
-    const { editMode, isPublished, layout } = this.props;
+    const { dashboardState, layout } = this.props;
     const eventData = {
       is_soft_navigation: Logger.timeOriginOffset > 0,
-      is_edit_mode: editMode,
+      is_edit_mode: dashboardState.editMode,
       mount_duration: Logger.getTimestamp(),
       is_empty: isDashboardEmpty(layout),
-      is_published: isPublished,
+      is_published: dashboardState.isPublished,
       bootstrap_data_length: bootstrapData.length,
     };
     const directLinkComponentId = getLocationHash();
@@ -128,7 +132,7 @@ class Dashboard extends PureComponent {
     const currentChartIds = getChartIdsFromLayout(this.props.layout);
     const nextChartIds = getChartIdsFromLayout(nextProps.layout);
 
-    if (this.props.dashboardId !== nextProps.dashboardId) {
+    if (this.props.dashboardInfo.id !== nextProps.dashboardInfo.id) {
       // single-page-app navigation check
       return;
     }
@@ -155,15 +159,14 @@ class Dashboard extends PureComponent {
   }
 
   applyCharts() {
-    const {
-      activeFilters,
-      ownDataCharts,
-      chartConfiguration,
-      hasUnsavedChanges,
-      editMode,
-    } = this.props;
+    const { hasUnsavedChanges, editMode } = this.props.dashboardState;
+
     const { appliedFilters, appliedOwnDataCharts } = this;
-    if (!chartConfiguration) {
+    const { activeFilters, ownDataCharts, chartConfiguration } = this.props;
+    if (
+      isFeatureEnabled(FeatureFlag.DASHBOARD_CROSS_FILTERS) &&
+      !chartConfiguration
+    ) {
       // For a first loading we need to wait for cross filters charts data loaded to get all active filters
       // for correct comparing  of filters to avoid unnecessary requests
       return;
@@ -210,12 +213,16 @@ class Dashboard extends PureComponent {
     }
   }
 
+  // return charts in array
+  getAllCharts() {
+    return Object.values(this.props.charts);
+  }
+
   applyFilters() {
     const { appliedFilters } = this;
-    const { activeFilters, ownDataCharts, slices } = this.props;
+    const { activeFilters, ownDataCharts } = this.props;
 
     // refresh charts if a filter was removed, added, or changed
-
     const currFilterKeys = Object.keys(activeFilters);
     const appliedFilterKeys = Object.keys(appliedFilters);
 
@@ -224,21 +231,16 @@ class Dashboard extends PureComponent {
       ownDataCharts,
       this.appliedOwnDataCharts,
     );
-
     [...allKeys].forEach(filterKey => {
       if (
         !currFilterKeys.includes(filterKey) &&
         appliedFilterKeys.includes(filterKey)
       ) {
         // filterKey is removed?
-        affectedChartIds.push(
-          ...getRelatedCharts(filterKey, appliedFilters[filterKey], slices),
-        );
+        affectedChartIds.push(...appliedFilters[filterKey].scope);
       } else if (!appliedFilterKeys.includes(filterKey)) {
         // filterKey is newly added?
-        affectedChartIds.push(
-          ...getRelatedCharts(filterKey, activeFilters[filterKey], slices),
-        );
+        affectedChartIds.push(...activeFilters[filterKey].scope);
       } else {
         // if filterKey changes value,
         // update charts in its scope
@@ -251,9 +253,7 @@ class Dashboard extends PureComponent {
             },
           )
         ) {
-          affectedChartIds.push(
-            ...getRelatedCharts(filterKey, activeFilters[filterKey], slices),
-          );
+          affectedChartIds.push(...activeFilters[filterKey].scope);
         }
 
         // if filterKey changes scope,
@@ -288,7 +288,11 @@ class Dashboard extends PureComponent {
     if (this.context.loading) {
       return <Loading />;
     }
-    return this.props.children;
+    return (
+      <>
+        <DashboardBuilder />
+      </>
+    );
   }
 }
 

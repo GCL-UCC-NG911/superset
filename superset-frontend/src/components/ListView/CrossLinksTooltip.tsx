@@ -16,13 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ReactNode } from 'react';
+import React from 'react';
 import { styled, t } from '@superset-ui/core';
 import { Tooltip } from 'src/components/Tooltip';
 import { Link } from 'react-router-dom';
 
 export type CrossLinksTooltipProps = {
-  children: ReactNode;
+  children: React.ReactNode;
   crossLinks: { to: string; title: string }[];
   moreItems?: number;
   show: boolean;

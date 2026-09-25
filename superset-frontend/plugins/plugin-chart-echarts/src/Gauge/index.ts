@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { t, Behavior } from '@superset-ui/core';
+import { t, ChartMetadata, ChartPlugin, Behavior } from '@superset-ui/core';
 import controlPanel from './controlPanel';
 import transformProps from './transformProps';
 import thumbnail from './images/thumbnail.png';
@@ -24,9 +24,8 @@ import example1 from './images/example1.jpg';
 import example2 from './images/example2.jpg';
 import buildQuery from './buildQuery';
 import { EchartsGaugeChartProps, EchartsGaugeFormData } from './types';
-import { EchartsChartPlugin } from '../types';
 
-export default class EchartsGaugeChartPlugin extends EchartsChartPlugin<
+export default class EchartsGaugeChartPlugin extends ChartPlugin<
   EchartsGaugeFormData,
   EchartsGaugeChartProps
 > {
@@ -35,12 +34,8 @@ export default class EchartsGaugeChartPlugin extends EchartsChartPlugin<
       buildQuery,
       controlPanel,
       loadChart: () => import('./EchartsGauge'),
-      metadata: {
-        behaviors: [
-          Behavior.InteractiveChart,
-          Behavior.DrillToDetail,
-          Behavior.DrillBy,
-        ],
+      metadata: new ChartMetadata({
+        behaviors: [Behavior.INTERACTIVE_CHART, Behavior.DRILL_TO_DETAIL],
         category: t('KPI'),
         credits: ['https://echarts.apache.org'],
         description: t(
@@ -54,10 +49,9 @@ export default class EchartsGaugeChartPlugin extends EchartsChartPlugin<
           t('Comparison'),
           t('ECharts'),
           t('Report'),
-          t('Featured'),
         ],
         thumbnail,
-      },
+      }),
       transformProps,
     });
   }

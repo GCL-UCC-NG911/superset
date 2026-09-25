@@ -16,25 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import {
-  useEffect,
-  useState,
-  FunctionComponent,
-  MouseEventHandler,
-} from 'react';
-
-import { extendedDayjs } from 'src/utils/dates';
+import React, { useEffect, useState, FunctionComponent } from 'react';
+import moment, { Moment, MomentInput } from 'moment';
 import { t, styled } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
-import dayjs from 'dayjs';
 
 const REFRESH_INTERVAL = 60000; // every minute
 
 interface LastUpdatedProps {
-  updatedAt: string | number | Date | undefined;
-  update?: MouseEventHandler<HTMLSpanElement>;
+  updatedAt: MomentInput;
+  update?: React.MouseEventHandler<HTMLSpanElement>;
 }
-extendedDayjs.updateLocale('en', {
+moment.updateLocale('en', {
   calendar: {
     lastDay: '[Yesterday at] LTS',
     sameDay: '[Today at] LTS',
@@ -63,16 +56,14 @@ export const LastUpdated: FunctionComponent<LastUpdatedProps> = ({
   updatedAt,
   update,
 }) => {
-  const [timeSince, setTimeSince] = useState<dayjs.Dayjs>(
-    extendedDayjs(updatedAt),
-  );
+  const [timeSince, setTimeSince] = useState<Moment>(moment(updatedAt));
 
   useEffect(() => {
-    setTimeSince(() => extendedDayjs(updatedAt));
+    setTimeSince(() => moment(updatedAt));
 
     // update UI every minute in case day changes
     const interval = setInterval(() => {
-      setTimeSince(() => extendedDayjs(updatedAt));
+      setTimeSince(() => moment(updatedAt));
     }, REFRESH_INTERVAL);
 
     return () => clearInterval(interval);

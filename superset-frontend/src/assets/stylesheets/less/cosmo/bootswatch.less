@@ -58,6 +58,10 @@
 
 // Buttons ====================================================================
 
+.btn {
+  text-transform: uppercase;
+}
+
 .btn:focus,
 .btn:active:focus {
   outline: none;
@@ -74,6 +78,21 @@
       background-color: transparent;
       box-shadow: none;
     }
+  }
+}
+
+.caret {
+  border: none;
+  color: @gray;
+
+  &:hover {
+    color: @gray-darker;
+  }
+
+  &:before {
+    font-family: 'FontAwesome';
+    font-size: @font-size-xs;
+    content: '\f078';
   }
 }
 
@@ -489,6 +508,7 @@ a {
 }
 
 .control-label {
+  text-transform: uppercase;
   color: @gray;
   font-size: @font-size-s;
 }

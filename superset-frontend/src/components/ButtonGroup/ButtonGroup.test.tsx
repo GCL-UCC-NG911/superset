@@ -17,6 +17,7 @@
  * under the License.
  */
 
+import React from 'react';
 import { render, screen } from 'spec/helpers/testing-library';
 import Button from 'src/components/Button';
 import ButtonGroup from '.';

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { ReactNode } from 'react';
+import React from 'react';
 import { shallow } from 'enzyme';
 import ChartClient from '../../../src/chart/clients/ChartClient';
 import ChartDataProvider, {
@@ -49,13 +49,14 @@ const mockLoadQueryData = jest.fn<Promise<unknown>, unknown[]>(
   createArrayPromise,
 );
 
-const actual = jest.requireActual('../../../src/chart/clients/ChartClient');
 // ChartClient is now a mock
-jest.spyOn(actual, 'default').mockImplementation(() => ({
-  loadDatasource: mockLoadDatasource,
-  loadFormData: mockLoadFormData,
-  loadQueryData: mockLoadQueryData,
-}));
+jest.mock('../../../src/chart/clients/ChartClient', () =>
+  jest.fn().mockImplementation(() => ({
+    loadDatasource: mockLoadDatasource,
+    loadFormData: mockLoadFormData,
+    loadQueryData: mockLoadQueryData,
+  })),
+);
 
 const ChartClientMock = ChartClient as jest.Mock<ChartClient>;
 
@@ -210,7 +211,7 @@ describe('ChartDataProvider', () => {
 
   describe('children', () => {
     it('calls children({ loading: true }) when loading', () => {
-      const children = jest.fn<ReactNode, unknown[]>();
+      const children = jest.fn<React.ReactNode, unknown[]>();
       setup({ children });
 
       // during the first tick (before more promises resolve) loading is true
@@ -221,7 +222,7 @@ describe('ChartDataProvider', () => {
     it('calls children({ payload }) when loaded', () =>
       new Promise(done => {
         expect.assertions(2);
-        const children = jest.fn<ReactNode, unknown[]>();
+        const children = jest.fn<React.ReactNode, unknown[]>();
         setup({ children, loadDatasource: true });
 
         setTimeout(() => {
@@ -240,7 +241,7 @@ describe('ChartDataProvider', () => {
     it('calls children({ error }) upon request error', () =>
       new Promise(done => {
         expect.assertions(2);
-        const children = jest.fn<ReactNode, unknown[]>();
+        const children = jest.fn<React.ReactNode, unknown[]>();
         mockLoadFormData = jest.fn(() => Promise.reject(new Error('error')));
 
         setup({ children });
@@ -257,7 +258,7 @@ describe('ChartDataProvider', () => {
     it('calls children({ error }) upon JS error', () =>
       new Promise(done => {
         expect.assertions(2);
-        const children = jest.fn<ReactNode, unknown[]>();
+        const children = jest.fn<React.ReactNode, unknown[]>();
 
         mockLoadFormData = jest.fn(() => {
           throw new Error('non-async error');

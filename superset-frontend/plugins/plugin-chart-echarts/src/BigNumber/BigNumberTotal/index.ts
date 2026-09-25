@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { t, Behavior } from '@superset-ui/core';
+import { t, ChartMetadata, ChartPlugin, Behavior } from '@superset-ui/core';
 import controlPanel from './controlPanel';
 import transformProps from './transformProps';
 import buildQuery from './buildQuery';
@@ -24,9 +24,8 @@ import example1 from './images/BigNumber.jpg';
 import example2 from './images/BigNumber2.jpg';
 import thumbnail from './images/thumbnail.png';
 import { BigNumberTotalChartProps, BigNumberTotalFormData } from '../types';
-import { EchartsChartPlugin } from '../../types';
 
-const metadata = {
+const metadata = new ChartMetadata({
   category: t('KPI'),
   description: t(
     'Showcases a single metric front-and-center. Big number is best used to call attention to a KPI or the one thing you want your audience to focus on.',
@@ -39,16 +38,18 @@ const metadata = {
   tags: [
     t('Additive'),
     t('Business'),
+    t('Formattable'),
     t('Legacy'),
     t('Percentages'),
-    t('Featured'),
+    t('Popular'),
     t('Report'),
+    t('Description'),
   ],
   thumbnail,
-  behaviors: [Behavior.DrillToDetail],
-};
+  behaviors: [Behavior.DRILL_TO_DETAIL],
+});
 
-export default class BigNumberTotalChartPlugin extends EchartsChartPlugin<
+export default class BigNumberTotalChartPlugin extends ChartPlugin<
   BigNumberTotalFormData,
   BigNumberTotalChartProps
 > {

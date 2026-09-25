@@ -16,11 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { t, RollingType, ComparisonType } from '@superset-ui/core';
-
-import { ControlSubSectionHeader } from '../components/ControlSubSectionHeader';
 import { ControlPanelSectionConfig } from '../types';
-import { formatSelectOptions, displayTimeRelatedControls } from '../utils';
+import { formatSelectOptions } from '../utils';
 
 export const advancedAnalyticsControls: ControlPanelSectionConfig = {
   label: t('Advanced analytics'),
@@ -30,9 +29,8 @@ export const advancedAnalyticsControls: ControlPanelSectionConfig = {
       'that allow for advanced analytical post processing ' +
       'of query results',
   ),
-  visibility: displayTimeRelatedControls,
   controlSetRows: [
-    [<ControlSubSectionHeader>{t('Rolling window')}</ControlSubSectionHeader>],
+    [<div className="section-header">{t('Rolling window')}</div>],
     [
       {
         name: 'rolling_type',
@@ -101,7 +99,7 @@ export const advancedAnalyticsControls: ControlPanelSectionConfig = {
         },
       },
     ],
-    [<ControlSubSectionHeader>{t('Time comparison')}</ControlSubSectionHeader>],
+    [<div className="section-header">{t('Time comparison')}</div>],
     [
       {
         name: 'time_compare',
@@ -152,7 +150,7 @@ export const advancedAnalyticsControls: ControlPanelSectionConfig = {
         },
       },
     ],
-    [<ControlSubSectionHeader>{t('Resample')}</ControlSubSectionHeader>],
+    [<div className="section-header">{t('Resample')}</div>],
     [
       {
         name: 'resample_rule',

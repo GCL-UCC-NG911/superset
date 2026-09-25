@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { createRef, Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import Button from 'src/components/Button';
 import { styled, t } from '@superset-ui/core';
@@ -24,7 +24,9 @@ import { styled, t } from '@superset-ui/core';
 import ErrorBoundary from 'src/components/ErrorBoundary';
 import Tabs from 'src/components/Tabs';
 import adhocMetricType from 'src/explore/components/controls/MetricControl/adhocMetricType';
-import AdhocFilter from 'src/explore/components/controls/FilterControl/AdhocFilter';
+import AdhocFilter, {
+  EXPRESSION_TYPES,
+} from 'src/explore/components/controls/FilterControl/AdhocFilter';
 import AdhocFilterEditPopoverSimpleTabContent from 'src/explore/components/controls/FilterControl/AdhocFilterEditPopoverSimpleTabContent';
 import AdhocFilterEditPopoverSqlTabContent from 'src/explore/components/controls/FilterControl/AdhocFilterEditPopoverSqlTabContent';
 import columnType from 'src/explore/components/controls/FilterControl/columnType';
@@ -32,7 +34,6 @@ import {
   POPOVER_INITIAL_HEIGHT,
   POPOVER_INITIAL_WIDTH,
 } from 'src/explore/constants';
-import { ExpressionTypes } from '../types';
 
 const propTypes = {
   adhocFilter: PropTypes.instanceOf(AdhocFilter).isRequired,
@@ -73,12 +74,11 @@ const FilterPopoverContentContainer = styled.div`
 
   .filter-edit-clause-info {
     font-size: ${({ theme }) => theme.typography.sizes.xs}px;
+    padding-left: ${({ theme }) => theme.gridUnit}px;
   }
 
   .filter-edit-clause-section {
-    display: flex;
-    flex-direction: row;
-    gap: ${({ theme }) => theme.gridUnit * 5}px;
+    display: inline-flex;
   }
 
   .adhoc-filter-simple-column-dropdown {
@@ -90,7 +90,7 @@ const FilterActionsContainer = styled.div`
   margin-top: ${({ theme }) => theme.gridUnit * 2}px;
 `;
 
-export default class AdhocFilterEditPopover extends Component {
+export default class AdhocFilterEditPopover extends React.Component {
   constructor(props) {
     super(props);
     this.onSave = this.onSave.bind(this);
@@ -110,7 +110,7 @@ export default class AdhocFilterEditPopover extends Component {
       isSimpleTabValid: true,
     };
 
-    this.popoverContentRef = createRef();
+    this.popoverContentRef = React.createRef();
   }
 
   componentDidMount() {
@@ -151,7 +151,7 @@ export default class AdhocFilterEditPopover extends Component {
         POPOVER_INITIAL_WIDTH,
       ),
       height: Math.max(
-        this.dragStartHeight + (e.clientY - this.dragStartY),
+        this.dragStartHeight + (e.clientY - this.dragStartY) * 2,
         POPOVER_INITIAL_HEIGHT,
       ),
     });
@@ -209,7 +209,7 @@ export default class AdhocFilterEditPopover extends Component {
         >
           <Tabs.TabPane
             className="adhoc-filter-edit-tab"
-            key={ExpressionTypes.Simple}
+            key={EXPRESSION_TYPES.SIMPLE}
             tab={t('Simple')}
           >
             <ErrorBoundary>
@@ -228,7 +228,7 @@ export default class AdhocFilterEditPopover extends Component {
           </Tabs.TabPane>
           <Tabs.TabPane
             className="adhoc-filter-edit-tab"
-            key={ExpressionTypes.Sql}
+            key={EXPRESSION_TYPES.SQL}
             tab={t('Custom SQL')}
           >
             <ErrorBoundary>

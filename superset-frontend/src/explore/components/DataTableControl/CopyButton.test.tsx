@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { render, screen } from 'spec/helpers/testing-library';
 
 import { CopyButton } from '.';

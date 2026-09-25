@@ -17,10 +17,9 @@
  * under the License.
  */
 
-import '@testing-library/jest-dom';
-import { ComponentType } from 'react';
+import React from 'react';
+import { shallow } from 'enzyme';
 import mockConsole, { RestoreConsole } from 'jest-mock-console';
-import { render as renderTestComponent, screen } from '@testing-library/react';
 import createLoadableRenderer, {
   LoadableRenderer as LoadableRendererType,
 } from '../../../src/chart/components/createLoadableRenderer';
@@ -30,7 +29,7 @@ describe('createLoadableRenderer', () => {
     return <div className="test-component">test</div>;
   }
   let loadChartSuccess = jest.fn(() => Promise.resolve(TestComponent));
-  let render: (loaded: { Chart: ComponentType }) => JSX.Element;
+  let render: (loaded: { Chart: React.ComponentType }) => JSX.Element;
   let loading: () => JSX.Element;
   let LoadableRenderer: LoadableRendererType<{}>;
   let restoreConsole: RestoreConsole;
@@ -68,7 +67,7 @@ describe('createLoadableRenderer', () => {
     it('calls onRenderSuccess when succeeds', async () => {
       const onRenderSuccess = jest.fn();
       const onRenderFailure = jest.fn();
-      renderTestComponent(
+      shallow(
         <LoadableRenderer
           onRenderSuccess={onRenderSuccess}
           onRenderFailure={onRenderFailure}
@@ -96,7 +95,7 @@ describe('createLoadableRenderer', () => {
         });
         const onRenderSuccess = jest.fn();
         const onRenderFailure = jest.fn();
-        renderTestComponent(
+        shallow(
           <FailedRenderer
             onRenderSuccess={onRenderSuccess}
             onRenderFailure={onRenderFailure}
@@ -123,7 +122,7 @@ describe('createLoadableRenderer', () => {
           loading,
           render,
         });
-        renderTestComponent(<FailedRenderer />);
+        shallow(<FailedRenderer />);
         expect(loadChartFailure).toHaveBeenCalledTimes(1);
         setTimeout(() => {
           expect(render).not.toHaveBeenCalled();
@@ -133,12 +132,12 @@ describe('createLoadableRenderer', () => {
 
     it('renders the lazy-load components', () =>
       new Promise(done => {
-        renderTestComponent(<LoadableRenderer />);
+        const wrapper = shallow(<LoadableRenderer />);
         // lazy-loaded component not rendered immediately
-        expect(screen.queryByText('test')).not.toBeInTheDocument();
+        expect(wrapper.find(TestComponent)).toHaveLength(0);
         setTimeout(() => {
           // but rendered after the component is loaded.
-          expect(screen.queryByText('test')).toBeInTheDocument();
+          expect(wrapper.find(TestComponent)).toHaveLength(1);
           done(undefined);
         }, 10);
       }));
@@ -150,7 +149,7 @@ describe('createLoadableRenderer', () => {
         render: () => <div />,
       });
 
-      expect(() => renderTestComponent(<NeverLoadingRenderer />)).not.toThrow();
+      expect(() => shallow(<NeverLoadingRenderer />)).not.toThrow();
     });
   });
 });

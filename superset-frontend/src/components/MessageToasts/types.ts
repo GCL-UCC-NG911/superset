@@ -17,10 +17,10 @@
  * under the License.
  */
 export enum ToastType {
-  Info = 'INFO_TOAST',
-  Success = 'SUCCESS_TOAST',
-  Warning = 'WARNING_TOAST',
-  Danger = 'DANGER_TOAST',
+  INFO = 'INFO_TOAST',
+  SUCCESS = 'SUCCESS_TOAST',
+  WARNING = 'WARNING_TOAST',
+  DANGER = 'DANGER_TOAST',
 }
 
 export interface ToastMeta {

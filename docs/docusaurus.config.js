@@ -20,8 +20,8 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require("prism-react-renderer").themes.github;
-const darkCodeTheme = require("prism-react-renderer").themes.vsDark;
+const lightCodeTheme = require('prism-react-renderer/themes/github');
+const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -32,7 +32,7 @@ const config = {
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
-  favicon: '/img/favicon.ico',
+  favicon: 'img/favicon.ico',
   organizationName: 'apache', // Usually your GitHub org/user name.
   projectName: 'superset', // Usually your repo name.
   themes: ['@saucelabs/theme-github-codeblock'],
@@ -52,7 +52,7 @@ const config = {
         toExtensions: ['exe', 'zip'],
         redirects: [
           {
-            to: '/docs/installation/docker-compose',
+            to: '/docs/installation/installing-superset-using-docker-compose',
             from: '/installation.html',
           },
           {
@@ -60,19 +60,19 @@ const config = {
             from: '/tutorials.html',
           },
           {
-            to: '/docs/using-superset/creating-your-first-dashboard',
+            to: '/docs/creating-charts-dashboards/creating-your-first-dashboard',
             from: '/admintutorial.html',
           },
           {
-            to: '/docs/using-superset/creating-your-first-dashboard',
+            to: '/docs/creating-charts-dashboards/creating-your-first-dashboard',
             from: '/usertutorial.html',
           },
           {
-            to: '/docs/security/',
+            to: '/docs/security',
             from: '/security.html',
           },
           {
-            to: '/docs/configuration/sql-templating',
+            to: '/docs/installation/sql-templating',
             from: '/sqllab.html',
           },
           {
@@ -80,31 +80,31 @@ const config = {
             from: '/gallery.html',
           },
           {
-            to: '/docs/configuration/databases',
+            to: '/docs/databases/druid',
             from: '/druid.html',
           },
           {
-            to: '/docs/configuration/country-map-tools',
+            to: '/docs/miscellaneous/country-map-tools',
             from: '/misc.html',
           },
           {
-            to: '/docs/configuration/country-map-tools',
+            to: '/docs/miscellaneous/country-map-tools',
             from: '/visualization.html',
           },
           {
-            to: '/docs/faq',
+            to: '/docs/frequently-asked-questions',
             from: '/videos.html',
           },
           {
-            to: '/docs/faq',
+            to: '/docs/frequently-asked-questions',
             from: '/faq.html',
           },
           {
-            to: '/docs/using-superset/creating-your-first-dashboard',
+            to: '/docs/creating-charts-dashboards/creating-your-first-dashboard',
             from: '/tutorial.html',
           },
           {
-            to: '/docs/using-superset/creating-your-first-dashboard',
+            to: '/docs/creating-charts-dashboards/creating-your-first-dashboard',
             from: '/docs/creating-charts-dashboards/first-dashboard',
           },
           {
@@ -112,84 +112,20 @@ const config = {
             from: '/docs/rest-api',
           },
           {
-            to: '/docs/configuration/alerts-reports',
-            from: '/docs/installation/alerts-reports',
-          },
-          {
-            to: '/docs/contributing/development',
-            from: '/docs/contributing/hooks-and-linting',
+            to: '/docs/installation/alerts-reports',
+            from: '/docs/installation/email-reports',
           },
           {
             to: '/docs/intro',
             from: '/docs/roadmap',
           },
           {
-            to: '/docs/contributing/',
+            to: '/docs/contributing/contributing-page',
             from: '/docs/contributing/contribution-guidelines',
           },
           {
-            to: '/docs/contributing/',
-            from: '/docs/contributing/contribution-page',
-          },
-          {
-            to: '/docs/configuration/databases',
+            to: '/docs/databases/yugabytedb',
             from: '/docs/databases/yugabyte/',
-          },
-          {
-            to: '/docs/faq',
-            from: '/docs/frequently-asked-questions',
-          },
-          {
-            to: '/docs/installation/kubernetes',
-            from: '/docs/installation/running-on-kubernetes/',
-          },
-          {
-            to: '/docs/contributing/howtos',
-            from: '/docs/contributing/testing-locally/',
-          },
-          {
-            to: '/docs/using-superset/creating-your-first-dashboard',
-            from: '/docs/creating-charts-dashboards/creating-your-first-dashboard/',
-          },
-          {
-            to: '/docs/using-superset/creating-your-first-dashboard',
-            from: '/docs/creating-charts-dashboards/exploring-data/',
-          },
-          {
-            to: '/docs/installation/docker-compose',
-            from: '/docs/installation/installing-superset-using-docker-compose/',
-          },
-          {
-            to: '/docs/contributing/howtos',
-            from: '/docs/contributing/creating-viz-plugins/',
-          },
-          {
-            to: '/docs/installation/kubernetes',
-            from: '/docs/installation/',
-          },
-          {
-            to: '/docs/installation/pypi',
-            from: '/docs/installation/installing-superset-from-pypi/',
-          },
-          {
-            to: '/docs/configuration/configuring-superset',
-            from: '/docs/installation/configuring-superset/',
-          },
-          {
-            to: '/docs/configuration/cache',
-            from: '/docs/installation/cache/',
-          },
-          {
-            to: '/docs/configuration/async-queries-celery',
-            from: '/docs/installation/async-queries-celery/',
-          },
-          {
-            to: '/docs/configuration/event-logging',
-            from: '/docs/installation/event-logging/',
-          },
-          {
-            to: '/docs/contributing/howtos',
-            from: '/docs/contributing/translations/',
           },
         ],
       },
@@ -203,21 +139,24 @@ const config = {
       ({
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl:
-          ({versionDocsDirPath, docPath}) => {
-            if (docPath === 'intro.md') {
-              return 'https://github.com/apache/superset/edit/master/README.md'
-            }
-            return `https://github.com/apache/superset/edit/master/docs/${versionDocsDirPath}/${docPath}`
-          }
+          editUrl: 'https://github.com/apache/superset/tree/master/docs',
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
-          editUrl: 'https://github.com/facebook/docusaurus/edit/main/website/blog/',
+          editUrl:
+            'https://github.com/facebook/docusaurus/edit/main/website/blog/',
         },
         theme: {
           customCss: require.resolve('./src/styles/custom.css'),
+        },
+        googleAnalytics: {
+          trackingID: 'G-133LHD3B3N',
+          anonymizeIP: true,
+        },
+        gtag: {
+          trackingID: 'G-133LHD3B3N',
+          anonymizeIP: true,
         },
       }),
     ],
@@ -232,19 +171,18 @@ const config = {
       },
       algolia: {
         appId: 'WR5FASX5ED',
-        apiKey: 'd0d22810f2e9b614ffac3a73b26891fe',
+        apiKey: '299e4601d2fc5d0031bf9a0223c7f0c5',
         indexName: 'superset-apache',
       },
       navbar: {
         logo: {
           alt: 'Superset Logo',
-          src: '/img/superset-logo-horiz.svg',
-          srcDark: '/img/superset-logo-horiz-dark.svg',
+          src: 'img/superset-logo-horiz.svg',
+          srcDark: 'img/superset-logo-horiz-dark.svg',
         },
         items: [
           {
             label: 'Documentation',
-            to: '/docs/intro',
             items: [
               {
                 label: 'Getting Started',
@@ -252,13 +190,12 @@ const config = {
               },
               {
                 label: 'FAQ',
-                to: '/docs/faq',
+                to: '/docs/frequently-asked-questions',
               },
             ],
           },
           {
             label: 'Community',
-            to: '/community',
             items: [
               {
                 label: 'Resources',
@@ -278,66 +215,39 @@ const config = {
               },
               {
                 label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/apache-superset',
+                href: 'https://stackoverflow.com/questions/tagged/superset+apache-superset',
               },
             ],
           },
           {
-            href: '/docs/intro',
-            position: 'right',
-            className: 'default-button-theme get-started-button',
-            label: 'Get Started',
-          },
-          {
             href: 'https://github.com/apache/superset',
             position: 'right',
-            className: 'github-button',
+            class: 'github-logo-container',
           },
         ],
       },
       footer: {
+        style: 'dark',
         links: [],
-        copyright: `
-          <div class="footer__applitools">
-            We use &nbsp;<a href="https://applitools.com/" target="_blank" rel="nofollow"><img src="/img/applitools.png" title="Applitools" /></a>
-          </div>
-          <p>Copyright © ${new Date().getFullYear()},
-          The <a href="https://www.apache.org/" target="_blank" rel="noreferrer">Apache Software Foundation</a>,
-          Licensed under the Apache <a href="https://apache.org/licenses/LICENSE-2.0" target="_blank" rel="noreferrer">License</a>.</p>
-          <p><small>Apache Superset, Apache, Superset, the Superset logo, and the Apache feather logo are either registered trademarks or trademarks of The Apache Software Foundation. All other products or name brands are trademarks of their respective holders, including The Apache Software Foundation.
-          <a href="https://www.apache.org/" target="_blank">Apache Software Foundation</a> resources</small></p>
-          <img class="footer__divider" src="/img/community/line.png" alt="Divider" />
-          <p>
-            <small>
-              <a href="/docs/security/" target="_blank" rel="noreferrer">Security</a>&nbsp;|&nbsp;
-              <a href="https://www.apache.org/foundation/sponsorship.html" target="_blank" rel="noreferrer">Donate</a>&nbsp;|&nbsp;
-              <a href="https://www.apache.org/foundation/thanks.html" target="_blank" rel="noreferrer">Thanks</a>&nbsp;|&nbsp;
-              <a href="https://apache.org/events/current-event" target="_blank" rel="noreferrer">Events</a>&nbsp;|&nbsp;
-              <a href="https://apache.org/licenses/" target="_blank" rel="noreferrer">License</a>&nbsp;|&nbsp;
-              <a href="https://privacy.apache.org/policies/privacy-policy-public.html" target="_blank" rel="noreferrer">Privacy</a>
-            </small>
-          </p>
-          <!-- telemetry/analytics pixel: -->
-          <img referrerPolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=39ae6855-95fc-4566-86e5-360d542b0a68" />
-          `,
+        copyright: `Copyright © ${new Date().getFullYear()},
+        The <a href="https://www.apache.org/" target="_blank" rel="noreferrer">Apache Software Foundation</a>,
+        Licensed under the Apache <a href="https://apache.org/licenses/LICENSE-2.0" target="_blank" rel="noreferrer">License</a>. <br/>
+        <small>Apache Superset, Apache, Superset, the Superset logo, and the Apache feather logo are either registered trademarks or trademarks of The Apache Software Foundation. All other products or name brands are trademarks of their respective holders, including The Apache Software Foundation.
+        <a href="https://www.apache.org/" target="_blank">Apache Software Foundation</a> resources</small><br />
+        <small>
+        <a href="https://www.apache.org/security/" target="_blank" rel="noreferrer">Security</a>&nbsp;|&nbsp;
+        <a href="https://www.apache.org/foundation/sponsorship.html" target="_blank" rel="noreferrer">Donate</a>&nbsp;|&nbsp;
+        <a href="https://www.apache.org/foundation/thanks.html" target="_blank" rel="noreferrer">Thanks</a>&nbsp;|&nbsp;
+        <a href="https://apache.org/events/current-event" target="_blank" rel="noreferrer">Events</a>&nbsp;|&nbsp;
+        <a href="https://apache.org/licenses/" target="_blank" rel="noreferrer">License</a>
+        </small>`,
       },
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
       },
-      docs: {
-        sidebar: {
-          hideable: true,
-        }
-      },
     }),
-  scripts: [
-    '/script/matomo.js',
-    // {
-    //   src: 'https://www.bugherd.com/sidebarv2.js?apikey=enilpiu7bgexxsnoqfjtxa',
-    //   async: true,
-    // },
-  ],
+  scripts: ['/script/matomo.js'],
 };
 
 module.exports = config;

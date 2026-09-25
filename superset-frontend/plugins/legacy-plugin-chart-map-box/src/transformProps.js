@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import Supercluster from 'supercluster';
+import supercluster from 'supercluster';
 import { DEFAULT_POINT_RADIUS, DEFAULT_MAX_ZOOM } from './MapBox';
 
 const NOOP = () => {};
@@ -72,7 +72,7 @@ export default function transformProps(chartProps) {
       /* eslint-enable no-param-reassign */
     };
   }
-  const clusterer = new Supercluster(opts);
+  const clusterer = supercluster(opts);
   clusterer.load(geoJSON.features);
 
   return {

@@ -24,7 +24,6 @@ Revises: 5e4a03ef0bf0
 Create Date: 2016-09-22 10:21:33.618976
 
 """
-
 import logging
 
 import sqlalchemy as sa

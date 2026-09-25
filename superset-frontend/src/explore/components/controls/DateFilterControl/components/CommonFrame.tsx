@@ -16,12 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { t } from '@superset-ui/core';
 import { Radio } from 'src/components/Radio';
 import {
   COMMON_RANGE_OPTIONS,
   COMMON_RANGE_SET,
-  DateFilterTestKey,
+  DATE_FILTER_TEST_KEY,
 } from 'src/explore/components/controls/DateFilterControl/utils';
 import {
   CommonRangeType,
@@ -38,21 +39,22 @@ export function CommonFrame(props: FrameComponentProps) {
 
   return (
     <>
-      <div className="section-title" data-test={DateFilterTestKey.CommonFrame}>
+      <div
+        className="section-title"
+        data-test={DATE_FILTER_TEST_KEY.commonFrame}
+      >
         {t('Configure Time Range: Last...')}
       </div>
-      <Radio.GroupWrapper
-        spaceConfig={{
-          direction: 'vertical',
-          size: 15,
-          align: 'start',
-          wrap: false,
-        }}
-        size="large"
+      <Radio.Group
         value={commonRange}
         onChange={(e: any) => props.onChange(e.target.value)}
-        options={COMMON_RANGE_OPTIONS}
-      />
+      >
+        {COMMON_RANGE_OPTIONS.map(({ value, label }) => (
+          <Radio key={value} value={value} className="vertical-radio">
+            {label}
+          </Radio>
+        ))}
+      </Radio.Group>
     </>
   );
 }

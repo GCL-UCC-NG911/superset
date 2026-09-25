@@ -17,6 +17,8 @@
  * under the License.
  */
 
+import React from 'react';
+
 export type Props = {
   error: Error;
 };

@@ -16,8 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { DataMask, Filters } from '@superset-ui/core';
-import { SaveFilterChangesType } from 'src/dashboard/components/nativeFilters/FiltersConfigModal/types';
+import { DataMask, FilterConfiguration, Filters } from '@superset-ui/core';
+import { FeatureFlag, isFeatureEnabled } from '../featureFlags';
 import { getInitialDataMask } from './reducer';
 
 export const CLEAR_DATA_MASK_STATE = 'CLEAR_DATA_MASK_STATE';
@@ -38,33 +38,44 @@ export interface INITDATAMASK {
   dataMask: DataMask;
 }
 
-export const SET_DATA_MASK_FOR_FILTER_CHANGES_COMPLETE =
-  'SET_DATA_MASK_FOR_FILTER_CHANGES_COMPLETE';
-export interface SetDataMaskForFilterChangesComplete {
-  type: typeof SET_DATA_MASK_FOR_FILTER_CHANGES_COMPLETE;
-  filterChanges: SaveFilterChangesType;
+export const SET_DATA_MASK_FOR_FILTER_CONFIG_COMPLETE =
+  'SET_DATA_MASK_FOR_FILTER_CONFIG_COMPLETE';
+
+export interface SetDataMaskForFilterConfigComplete {
+  type: typeof SET_DATA_MASK_FOR_FILTER_CONFIG_COMPLETE;
+  filterConfig: FilterConfiguration;
   filters?: Filters;
 }
 
-export function setDataMaskForFilterChangesComplete(
-  filterChanges: SaveFilterChangesType,
+export const SET_DATA_MASK_FOR_FILTER_CONFIG_FAIL =
+  'SET_DATA_MASK_FOR_FILTER_CONFIG_FAIL';
+
+export interface SetDataMaskForFilterConfigFail {
+  type: typeof SET_DATA_MASK_FOR_FILTER_CONFIG_FAIL;
+  filterConfig: FilterConfiguration;
+}
+export function setDataMaskForFilterConfigComplete(
+  filterConfig: FilterConfiguration,
   filters?: Filters,
-): SetDataMaskForFilterChangesComplete {
+): SetDataMaskForFilterConfigComplete {
   return {
-    type: SET_DATA_MASK_FOR_FILTER_CHANGES_COMPLETE,
-    filterChanges,
+    type: SET_DATA_MASK_FOR_FILTER_CONFIG_COMPLETE,
+    filterConfig,
     filters,
   };
 }
-
 export function updateDataMask(
   filterId: string | number,
   dataMask: DataMask,
 ): UpdateDataMask {
+  // Only apply data mask if one of the relevant features is enabled
+  const isFeatureFlagActive =
+    isFeatureEnabled(FeatureFlag.DASHBOARD_NATIVE_FILTERS) ||
+    isFeatureEnabled(FeatureFlag.DASHBOARD_CROSS_FILTERS);
   return {
     type: UPDATE_DATA_MASK,
     filterId,
-    dataMask,
+    dataMask: isFeatureFlagActive ? dataMask : {},
   };
 }
 
@@ -81,4 +92,5 @@ export function clearDataMaskState(): ClearDataMaskState {
 export type AnyDataMaskAction =
   | ClearDataMaskState
   | UpdateDataMask
-  | SetDataMaskForFilterChangesComplete;
+  | SetDataMaskForFilterConfigFail
+  | SetDataMaskForFilterConfigComplete;

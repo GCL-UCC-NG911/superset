@@ -59,8 +59,8 @@ export interface FormDataResidual {
 }
 
 export enum QueryMode {
-  Aggregate = 'aggregate',
-  Raw = 'raw',
+  aggregate = 'aggregate',
+  raw = 'raw',
 }
 
 /**
@@ -105,7 +105,7 @@ export type QueryFormExtraFilter = {
     }
 );
 
-/** These properties will be appended to those preexisting in the form data/query object */
+/** These properties will be appended to those pre-existing in the form data/query object */
 export type ExtraFormDataAppend = {
   adhoc_filters?: AdhocFilter[];
   filters?: QueryObjectFilterClause[];

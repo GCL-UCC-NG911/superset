@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
 import { render, screen, fireEvent } from 'spec/helpers/testing-library';
 import userEvent from '@testing-library/user-event';
 import { waitFor } from '@testing-library/react';
@@ -28,7 +29,7 @@ const createProps = (): Partial<PopoverProps> => ({
   content: <span data-test="control-popover-content">Information</span>,
 });
 
-const TestComponent: globalThis.React.FC<PopoverProps> = props => (
+const TestComponent: React.FC<PopoverProps> = props => (
   <div id="controlSections">
     <div data-test="outer-container">
       <ControlPopover {...props}>
@@ -41,7 +42,7 @@ const TestComponent: globalThis.React.FC<PopoverProps> = props => (
 const setupTest = (props: Partial<PopoverProps> = createProps()) => {
   const setStateMock = jest.fn();
   jest
-    .spyOn(global.React, 'useState')
+    .spyOn(React, 'useState')
     .mockImplementation(((state: any) => [
       state,
       state === 'right' ? setStateMock : jest.fn(),

@@ -21,7 +21,6 @@ import {
   DataMask,
   NativeFilterType,
   NativeFilterScope,
-  Filter,
 } from '@superset-ui/core';
 
 export interface NativeFiltersFormItem {
@@ -46,12 +45,12 @@ export interface NativeFiltersFormItem {
   adhoc_filters?: AdhocFilter[];
   time_range?: string;
   granularity_sqla?: string;
-  type: typeof NativeFilterType.NativeFilter;
+  type: typeof NativeFilterType.NATIVE_FILTER;
   description: string;
 }
 export interface NativeFilterDivider {
   id: string;
-  type: typeof NativeFilterType.Divider;
+  type: typeof NativeFilterType.DIVIDER;
   title: string;
   description: string;
 }
@@ -60,16 +59,6 @@ export interface NativeFiltersForm {
   filters: Record<string, NativeFiltersFormItem | NativeFilterDivider>;
   changed?: boolean;
 }
-
-export type FilterChangesType = {
-  modified: string[];
-  deleted: string[];
-  reordered: string[];
-};
-
-export type SaveFilterChangesType = {
-  modified: Filter[];
-} & Omit<FilterChangesType, 'modified'>;
 
 export type FilterRemoval =
   | null

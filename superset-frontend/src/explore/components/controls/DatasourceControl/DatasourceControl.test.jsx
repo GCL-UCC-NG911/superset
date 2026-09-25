@@ -16,18 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import React from 'react';
+import sinon from 'sinon';
 import configureStore from 'redux-mock-store';
-import { DatasourceType } from '@superset-ui/core';
+import { mount, shallow } from 'enzyme';
 import {
-  fireEvent,
-  waitFor,
-  screen,
-  render,
-} from 'spec/helpers/testing-library';
-import userEvent from '@testing-library/user-event';
+  supersetTheme,
+  ThemeProvider,
+  DatasourceType,
+} from '@superset-ui/core';
+import { Menu } from 'src/components/Menu';
+import {
+  DatasourceModal,
+  ChangeDatasourceModal,
+} from 'src/components/Datasource';
 import DatasourceControl, {
   getDatasourceTitle,
 } from 'src/explore/components/controls/DatasourceControl';
+import Icons from 'src/components/Icons';
+import { Tooltip } from 'src/components/Tooltip';
 
 const defaultProps = {
   name: 'datasource',
@@ -48,9 +55,9 @@ const defaultProps = {
     health_check_message: 'Warning message!',
   },
   actions: {
-    setDatasource: jest.fn(),
+    setDatasource: sinon.spy(),
   },
-  onChange: jest.fn(),
+  onChange: sinon.spy(),
   user: {
     createdOn: '2021-04-27T18:12:38.952304',
     email: 'admin',
@@ -65,74 +72,59 @@ const defaultProps = {
 };
 
 describe('DatasourceControl', () => {
-  const setup = (overrideProps = {}) => {
+  function setup(overrideProps) {
     const mockStore = configureStore([]);
     const store = mockStore({});
     const props = {
       ...defaultProps,
       ...overrideProps,
     };
-    return {
-      rendered: render(<DatasourceControl {...props} />, {
-        useRedux: true,
-        useRouter: true,
-        store,
-      }),
-      store,
-      props,
-    };
-  };
+    return mount(<DatasourceControl {...props} />, {
+      context: { store },
+      wrappingComponent: ThemeProvider,
+      wrappingComponentProps: { theme: supersetTheme },
+    });
+  }
 
   it('should not render Modal', () => {
-    setup();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    const wrapper = setup();
+    expect(wrapper.find(DatasourceModal)).toHaveLength(0);
   });
 
   it('should not render ChangeDatasourceModal', () => {
-    setup();
-    expect(screen.queryByTestId('Swap dataset-modal')).not.toBeInTheDocument();
+    const wrapper = setup();
+    expect(wrapper.find(ChangeDatasourceModal)).toHaveLength(0);
   });
 
-  it('show or hide Edit Datasource option', async () => {
-    const {
-      rendered: { container, rerender },
-      store,
-      props,
-    } = setup();
-    expect(
-      container.querySelector('[data-test="datasource-menu-trigger"]'),
-    ).toBeInTheDocument();
-    userEvent.click(screen.getByLabelText('more-vert'));
-    await waitFor(() => {
-      expect(screen.queryAllByRole('menuitem')).toHaveLength(3);
-    });
+  it('show or hide Edit Datasource option', () => {
+    let wrapper = setup();
+    expect(wrapper.find('[data-test="datasource-menu"]')).toExist();
+    let menuWrapper = shallow(
+      <div>
+        {wrapper.find('[data-test="datasource-menu"]').first().prop('overlay')}
+      </div>,
+    );
+    expect(menuWrapper.find(Menu.Item)).toHaveLength(3);
 
-    rerender(<DatasourceControl {...{ ...props, isEditable: false }} />, {
-      useRedux: true,
-      useRouter: true,
-      store,
+    wrapper = setup({
+      isEditable: false,
     });
-    expect(
-      container.querySelector('[data-test="datasource-menu-trigger"]'),
-    ).toBeInTheDocument();
-    userEvent.click(screen.getByLabelText('more-vert'));
-    await waitFor(() => {
-      expect(screen.queryAllByRole('menuitem')).toHaveLength(2);
-    });
+    expect(wrapper.find('[data-test="datasource-menu"]')).toExist();
+    menuWrapper = shallow(
+      <div>
+        {wrapper.find('[data-test="datasource-menu"]').first().prop('overlay')}
+      </div>,
+    );
+    expect(menuWrapper.find(Menu.Item)).toHaveLength(2);
   });
 
-  it('should render health check message', async () => {
-    setup();
-    const modalTrigger = screen.getByLabelText('alert-solid');
-    expect(modalTrigger).toBeInTheDocument();
-
-    // Hover the modal so healthcheck message can show up
-    fireEvent.mouseOver(modalTrigger);
-    await waitFor(() => {
-      expect(
-        screen.getByText(defaultProps.datasource.health_check_message),
-      ).toBeInTheDocument();
-    });
+  it('should render health check message', () => {
+    const wrapper = setup();
+    expect(wrapper.find(Icons.AlertSolid)).toExist();
+    const tooltip = wrapper.find(Tooltip).at(0);
+    expect(tooltip.prop('title')).toBe(
+      defaultProps.datasource.health_check_message,
+    );
   });
 
   it('Gets Datasource Title', () => {

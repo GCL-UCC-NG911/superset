@@ -16,10 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { styled } from '@superset-ui/core';
 import { Dropdown, IconOrientation } from 'src/components/Dropdown';
-import { Menu, MenuProps } from 'src/components/Menu';
+import { Menu } from 'src/components/Menu';
+import { MenuProps } from 'antd/lib/menu';
 
 /**
  * Props interface for Action Cell Renderer
@@ -95,7 +96,7 @@ function ActionMenu(props: ActionMenuProps) {
   const { menuOptions, setVisible } = props;
   const handleClick: MenuProps['onClick'] = ({ key }) => {
     setVisible?.(false);
-    const menuItem = menuOptions[parseInt(key, 10)];
+    const menuItem = menuOptions[key];
     if (menuItem) {
       menuItem?.onClick?.(menuItem);
     }
@@ -127,7 +128,7 @@ export function ActionCell(props: ActionCellProps) {
   };
   return (
     <Dropdown
-      iconOrientation={IconOrientation.Horizontal}
+      iconOrientation={IconOrientation.HORIZONTAL}
       onVisibleChange={handleVisibleChange}
       trigger={['click']}
       overlay={

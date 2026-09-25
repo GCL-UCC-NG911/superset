@@ -24,7 +24,14 @@ export default function childChartsDidLoad({ chartQueries, layout, id }) {
   let minQueryStartTime = Infinity;
   const didLoad = chartIds.every(chartId => {
     const query = chartQueries[chartId] || {};
-    minQueryStartTime = Math.min(query.chartUpdateStartTime, minQueryStartTime);
+
+    // filterbox's don't re-render, don't use stale update time
+    if (query.form_data && query.form_data.viz_type !== 'filter_box') {
+      minQueryStartTime = Math.min(
+        query.chartUpdateStartTime,
+        minQueryStartTime,
+      );
+    }
     return ['stopped', 'failed', 'rendered'].indexOf(query.chartStatus) > -1;
   });
 

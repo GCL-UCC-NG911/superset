@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   DataMask,
   DataMaskStateWithId,

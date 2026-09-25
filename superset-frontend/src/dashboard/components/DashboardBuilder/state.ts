@@ -17,10 +17,12 @@
  * under the License.
  */
 import { useSelector } from 'react-redux';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FeatureFlag, isFeatureEnabled } from 'src/featureFlags';
+import { useCallback, useEffect, useState, useContext } from 'react';
 import { URL_PARAMS } from 'src/constants';
 import { getUrlParam } from 'src/utils/urlUtils';
 import { RootState } from 'src/dashboard/types';
+import { MigrationContext } from 'src/dashboard/containers/DashboardPage';
 import {
   useFilters,
   useNativeFiltersDataMask,
@@ -28,57 +30,63 @@ import {
 
 // eslint-disable-next-line import/prefer-default-export
 export const useNativeFilters = () => {
+  const filterboxMigrationState = useContext(MigrationContext);
   const [isInitialized, setIsInitialized] = useState(false);
   const showNativeFilters = useSelector<RootState, boolean>(
-    state => getUrlParam(URL_PARAMS.showFilters) ?? true,
+    state =>
+      (getUrlParam(URL_PARAMS.showFilters) ?? true) &&
+      state.dashboardInfo.metadata?.show_native_filters,
   );
   const canEdit = useSelector<RootState, boolean>(
     ({ dashboardInfo }) => dashboardInfo.dash_edit_perm,
   );
 
   const filters = useFilters();
-  const filterValues = useMemo(() => Object.values(filters), [filters]);
+  const filterValues = Object.values(filters);
   const expandFilters = getUrlParam(URL_PARAMS.expandFilters);
   const [dashboardFiltersOpen, setDashboardFiltersOpen] = useState(
     expandFilters ?? !!filterValues.length,
   );
 
   const nativeFiltersEnabled =
-    showNativeFilters && (canEdit || (!canEdit && filterValues.length !== 0));
+    showNativeFilters &&
+    isFeatureEnabled(FeatureFlag.DASHBOARD_NATIVE_FILTERS) &&
+    (canEdit || (!canEdit && filterValues.length !== 0));
 
-  const requiredFirstFilter = useMemo(
-    () => filterValues.filter(filter => filter.requiredFirst),
-    [filterValues],
+  const requiredFirstFilter = filterValues.filter(
+    filter => filter.requiredFirst,
   );
   const dataMask = useNativeFiltersDataMask();
-
-  const missingInitialFilters = useMemo(
-    () =>
-      requiredFirstFilter
-        .filter(({ id }) => dataMask[id]?.filterState?.value === undefined)
-        .map(({ name }) => name),
-    [requiredFirstFilter, dataMask],
-  );
-
   const showDashboard =
     isInitialized ||
     !nativeFiltersEnabled ||
-    missingInitialFilters.length === 0;
+    !(
+      nativeFiltersEnabled &&
+      requiredFirstFilter.length &&
+      requiredFirstFilter.find(
+        ({ id }) => dataMask[id]?.filterState?.value === undefined,
+      )
+    );
 
-  const toggleDashboardFiltersOpen = useCallback((visible?: boolean) => {
-    setDashboardFiltersOpen(prevState => visible ?? !prevState);
-  }, []);
+  const toggleDashboardFiltersOpen = useCallback(
+    (visible?: boolean) => {
+      setDashboardFiltersOpen(visible ?? !dashboardFiltersOpen);
+    },
+    [dashboardFiltersOpen],
+  );
 
   useEffect(() => {
     if (
       expandFilters === false ||
-      (filterValues.length === 0 && nativeFiltersEnabled)
+      (filterValues.length === 0 &&
+        nativeFiltersEnabled &&
+        ['CONVERTED', 'REVIEWING', 'NOOP'].includes(filterboxMigrationState))
     ) {
       toggleDashboardFiltersOpen(false);
     } else {
       toggleDashboardFiltersOpen(true);
     }
-  }, [filterValues.length]);
+  }, [filterValues.length, filterboxMigrationState]);
 
   useEffect(() => {
     if (showDashboard) {
@@ -88,7 +96,6 @@ export const useNativeFilters = () => {
 
   return {
     showDashboard,
-    missingInitialFilters,
     dashboardFiltersOpen,
     toggleDashboardFiltersOpen,
     nativeFiltersEnabled,

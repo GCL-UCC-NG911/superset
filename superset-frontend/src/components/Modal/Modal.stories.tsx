@@ -16,8 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import Modal, { ModalProps, ModalFuncProps } from '.';
+import { ModalFuncProps } from 'antd/lib/modal';
+import React from 'react';
+import Modal, { ModalProps } from '.';
 import Button from '../Button';
 
 export default {
@@ -37,12 +38,19 @@ InteractiveModal.args = {
   title: "I'm a modal!",
   resizable: false,
   draggable: false,
-  width: 500,
 };
 
 InteractiveModal.argTypes = {
   onHandledPrimaryAction: { action: 'onHandledPrimaryAction' },
   onHide: { action: 'onHide' },
+};
+
+InteractiveModal.story = {
+  parameters: {
+    knobs: {
+      disable: true,
+    },
+  },
 };
 
 export const ModalFunctions = (props: ModalFuncProps) => (
@@ -56,8 +64,4 @@ export const ModalFunctions = (props: ModalFuncProps) => (
 ModalFunctions.args = {
   title: 'Modal title',
   content: 'Modal content',
-  keyboard: true,
-  okText: 'Test',
-  maskClosable: true,
-  mask: true,
 };
